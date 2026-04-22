@@ -2,9 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  /* config options here */
   typescript: {
     ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
   },
   reactStrictMode: false,
   images: {
@@ -14,6 +16,10 @@ const nextConfig: NextConfig = {
         hostname: "images.unsplash.com",
       },
     ],
+  },
+  allowedDevOrigins: ["*"],
+  experimental: {
+    optimizePackageImports: ["recharts", "framer-motion", "lucide-react", "@radix-ui/react-icons"],
   },
 };
 

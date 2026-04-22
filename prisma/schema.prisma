@@ -1,0 +1,273 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== USERS & AUTH ====================
+
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  passwordHash      String?
+  name              String?
+  phone             String?
+  rut               String?   @unique
+  role              String    @default("investor")
+  kycStatus         String    @default("pending")
+  kycSubmittedAt    DateTime?
+  kycVerifiedAt     DateTime?
+  avatarUrl         String?
+  stripeCustomerId  String?
+  balance           Float     @default(0)
+  totalInvested     Float     @default(0)
+  totalEarnings     Float     @default(0)
+
+  investments       Investment[]
+  transactions      Transaction[]
+  dividendPayments  DividendPayment[]
+  kycDocuments      KYCDocument[]
+  notifications     Notification[]
+  liquidityRequests LiquidityRequest[]
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model KYCDocument {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documentType  String
+  documentUrl   String
+  status        String    @default("pending")
+  reviewedAt    DateTime?
+  reviewedBy    String?
+  notes         String?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// ==================== ASSETS ====================
+
+model Asset {
+  id                    String              @id @default(cuid())
+  name                  String
+  slug                  String              @unique
+  type                  String
+  status                String              @default("draft")
+
+  address               String
+  city                  String
+  region                String
+  country               String              @default("Chile")
+  latitude              Float?
+  longitude             Float?
+
+  totalValue            Float
+  pricePerFraction      Float
+  totalFractions        Int
+  availableFractions    Int
+  minimumInvestment     Float
+  fundedPercentage      Float               @default(0)
+
+  annualYield           Float
+  projectedAppreciation Float
+  totalProjectedReturn  Float
+
+  leaseStatus           String              @default("vacant")
+  leaseStart            DateTime?
+  leaseEnd              DateTime?
+  monthlyRent           Float?
+  tenantName            String?
+
+  totalArea             Float?
+  units                 Int?
+  constructionYear      Int?
+  landUse               String?
+
+  shortDescription      String
+  fullDescription       String
+  highlights            String
+
+  badge                 String?
+
+  operationalCosts      Float?
+  operationalCostsPct   Float?
+
+  images                AssetImage[]
+  documents             AssetDocument[]
+  cashFlowProjections   CashFlowProjection[]
+  investments           Investment[]
+
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+}
+
+model AssetImage {
+  id        String   @id @default(cuid())
+  assetId   String
+  asset     Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String?
+  sortOrder Int      @default(0)
+  isCover   Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+}
+
+model AssetDocument {
+  id           String   @id @default(cuid())
+  assetId      String
+  asset        Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  title        String
+  documentType String
+  fileUrl      String
+  fileSize     Int?
+
+  createdAt    DateTime @default(now())
+}
+
+model CashFlowProjection {
+  id                String   @id @default(cuid())
+  assetId           String
+  asset             Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  period            String
+  periodType        String   @default("yearly")
+  grossIncome       Float
+  operationalCost   Float
+  netIncome         Float
+  appreciation      Float?
+  totalReturn       Float?
+  cumulativeReturn  Float?
+
+  createdAt         DateTime @default(now())
+}
+
+// ==================== INVESTMENTS & TRANSACTIONS ====================
+
+model Investment {
+  id               String         @id @default(cuid())
+  userId           String
+  user             User           @relation(fields: [userId], references: [id])
+  assetId          String
+  asset            Asset          @relation(fields: [assetId], references: [id])
+
+  quantity         Int            @default(1)
+  pricePerUnit     Float
+  totalAmount      Float
+  status           String         @default("pending")
+
+  stripePaymentId  String?
+  completedAt      DateTime?
+
+  transactions     Transaction[]
+  dividendPayments DividendPayment[]
+
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model Transaction {
+  id                 String       @id @default(cuid())
+  userId             String
+  user               User         @relation(fields: [userId], references: [id])
+  investmentId       String?
+  investment         Investment?  @relation(fields: [investmentId], references: [id])
+
+  type               String
+  amount             Float
+  currency           String       @default("CLP")
+  status             String       @default("pending")
+
+  bookValue          Float?
+  salePrice          Float?
+  description        String?
+  metadata           String?
+
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+}
+
+// ==================== DIVIDENDS ====================
+
+model DividendPayment {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  investmentId    String
+  investment      Investment  @relation(fields: [investmentId], references: [id])
+  assetId         String
+  amount          Float
+  perFraction     Float
+  fractions       Int
+  periodStart     DateTime
+  periodEnd       DateTime
+  paymentDate     DateTime?
+  status          String      @default("pending")
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+// ==================== LIQUIDITY ENGINE ====================
+
+model LiquidityPool {
+  id                 String              @id @default(cuid())
+  totalReserve       Float               @default(0)
+  totalAssets        Int                 @default(0)
+  activeRequests     Int                 @default(0)
+  utilizationRate    Float               @default(0)
+  monthlyContribution Float?
+  autoReplenish      Boolean             @default(true)
+
+  requests           LiquidityRequest[]
+
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+}
+
+model LiquidityRequest {
+  id                   String         @id @default(cuid())
+  userId               String
+  user                 User           @relation(fields: [userId], references: [id])
+  poolId               String
+  pool                 LiquidityPool  @relation(fields: [poolId], references: [id])
+  investmentId         String
+
+  fractionCount        Int
+  bookValuePerFraction Float
+  totalAmount          Float
+  status               String         @default("pending")
+
+  expressFee           Float          @default(0)
+  netAmount            Float?
+  processingDays       Int            @default(3)
+
+  approvedAt           DateTime?
+  completedAt          DateTime?
+  rejectedReason       String?
+
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+}
+
+// ==================== NOTIFICATIONS ====================
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type      String
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  metadata  String?
+
+  createdAt DateTime @default(now())
+}

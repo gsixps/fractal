@@ -79,23 +79,24 @@ export function Navbar() {
   return (
     <header
       className={cn(
-        'sticky top-0 z-50 w-full transition-all duration-300',
+        'sticky top-0 z-50 w-full transition-all duration-300 ease-out',
         isScrolled
-          ? 'gsp-glass border-b shadow-sm'
-          : 'bg-background/80 backdrop-blur-sm'
+          ? 'gsp-glass border-b border-border/50 shadow-[0_1px_3px_oklch(0.45_0.155_162/0.06)]'
+          : 'bg-background/60 backdrop-blur-md'
       )}
     >
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <button
           onClick={() => navigate('home')}
-          className="flex items-center gap-2 transition-opacity hover:opacity-80 focus:outline-none"
+          className="flex items-center gap-2.5 transition-opacity duration-200 hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label="Ir al inicio"
         >
-          <div className="flex size-8 items-center justify-center rounded-lg gsp-gradient">
-            <span className="text-sm font-bold text-white">G</span>
+          <div className="flex size-8 items-center justify-center rounded-lg gsp-gradient shadow-[0_2px_8px_oklch(0.45_0.155_162/0.25)]">
+            <span className="text-sm font-bold text-white tracking-tight">G</span>
           </div>
-          <span className="text-xl font-bold tracking-tight">
-            <span className="gsp-gradient-text">GSP</span>
+          <span className="text-xl font-bold tracking-tight gsp-gradient-text">
+            GSP
           </span>
         </button>
 
@@ -110,8 +111,10 @@ export function Navbar() {
                 size="sm"
                 onClick={() => navigate(link.page)}
                 className={cn(
-                  'gap-2 font-medium transition-colors',
-                  isActive && 'bg-secondary text-secondary-foreground'
+                  'gap-2 font-medium transition-colors duration-200',
+                  isActive
+                    ? 'bg-secondary text-secondary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
                 )}
               >
                 {link.icon}
@@ -119,15 +122,16 @@ export function Navbar() {
               </Button>
             )
           })}
-          {/* Admin Link (demo) */}
+          {/* Admin Link */}
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate('admin')}
             className={cn(
-              'gap-2 font-medium text-muted-foreground transition-colors',
-              currentPage === 'admin' &&
-                'bg-secondary text-secondary-foreground'
+              'gap-2 font-medium transition-colors duration-200',
+              currentPage === 'admin'
+                ? 'bg-secondary text-secondary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             )}
           >
             <ShieldCheck className="size-4" />
@@ -136,21 +140,21 @@ export function Navbar() {
         </div>
 
         {/* Right Side Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {/* Notification Bell */}
           <Button
             variant="ghost"
             size="icon"
-            className="relative size-9"
+            className="relative size-9 transition-colors duration-200 hover:text-foreground"
             onClick={() => setNotificationCount(0)}
+            aria-label="Notificaciones"
           >
             <Bell className="size-[18px]" />
             {notificationCount > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white ring-2 ring-background">
-                {notificationCount}
+              <span className="absolute right-1.5 top-1.5 flex size-2 items-center justify-center rounded-full bg-emerald-500">
+                <span className="sr-only">{notificationCount} notificaciones</span>
               </span>
             )}
-            <span className="sr-only">Notificaciones</span>
           </Button>
 
           {/* User Dropdown */}
@@ -158,9 +162,9 @@ export function Navbar() {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="hidden gap-2 pl-1 pr-2 sm:flex"
+                className="hidden gap-2 pl-1.5 pr-2 sm:flex transition-colors duration-200 hover:bg-secondary"
               >
-                <Avatar className="size-7">
+                <Avatar className="size-7 ring-2 ring-primary/10">
                   <AvatarImage src={user?.avatarUrl} alt={user?.name} />
                   <AvatarFallback className="bg-primary text-[11px] font-semibold text-primary-foreground">
                     {user?.name ? getInitials(user.name) : 'US'}
@@ -179,12 +183,12 @@ export function Navbar() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1.5">
                   <p className="text-sm font-medium">{user?.name}</p>
                   <p className="text-xs text-muted-foreground">{user?.email}</p>
                   <Badge
                     variant="outline"
-                    className="mt-1 w-fit bg-primary/5 text-[10px] font-medium text-primary"
+                    className="mt-0.5 w-fit bg-primary/5 text-[10px] font-medium text-primary border-primary/15"
                   >
                     {user?.role === 'admin' ? 'Admin' : 'Inversionista'}
                   </Badge>
@@ -192,30 +196,26 @@ export function Navbar() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-                <DropdownMenuItem onClick={() => navigate('dashboard')}>
+                <DropdownMenuItem onClick={() => navigate('dashboard')} className="cursor-pointer">
                   <LayoutDashboard className="size-4" />
                   Mi Portafolio
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
                   <User className="size-4" />
                   Mi Perfil
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
                   <Settings className="size-4" />
                   Configuración
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => navigate('admin')}
-                variant="default"
-                className="gap-2 font-medium"
-              >
+              <DropdownMenuItem onClick={() => navigate('admin')} className="cursor-pointer">
                 <ShieldCheck className="size-4" />
-                Panel Admin (Demo)
+                Panel Admin
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive" className="text-destructive">
+              <DropdownMenuItem variant="destructive" className="text-destructive cursor-pointer">
                 <LogOut className="size-4" />
                 Cerrar Sesión
               </DropdownMenuItem>
@@ -225,9 +225,8 @@ export function Navbar() {
           {/* Mobile Menu */}
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
+              <Button variant="ghost" size="icon" className="md:hidden transition-colors duration-200" aria-label="Abrir menú">
                 <Menu className="size-5" />
-                <span className="sr-only">Menú</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-[300px] sm:w-[360px]">
@@ -236,21 +235,18 @@ export function Navbar() {
                   <div className="flex size-7 items-center justify-center rounded-md gsp-gradient">
                     <span className="text-xs font-bold text-white">G</span>
                   </div>
-                  <span className="gsp-gradient-text text-lg font-bold">
-                    GSP
-                  </span>
+                  <span className="gsp-gradient-text text-lg font-bold">GSP</span>
                 </SheetTitle>
-                <SheetDescription className="text-left">
+                <SheetDescription className="text-left text-muted-foreground">
                   Global Solidarity Partners
                 </SheetDescription>
               </SheetHeader>
 
-              <Separator className="my-2" />
+              <Separator className="my-3" />
 
-              {/* Mobile User Info */}
               {user && (
-                <div className="flex items-center gap-3 rounded-lg bg-secondary/50 p-3">
-                  <Avatar className="size-10">
+                <div className="flex items-center gap-3 rounded-xl bg-secondary/50 p-3">
+                  <Avatar className="size-10 ring-2 ring-primary/10">
                     <AvatarImage src={user.avatarUrl} alt={user.name} />
                     <AvatarFallback className="bg-primary text-sm font-semibold text-primary-foreground">
                       {getInitials(user.name)}
@@ -265,8 +261,8 @@ export function Navbar() {
                 </div>
               )}
 
-              <div className="flex flex-col gap-1 px-2 pt-2">
-                <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <div className="flex flex-col gap-1 px-2 pt-3">
+                <span className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
                   Navegación
                 </span>
                 {navLinks.map((link) => {
@@ -276,16 +272,18 @@ export function Navbar() {
                       <Button
                         variant={isActive ? 'secondary' : 'ghost'}
                         className={cn(
-                          'w-full justify-start gap-3 px-3 py-5',
-                          isActive && 'bg-primary/5 text-primary'
+                          'w-full justify-start gap-3 px-3 py-5 rounded-xl transition-colors duration-200 cursor-pointer',
+                          isActive
+                            ? 'bg-primary/8 text-primary font-medium'
+                            : 'text-muted-foreground hover:text-foreground'
                         )}
                         onClick={() => navigate(link.page)}
                       >
                         <span
                           className={cn(
-                            'flex size-8 items-center justify-center rounded-lg',
+                            'flex size-9 items-center justify-center rounded-lg transition-colors duration-200',
                             isActive
-                              ? 'bg-primary/10 text-primary'
+                              ? 'bg-primary/12 text-primary'
                               : 'bg-muted text-muted-foreground'
                           )}
                         >
@@ -299,23 +297,25 @@ export function Navbar() {
 
                 <Separator className="my-2" />
 
-                <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Admin (Demo)
+                <span className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  Administración
                 </span>
                 <SheetClose asChild>
                   <Button
                     variant={currentPage === 'admin' ? 'secondary' : 'ghost'}
                     className={cn(
-                      'w-full justify-start gap-3 px-3 py-5',
-                      currentPage === 'admin' && 'bg-primary/5 text-primary'
+                      'w-full justify-start gap-3 px-3 py-5 rounded-xl transition-colors duration-200 cursor-pointer',
+                      currentPage === 'admin'
+                        ? 'bg-primary/8 text-primary font-medium'
+                        : 'text-muted-foreground hover:text-foreground'
                     )}
                     onClick={() => navigate('admin')}
                   >
                     <span
                       className={cn(
-                        'flex size-8 items-center justify-center rounded-lg',
+                        'flex size-9 items-center justify-center rounded-lg transition-colors duration-200',
                         currentPage === 'admin'
-                          ? 'bg-primary/10 text-primary'
+                          ? 'bg-primary/12 text-primary'
                           : 'bg-muted text-muted-foreground'
                       )}
                     >

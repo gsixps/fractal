@@ -36,6 +36,12 @@ const typeLabels: Record<string, string> = {
   solar_energy: 'Energía Solar', mining: 'Minería',
 }
 
+const typeIcons: Record<string, React.ReactNode> = {
+  real_estate: <Building2 className="size-3.5" />, micro_datacenter: <FlaskConical className="size-3.5" />,
+  last_mile_logistics: <Truck className="size-3.5" />, solar_energy: <Sun className="size-3.5" />,
+  mining: <Pickaxe className="size-3.5" />,
+}
+
 function formatCurrency(v: number) {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v)
 }
@@ -66,22 +72,24 @@ export default function MarketplacePage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-gradient-to-b from-emerald-50/80 to-background">
+      <div className="border-b border-border/40 bg-gradient-to-b from-secondary/50 to-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Marketplace</h1>
-          <p className="mt-2 text-muted-foreground text-lg">Encuentra activos inmobiliarios para diversificar tu portafolio.</p>
+          <h1 className="gsp-serif text-3xl sm:text-4xl font-normal tracking-tight">Marketplace</h1>
+          <p className="mt-2 text-muted-foreground text-lg font-light">
+            Encuentra activos inmobiliarios para diversificar tu portafolio.
+          </p>
 
           <div className="mt-6 flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
               <Input placeholder="Buscar por nombre o ciudad..." value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 h-11" />
+                className="pl-10 h-11 bg-card/60 backdrop-blur-sm border-border/50" />
             </div>
             {/* Mobile filter button */}
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" className="sm:hidden gap-2 h-11">
+                <Button variant="outline" className="sm:hidden gap-2 h-11 border-border/50 cursor-pointer">
                   <SlidersHorizontal className="size-4" /> Filtros
                 </Button>
               </SheetTrigger>
@@ -91,7 +99,7 @@ export default function MarketplacePage() {
                   {TYPES.map(t => (
                     <Button key={t.key} variant={typeFilter === t.key ? 'default' : 'outline'}
                       size="sm" onClick={() => setTypeFilter(t.key)}
-                      className={typeFilter === t.key ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}>
+                      className={typeFilter === t.key ? 'bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer' : 'border-border/50 cursor-pointer'}>
                       {t.icon} {t.label}
                     </Button>
                   ))}
@@ -100,7 +108,7 @@ export default function MarketplacePage() {
                   {SORTS.map(s => (
                     <Button key={s.key} variant={sortBy === s.key ? 'default' : 'outline'} size="sm"
                       onClick={() => setSortBy(s.key)}
-                      className={sortBy === s.key ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : ''}>
+                      className={sortBy === s.key ? 'bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer' : 'border-border/50 cursor-pointer'}>
                       {s.label}
                     </Button>
                   ))}
@@ -110,21 +118,29 @@ export default function MarketplacePage() {
           </div>
 
           {/* Desktop filters */}
-          <div className="hidden sm:flex flex-wrap items-center gap-3 mt-5">
-            <span className="text-sm font-medium text-muted-foreground mr-1">Tipo:</span>
+          <div className="hidden sm:flex flex-wrap items-center gap-2.5 mt-5">
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mr-1">Tipo</span>
             {TYPES.map(t => (
               <Button key={t.key} variant={typeFilter === t.key ? 'default' : 'outline'} size="sm"
                 onClick={() => setTypeFilter(t.key)}
-                className={typeFilter === t.key ? 'bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5' : 'gap-1.5'}>
+                className={
+                  typeFilter === t.key
+                    ? 'bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shadow-sm cursor-pointer'
+                    : 'gap-1.5 text-muted-foreground border-border/50 hover:text-foreground cursor-pointer'
+                }>
                 {t.icon} {t.label}
               </Button>
             ))}
-            <div className="ml-auto flex items-center gap-2">
-              <ArrowUpDown className="size-4 text-muted-foreground" />
+            <div className="ml-auto flex items-center gap-1.5">
+              <ArrowUpDown className="size-3.5 text-muted-foreground" />
               {SORTS.map(s => (
                 <Button key={s.key} variant={sortBy === s.key ? 'default' : 'ghost'} size="sm"
                   onClick={() => setSortBy(s.key)}
-                  className={sortBy === s.key ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'text-muted-foreground'}>
+                  className={
+                    sortBy === s.key
+                      ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer'
+                      : 'text-muted-foreground hover:text-foreground text-xs cursor-pointer'
+                  }>
                   {s.label}
                 </Button>
               ))}
@@ -134,71 +150,80 @@ export default function MarketplacePage() {
       </div>
 
       {/* Results */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20">
         <div className="flex items-center justify-between mb-6">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground font-light">
             {`${sorted.length} activo${sorted.length !== 1 ? 's' : ''} encontrado${sorted.length !== 1 ? 's' : ''}`}
           </p>
         </div>
 
         {sorted.length === 0 ? (
           <div className="text-center py-20">
-            <Search className="size-12 text-muted-foreground mx-auto mb-4" />
+            <Search className="size-12 text-muted-foreground/40 mx-auto mb-4" />
             <h3 className="text-lg font-semibold">No se encontraron activos</h3>
-            <p className="text-muted-foreground mt-1">Intenta ajustar los filtros de búsqueda.</p>
+            <p className="text-muted-foreground mt-1 font-light">Intenta ajustar los filtros de búsqueda.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {sorted.map((asset) => (
-              <Card key={asset.id} className="overflow-hidden gsp-card-hover border-border/60 group cursor-pointer h-full"
-                onClick={() => selectAsset(asset.id)}>
+              <Card key={asset.id}
+                className="overflow-hidden gsp-card-hover border-border/40 group h-full flex flex-col"
+                onClick={() => selectAsset(asset.id)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === 'Enter' && selectAsset(asset.id)}
+              >
                 <div className="relative h-48 overflow-hidden bg-muted">
                   {asset.images?.[0]?.url ? (
                     <img src={asset.images[0].url} alt={asset.name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                      className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" loading="lazy" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground/40">
                       <Building2 className="size-12" />
                     </div>
                   )}
-                  <div className="absolute top-3 left-3 flex gap-2">
-                    <Badge className="bg-emerald-600/90 text-white backdrop-blur-sm border-0">
-                      {typeLabels[asset.type] || asset.type}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute top-3 left-3 flex gap-1.5">
+                    <Badge className="bg-white/90 text-emerald-800 backdrop-blur-md border-0 gap-1 font-medium shadow-sm">
+                      {typeIcons[asset.type]} {typeLabels[asset.type] || asset.type}
                     </Badge>
                     {asset.badge && (
-                      <Badge className="bg-white/90 text-amber-700 backdrop-blur-sm border-0 font-medium">{asset.badge}</Badge>
+                      <Badge className="bg-amber-100/90 text-amber-800 backdrop-blur-md border-0 font-medium shadow-sm">
+                        {asset.badge}
+                      </Badge>
                     )}
                   </div>
                   <div className="absolute top-3 right-3">
-                    <Badge className="bg-white/90 text-emerald-700 backdrop-blur-sm border-0 font-bold">{asset.annualYield}%</Badge>
+                    <Badge className="bg-primary/90 text-primary-foreground backdrop-blur-md border-0 font-bold shadow-sm">
+                      {asset.annualYield}%
+                    </Badge>
                   </div>
                 </div>
                 <CardContent className="p-5 flex flex-col gap-3 flex-1">
                   <div>
-                    <h3 className="font-semibold text-base leading-tight line-clamp-1">{asset.name}</h3>
+                    <h3 className="font-semibold text-base leading-snug line-clamp-1">{asset.name}</h3>
                     <div className="flex items-center gap-1.5 mt-1 text-sm text-muted-foreground">
                       <MapPin className="size-3.5 text-emerald-500" /> {asset.city}, {asset.region}
                     </div>
                   </div>
 
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Financiamiento</span>
-                      <span className="font-medium text-emerald-600">{asset.fundedPercentage}%</span>
+                      <span className="text-muted-foreground font-light">Financiamiento</span>
+                      <span className="font-medium text-primary">{asset.fundedPercentage}%</span>
                     </div>
-                    <div className="h-2 rounded-full bg-emerald-100 overflow-hidden">
-                      <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400"
-                        style={{ width: `${Math.min(asset.fundedPercentage, 100)}%` }} />
+                    <div className="gsp-progress-bar">
+                      <div className="gsp-progress-bar-fill" style={{ width: `${Math.min(asset.fundedPercentage, 100)}%` }} />
                     </div>
                   </div>
 
                   <div className="flex items-end justify-between mt-auto pt-1">
                     <div>
-                      <p className="text-xs text-muted-foreground">Desde</p>
-                      <p className="text-lg font-bold">{formatCurrency(asset.pricePerFraction)}</p>
+                      <p className="text-xs text-muted-foreground font-light">Desde</p>
+                      <p className="text-lg font-bold tracking-tight">{formatCurrency(asset.pricePerFraction)}</p>
                     </div>
                     <div className="text-right text-xs text-muted-foreground">
-                      <p>Retorno total</p>
+                      <p className="font-light">Retorno total</p>
                       <p className="text-sm font-semibold text-foreground">{asset.totalProjectedReturn}% anual</p>
                     </div>
                   </div>

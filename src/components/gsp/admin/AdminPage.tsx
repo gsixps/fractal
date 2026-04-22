@@ -250,16 +250,16 @@ const emptyUserForm: UserFormState = {
 // ─── Status Badge Components ─────────────────────────────────────────────────
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, string> = {
-    active: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
-    draft: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
-    paused: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800',
-    pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800',
-    completed: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
-    cancelled: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800',
-    processing: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800',
-    verified: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
-    submitted: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800',
-    rejected: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800',
+    active: 'bg-emerald-50 text-emerald-700 border-emerald-200/60 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800/40',
+    draft: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200/60 dark:border-yellow-800/40',
+    paused: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200/60 dark:border-orange-800/40',
+    pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200/60 dark:border-yellow-800/40',
+    completed: 'bg-emerald-50 text-emerald-700 border-emerald-200/60 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800/40',
+    cancelled: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200/60 dark:border-red-800/40',
+    processing: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200/60 dark:border-blue-800/40',
+    verified: 'bg-emerald-50 text-emerald-700 border-emerald-200/60 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800/40',
+    submitted: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200/60 dark:border-blue-800/40',
+    rejected: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200/60 dark:border-red-800/40',
   }
   const label: Record<string, string> = {
     active: 'Activo', draft: 'Borrador', paused: 'Pausado',
@@ -268,7 +268,7 @@ function StatusBadge({ status }: { status: string }) {
     rejected: 'Rechazado',
   }
   return (
-    <Badge variant="outline" className={config[status] || 'bg-gray-100 text-gray-800'}>
+    <Badge variant="outline" className={config[status] || 'bg-secondary text-muted-foreground border-border/50'}>
       {label[status] || status}
     </Badge>
   )
@@ -282,7 +282,7 @@ function KpiCard({
   icon: React.ElementType; trend?: { value: string; positive: boolean }
 }) {
   return (
-    <Card className="relative overflow-hidden">
+    <Card className="relative overflow-hidden border-border/40 gsp-card-hover">
       <CardContent className="p-4 sm:p-6">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
@@ -290,7 +290,7 @@ function KpiCard({
             <p className="text-2xl font-bold tracking-tight">{value}</p>
             <div className="flex items-center gap-1.5">
               {trend && (
-                <span className={`flex items-center gap-0.5 text-xs font-medium ${trend.positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                <span className={`flex items-center gap-0.5 text-xs font-medium ${trend.positive ? 'text-primary' : 'text-red-600 dark:text-red-400'}`}>
                   {trend.positive ? <ArrowUpRight className="size-3" /> : <XCircle className="size-3" />}
                   {trend.value}
                 </span>
@@ -298,8 +298,8 @@ function KpiCard({
               <span className="text-xs text-muted-foreground">{subtitle}</span>
             </div>
           </div>
-          <div className="rounded-xl bg-emerald-100 p-2.5 dark:bg-emerald-900/30">
-            <Icon className="size-5 text-emerald-600 dark:text-emerald-400" />
+          <div className="rounded-xl bg-primary/8 p-2.5 text-primary">
+            <Icon className="size-5" />
           </div>
         </div>
       </CardContent>
@@ -353,11 +353,11 @@ function SidebarNav({
             onClick={() => setActiveTab(item.id)}
             className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
               isActive
-                ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-100'
+                ? 'bg-primary/8 text-primary font-medium'
                 : 'text-muted-foreground hover:bg-muted hover:text-foreground'
             }`}
           >
-            <Icon className={`size-4 ${isActive ? 'text-emerald-600 dark:text-emerald-400' : ''}`} />
+            <Icon className={`size-4 ${isActive ? 'text-primary' : ''}`} />
             {item.label}
           </button>
         )
@@ -427,7 +427,7 @@ function PanelGeneralView() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Panel General</h2>
+          <h2 className="gsp-serif text-2xl font-normal tracking-tight">Panel General</h2>
           <p className="text-muted-foreground">Resumen general de la plataforma GSP</p>
         </div>
         <Button variant="outline" size="sm" onClick={fetchStats}>
@@ -472,7 +472,7 @@ function PanelGeneralView() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <BarChart3 className="size-4 text-emerald-600" />
+              <BarChart3 className="size-4 text-primary" />
               Distribución de Activos
             </CardTitle>
             <CardDescription>Por tipo de propiedad</CardDescription>
@@ -490,7 +490,7 @@ function PanelGeneralView() {
                     </div>
                     <div className="relative h-6 w-full overflow-hidden rounded-md bg-muted">
                       <div
-                        className="flex h-full items-center rounded-md bg-emerald-500 px-2 transition-all"
+                        className="flex h-full items-center rounded-md gsp-gradient px-2 transition-all"
                         style={{ width: `${Math.max((d.count / maxDistCount) * 100, 8)}%` }}
                       >
                         <span className="text-xs font-semibold text-white">{d.count}</span>
@@ -507,7 +507,7 @@ function PanelGeneralView() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Activity className="size-4 text-emerald-600" />
+              <Activity className="size-4 text-primary" />
               Estado KYC de Usuarios
             </CardTitle>
             <CardDescription>Verificación de identidad</CardDescription>
@@ -516,16 +516,16 @@ function PanelGeneralView() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="rounded-full bg-emerald-100 p-1.5 dark:bg-emerald-900/30">
-                    <CheckCircle2 className="size-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <div className="rounded-full bg-primary/8 p-1.5">
+                    <CheckCircle2 className="size-3.5 text-primary" />
                   </div>
                   <span className="text-sm font-medium">Verificados</span>
                 </div>
-                <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{stats.overview.verifiedUsers}</span>
+                <span className="text-lg font-bold text-primary">{stats.overview.verifiedUsers}</span>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="rounded-full bg-yellow-100 p-1.5 dark:bg-yellow-900/30">
+                  <div className="rounded-full bg-amber-50 p-1.5">
                     <Clock className="size-3.5 text-yellow-600 dark:text-yellow-400" />
                   </div>
                   <span className="text-sm font-medium">Pendientes</span>
@@ -534,7 +534,7 @@ function PanelGeneralView() {
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="rounded-full bg-red-100 p-1.5 dark:bg-red-900/30">
+                  <div className="rounded-full bg-red-50 p-1.5">
                     <XCircle className="size-3.5 text-red-600 dark:text-red-400" />
                   </div>
                   <span className="text-sm font-medium">Rechazados</span>
@@ -561,7 +561,7 @@ function PanelGeneralView() {
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-base">
-            <TrendingUp className="size-4 text-emerald-600" />
+            <TrendingUp className="size-4 text-primary" />
             Resumen de Inversiones
           </CardTitle>
           <CardDescription>Rendimiento promedio de activos</CardDescription>
@@ -570,7 +570,7 @@ function PanelGeneralView() {
           <div className="grid gap-6 sm:grid-cols-3">
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">Rendimiento Promedio</p>
-              <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{stats.assets.avgYield}%</p>
+              <p className="text-3xl font-bold text-primary">{stats.assets.avgYield}%</p>
               <p className="text-xs text-muted-foreground">yield anual promedio</p>
             </div>
             <div className="space-y-2">
@@ -743,10 +743,10 @@ function ActivosView() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Activos</h2>
+          <h2 className="gsp-serif text-2xl font-normal tracking-tight">Activos</h2>
           <p className="text-muted-foreground">Gestiona los activos inmobiliarios de la plataforma</p>
         </div>
-        <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={openCreate}>
+        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer" onClick={openCreate}>
           <Plus className="mr-2 size-4" /> Nuevo Activo
         </Button>
       </div>
@@ -815,8 +815,8 @@ function ActivosView() {
                         <TableCell><StatusBadge status={asset.status} /></TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
-                            <Button variant="ghost" size="icon" className="size-8" onClick={() => openEdit(asset)}><Pencil className="size-4" /></Button>
-                            <Button variant="ghost" size="icon" className="size-8 text-red-500 hover:text-red-600" onClick={() => setDeleteTarget(asset)}><Trash2 className="size-4" /></Button>
+                            <Button variant="ghost" size="icon" className="size-8 cursor-pointer" onClick={() => openEdit(asset)}><Pencil className="size-4" /></Button>
+                            <Button variant="ghost" size="icon" className="size-8 text-red-500 hover:text-red-600 cursor-pointer" onClick={() => setDeleteTarget(asset)}><Trash2 className="size-4" /></Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -951,7 +951,7 @@ function ActivosView() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setFormOpen(false)}>Cancelar</Button>
-            <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={handleSubmit} disabled={submitting}>
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer" onClick={handleSubmit} disabled={submitting}>
               {submitting && <Loader2 className="mr-2 size-4 animate-spin" />}
               {editingAsset ? 'Guardar Cambios' : 'Crear Activo'}
             </Button>
@@ -1807,7 +1807,7 @@ export default function AdminPage() {
         <aside className="hidden lg:block w-64 shrink-0 border-r bg-card">
           <div className="sticky top-0 h-screen overflow-y-auto">
             <div className="p-4">
-              <h1 className="text-lg font-bold text-emerald-700 dark:text-emerald-400">GSP Admin</h1>
+              <h1 className="gsp-serif text-2xl font-normal text-primary">GSP Admin</h1>
               <p className="text-xs text-muted-foreground">Superadmin Panel</p>
             </div>
             <Separator />

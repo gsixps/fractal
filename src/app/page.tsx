@@ -1,14 +1,25 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, lazy, Suspense } from 'react'
 import { useAppStore } from '@/lib/store'
 import { Navbar } from '@/components/gsp/layout/Navbar'
 import { Footer } from '@/components/gsp/layout/Footer'
-import HomePage from '@/components/gsp/home/HomePage'
-import MarketplacePage from '@/components/gsp/marketplace/MarketplacePage'
-import AssetDetailPage from '@/components/gsp/asset/AssetDetailPage'
-import DashboardPage from '@/components/gsp/dashboard/DashboardPage'
-import AdminPage from '@/components/gsp/admin/AdminPage'
+import { Loader2 } from 'lucide-react'
+
+// Lazy load page components to reduce initial compilation memory
+const HomePage = lazy(() => import('@/components/gsp/home/HomePage'))
+const MarketplacePage = lazy(() => import('@/components/gsp/marketplace/MarketplacePage'))
+const AssetDetailPage = lazy(() => import('@/components/gsp/asset/AssetDetailPage'))
+const DashboardPage = lazy(() => import('@/components/gsp/dashboard/DashboardPage'))
+const AdminPage = lazy(() => import('@/components/gsp/admin/AdminPage'))
+
+function PageLoader() {
+  return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <Loader2 className="size-8 animate-spin text-emerald-600" />
+    </div>
+  )
+}
 
 export default function App() {
   const currentPage = useAppStore((s) => s.currentPage)
@@ -41,7 +52,11 @@ export default function App() {
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
-      <main className="flex-1">{renderPage()}</main>
+      <main className="flex-1">
+        <Suspense fallback={<PageLoader />}>
+          {renderPage()}
+        </Suspense>
+      </main>
       <Footer />
     </div>
   )

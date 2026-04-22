@@ -19,7 +19,6 @@ import {
   Shield,
   Clock,
   AlertTriangle,
-  Loader2,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -30,7 +29,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
 import { Slider } from '@/components/ui/slider'
-import { Skeleton } from '@/components/ui/skeleton'
+
 import {
   Tooltip,
   TooltipContent,
@@ -270,10 +269,7 @@ function StatusBadge({ status }: { status: string }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function AssetDetailPage() {
-  const { selectedAssetId, navigate } = useAppStore()
-  const [asset, setAsset] = useState<AssetData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { selectedAssetId, getAssetById, navigate } = useAppStore()
   const [quantity, setQuantity] = useState(1)
 
   // Navigate if no asset selected
@@ -283,57 +279,19 @@ export default function AssetDetailPage() {
     }
   }, [selectedAssetId, navigate])
 
-  // Fetch asset data
-  useEffect(() => {
-    if (!selectedAssetId) return
+  // Get asset from store
+  const asset = selectedAssetId ? getAssetById(selectedAssetId) : undefined
 
-    let cancelled = false
-
-    async function fetchAsset() {
-      setLoading(true)
-      setError(null)
-      try {
-        const res = await fetch(`/api/assets/${selectedAssetId}`)
-        if (!res.ok) {
-          if (res.status === 404) {
-            setError('El activo solicitado no fue encontrado.')
-          } else {
-            setError('Ocurrió un error al cargar los datos del activo.')
-          }
-          return
-        }
-        const data = await res.json()
-        if (!cancelled) {
-          setAsset(data)
-        }
-      } catch {
-        if (!cancelled) {
-          setError('Error de conexión. Por favor, intenta nuevamente.')
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false)
-        }
-      }
-    }
-
-    fetchAsset()
-
-    return () => {
-      cancelled = true
-    }
-  }, [selectedAssetId])
-
-  // Loading state
-  if (loading || !selectedAssetId) {
-    return <AssetDetailSkeleton />
+  // Early return if navigating
+  if (!selectedAssetId) {
+    return null
   }
 
   // Error state
-  if (error || !asset) {
+  if (!asset) {
     return (
       <ErrorState
-        message={error || 'No se pudo cargar el activo.'}
+        message='No se pudo encontrar el activo solicitado.'
         onBack={() => navigate('marketplace')}
       />
     )

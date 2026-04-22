@@ -1,19 +1,19 @@
 'use client'
 
 import { motion, useInView } from 'framer-motion'
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState } from 'react'
 import {
   ArrowRight, Building2, CheckCircle2, Clock, DollarSign,
   FlaskConical, HandCoins, Layers, Lock, Mail, Pickaxe,
   Search, Shield, ShieldCheck, Sun, Truck, UserCheck, Wallet,
   Zap, TrendingUp, ChevronRight, BadgePercent, Landmark, Eye,
-  FileCheck2, MapPin, Loader2,
+  FileCheck2, MapPin,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
+
 import { useAppStore } from '@/lib/store'
 
 const fadeUp = {
@@ -184,15 +184,7 @@ function AssetTypesSection() {
 function FeaturedAssetsSection() {
   const navigate = useAppStore((s) => s.navigate)
   const selectAsset = useAppStore((s) => s.selectAsset)
-  const [assets, setAssets] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetch('/api/assets?status=active')
-      .then(r => r.json())
-      .then(data => { setAssets(data.slice(0, 3)); setLoading(false) })
-      .catch(() => setLoading(false))
-  }, [])
+  const assets = useAppStore((s) => s.assets.filter(a => a.status === 'active')).slice(0, 3)
 
   return (
     <AnimatedSection className="py-20 px-4 sm:px-6 lg:px-8">
@@ -203,14 +195,7 @@ function FeaturedAssetsSection() {
           <p className="mt-3 text-muted-foreground max-w-2xl mx-auto text-lg">Descubre activos con retornos atractivos y transparencia total.</p>
         </motion.div>
 
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map(i => (
-              <Card key={i} className="overflow-hidden"><Skeleton className="h-48 w-full" /><CardContent className="p-5 space-y-3"><Skeleton className="h-5 w-3/4" /><Skeleton className="h-4 w-1/2" /><Skeleton className="h-8 w-full" /></CardContent></Card>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {assets.map((asset, i) => (
               <motion.div key={asset.id} custom={i + 1} variants={fadeUp}>
                 <Card className="overflow-hidden gsp-card-hover border-border/60 group cursor-pointer h-full">
@@ -258,7 +243,6 @@ function FeaturedAssetsSection() {
               </motion.div>
             ))}
           </div>
-        )}
 
         <motion.div custom={5} variants={fadeUp} className="text-center mt-10">
           <Button variant="outline" size="lg" onClick={() => navigate('marketplace')}

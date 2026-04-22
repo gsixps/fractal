@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Skeleton } from '@/components/ui/skeleton'
+
 import { useAppStore } from '@/lib/store'
 import {
   Search, Building2, FlaskConical, Truck, Sun, Pickaxe,
@@ -42,37 +42,26 @@ function formatCurrency(v: number) {
 
 export default function MarketplacePage() {
   const selectAsset = useAppStore((s) => s.selectAsset)
-  const [assets, setAssets] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const storeAssets = useAppStore((s) => s.assets)
   const [typeFilter, setTypeFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState('yield')
 
-  useEffect(() => {
-    let cancelled = false
-    const params = new URLSearchParams()
-    if (typeFilter !== 'all') params.set('type', typeFilter)
-    if (search) params.set('search', search)
-    params.set('status', 'active')
-
-    fetch(`/api/assets?${params.toString()}`)
-      .then(r => r.json())
-      .then(data => { if (!cancelled) { setAssets(Array.isArray(data) ? data : []); setLoading(false) } })
-      .catch(() => { if (!cancelled) { setAssets([]); setLoading(false) } })
-
-    return () => { cancelled = true; setLoading(true) }
-  }, [typeFilter, search])
-
   const sorted = useMemo(() => {
-    const arr = [...assets]
+    let arr = storeAssets.filter(a => a.status === 'active')
+    if (typeFilter !== 'all') arr = arr.filter(a => a.type === typeFilter)
+    if (search) {
+      const q = search.toLowerCase()
+      arr = arr.filter(a => a.name.toLowerCase().includes(q) || a.city.toLowerCase().includes(q))
+    }
     switch (sortBy) {
-      case 'yield': return arr.sort((a, b) => b.annualYield - a.annualYield)
-      case 'price-asc': return arr.sort((a, b) => a.pricePerFraction - b.pricePerFraction)
-      case 'price-desc': return arr.sort((a, b) => b.pricePerFraction - a.pricePerFraction)
-      case 'funded': return arr.sort((a, b) => b.fundedPercentage - a.fundedPercentage)
+      case 'yield': return [...arr].sort((a, b) => b.annualYield - a.annualYield)
+      case 'price-asc': return [...arr].sort((a, b) => a.pricePerFraction - b.pricePerFraction)
+      case 'price-desc': return [...arr].sort((a, b) => b.pricePerFraction - a.pricePerFraction)
+      case 'funded': return [...arr].sort((a, b) => b.fundedPercentage - a.fundedPercentage)
       default: return arr
     }
-  }, [assets, sortBy])
+  }, [storeAssets, typeFilter, search, sortBy])
 
   return (
     <div className="min-h-screen bg-background">
@@ -148,25 +137,11 @@ export default function MarketplacePage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         <div className="flex items-center justify-between mb-6">
           <p className="text-sm text-muted-foreground">
-            {loading ? 'Cargando...' : `${sorted.length} activo${sorted.length !== 1 ? 's' : ''} encontrado${sorted.length !== 1 ? 's' : ''}`}
+            {`${sorted.length} activo${sorted.length !== 1 ? 's' : ''} encontrado${sorted.length !== 1 ? 's' : ''}`}
           </p>
         </div>
 
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map(i => (
-              <Card key={i} className="overflow-hidden">
-                <Skeleton className="h-48 w-full" />
-                <CardContent className="p-5 space-y-3">
-                  <Skeleton className="h-5 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                  <Skeleton className="h-8 w-full" />
-                  <Skeleton className="h-10 w-1/3" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : sorted.length === 0 ? (
+        {sorted.length === 0 ? (
           <div className="text-center py-20">
             <Search className="size-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold">No se encontraron activos</h3>

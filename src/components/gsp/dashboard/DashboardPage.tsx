@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import {
   Wallet,
   TrendingUp,
@@ -12,7 +11,6 @@ import {
   Clock,
   Zap,
   Droplets,
-  AlertTriangle,
   ChevronRight,
   Activity,
   Eye,
@@ -39,7 +37,6 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
-import { Skeleton } from '@/components/ui/skeleton'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -180,31 +177,6 @@ function formatAssetType(type: string): string {
     mixed_use: 'Uso Mixto',
   }
   return map[type] || type
-}
-
-// ─── Loading Skeleton ─────────────────────────────────────────────────────────
-
-function DashboardSkeleton() {
-  return (
-    <div className="min-h-screen bg-background">
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mb-6 space-y-1">
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-4 w-96" />
-        </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-8">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-32 rounded-xl" />
-          ))}
-        </div>
-        <Skeleton className="mb-8 h-48 rounded-xl" />
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-8">
-          <Skeleton className="h-96 rounded-xl" />
-          <Skeleton className="h-96 rounded-xl" />
-        </div>
-      </main>
-    </div>
-  )
 }
 
 // ─── Sub-Components ───────────────────────────────────────────────────────────
@@ -416,71 +388,7 @@ function TransactionStatusBadge({ status }: { status: string }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const { navigate, selectAsset } = useAppStore()
-  const [data, setData] = useState<DashboardData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function fetchDashboard() {
-      setLoading(true)
-      setError(null)
-      try {
-        const res = await fetch('/api/dashboard')
-        if (!res.ok) {
-          setError('No se pudo cargar el panel de inversiones.')
-          return
-        }
-        const json = await res.json()
-        if (!cancelled) {
-          setData(json)
-        }
-      } catch {
-        if (!cancelled) {
-          setError('Error de conexión. Por favor, intenta nuevamente.')
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false)
-        }
-      }
-    }
-
-    fetchDashboard()
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  // Loading
-  if (loading) {
-    return <DashboardSkeleton />
-  }
-
-  // Error
-  if (error || !data) {
-    return (
-      <div className="min-h-screen bg-background">
-        <main className="mx-auto max-w-7xl px-4 py-16 md:px-6">
-          <Card className="mx-auto max-w-md">
-            <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-red-100 dark:bg-red-950">
-                <AlertTriangle className="h-7 w-7 text-red-600 dark:text-red-400" />
-              </div>
-              <h2 className="text-xl font-semibold">Error al cargar</h2>
-              <p className="text-sm text-muted-foreground">{error || 'Datos no disponibles.'}</p>
-              <Button variant="outline" onClick={() => window.location.reload()}>
-                Reintentar
-              </Button>
-            </CardContent>
-          </Card>
-        </main>
-      </div>
-    )
-  }
+  const { navigate, selectAsset, dashboardData: data } = useAppStore()
 
   const user = data.user
   const portfolioValue = (user?.totalInvested || 0) + data.totalDividends

@@ -140,3 +140,35 @@ Stage Summary:
 - All CRUD APIs verified working (GET, POST confirmed)
 - Application renders correctly at / route
 - Admin panel provides full editing capability for all entities
+
+---
+Task ID: 2-a
+Agent: main
+Task: Rewrite Zustand store with embedded seed data
+
+Work Log:
+- Read current store.ts and seed.ts
+- Embedded all 6 assets from seed data
+- Added dashboard data, investments, dividends, transactions
+- Added helper functions for data access
+
+Stage Summary:
+- Store now includes all data needed for frontend pages
+- No API calls needed for viewing (homepage, marketplace, asset detail, dashboard)
+- Only admin CRUD operations need API calls
+---
+Task ID: 2-b
+Agent: main
+Task: Update frontend pages to use store data instead of API calls
+
+Work Log:
+- Updated HomePage.tsx FeaturedAssetsSection to use store
+- Updated MarketplacePage.tsx to use store with client-side filtering
+- Updated AssetDetailPage.tsx to use store
+- Updated DashboardPage.tsx to use store
+
+Stage Summary:
+- All 4 viewing pages now use Zustand store data directly
+- No API calls needed for normal viewing (homepage, marketplace, asset detail, dashboard)
+- Only Admin panel uses API routes for CRUD operations
+- Memory usage significantly reduced - no route compilation needed for viewing

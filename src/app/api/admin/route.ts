@@ -37,7 +37,7 @@ export async function GET() {
       stats: {
         totalAssets,
         totalUsers,
-        totalInvested: totalInvested._sum.amount || 0,
+        totalInvested: totalInvested._sum.totalAmount || 0,
         totalDividends: totalDividends._sum.amount || 0,
       },
       assets,

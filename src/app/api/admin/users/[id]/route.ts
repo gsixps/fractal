@@ -14,7 +14,6 @@ export async function GET(
       select: {
         id: true,
         email: true,
-        passwordHash: true,
         name: true,
         phone: true,
         rut: true,
@@ -23,7 +22,6 @@ export async function GET(
         kycSubmittedAt: true,
         kycVerifiedAt: true,
         avatarUrl: true,
-        stripeCustomerId: true,
         balance: true,
         totalInvested: true,
         totalEarnings: true,

@@ -156,6 +156,7 @@ export function getStatusLabel(status: string): string {
 
 /**
  * Format a large number into a compact readable format.
+ * Uses the CLP base currency format.
  *
  * @example formatCompact(15000000) → "$15M"
  * @example formatCompact(2500000) → "$2,5M"

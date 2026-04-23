@@ -1,8 +1,10 @@
 'use client'
 
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
+import { useTranslation, type Locale } from '@/lib/i18n'
 
 export type Page =
+  | 'login'
   | 'home'
   | 'marketplace'
   | 'asset-detail'
@@ -224,6 +226,10 @@ export function useAppStore<T>(selector?: (state: AppState) => T): T | AppState 
   return selector ? selector(ctx) : ctx
 }
 
+// ─── Re-export i18n types and hook ──────────────────────────────────────────
+
+export { useTranslation, type Locale } from '@/lib/i18n'
+
 // ─── Provider ────────────────────────────────────────────────────────────────
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -235,13 +241,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<'es' | 'en'>('es')
   const [currency, setCurrencyState] = useState<string>('CLP')
 
-  const [user, setUser] = useState<AppState['user']>({
-    id: 'usr_superadmin_001',
-    name: 'GSP Superadmin',
-    email: 'admin@gsp.cl',
-    role: 'superadmin',
-    kycStatus: 'verified',
-  })
+  const [user, setUser] = useState<AppState['user']>(null)
 
   const setTheme = useCallback((t: 'light' | 'dark') => {
     setThemeState(t)
@@ -250,9 +250,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  const { setLocale } = useTranslation()
+
   const setLanguage = useCallback((l: 'es' | 'en') => {
     setLanguageState(l)
-  }, [])
+    setLocale(l as Locale)
+  }, [setLocale])
 
   const setCurrency = useCallback((c: string) => {
     setCurrencyState(c)

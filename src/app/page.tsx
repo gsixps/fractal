@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import { Toaster } from '@/components/ui/toaster'
 import { Loader2 } from 'lucide-react'
 import { AppProvider } from '@/lib/store'
+import { I18nProvider } from '@/lib/i18n'
 
 function PageLoader() {
   return (
@@ -23,11 +24,13 @@ const AppContent = dynamic(
 
 export default function App() {
   return (
+    <I18nProvider defaultLocale='es'>
     <AppProvider>
       <div className="flex min-h-screen flex-col">
         <AppContent />
         <Toaster />
       </div>
     </AppProvider>
+    </I18nProvider>
   )
 }

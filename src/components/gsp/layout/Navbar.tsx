@@ -1,7 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { signOut } from 'next-auth/react'
 import { useAppStore, type Page } from '@/lib/store'
+import { useT } from '@/lib/i18n-utils'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -44,18 +46,19 @@ import {
 } from 'lucide-react'
 
 interface NavLink {
-  label: string
+  labelKey: string
   page: Page
   icon: React.ReactNode
 }
 
 const navLinks: NavLink[] = [
-  { label: 'Inicio', page: 'home', icon: <Home className="size-4" /> },
-  { label: 'Marketplace', page: 'marketplace', icon: <Store className="size-4" /> },
-  { label: 'Mi Portafolio', page: 'dashboard', icon: <PieChart className="size-4" /> },
+  { labelKey: 'nav.home', page: 'home', icon: <Home className="size-4" /> },
+  { labelKey: 'nav.marketplace', page: 'marketplace', icon: <Store className="size-4" /> },
+  { labelKey: 'nav.portfolio', page: 'dashboard', icon: <PieChart className="size-4" /> },
 ]
 
 export function Navbar() {
+  const t = useT()
   const navigate = useAppStore((s) => s.navigate)
   const currentPage = useAppStore((s) => s.currentPage)
   const user = useAppStore((s) => s.user)
@@ -100,7 +103,7 @@ export function Navbar() {
         <button
           onClick={() => navigate('home')}
           className="flex items-center gap-2.5 transition-opacity duration-200 hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          aria-label="Ir al inicio"
+          aria-label={t('nav.home')}
         >
           <div className="flex size-8 items-center justify-center rounded-lg gsp-gradient shadow-[0_2px_8px_oklch(0.45_0.155_162/0.25)]">
             <span className="text-sm font-bold text-white tracking-tight">G</span>
@@ -128,7 +131,7 @@ export function Navbar() {
                 )}
               >
                 {link.icon}
-                {link.label}
+                {t(link.labelKey)}
               </Button>
             )
           })}
@@ -145,7 +148,7 @@ export function Navbar() {
             )}
           >
             <ShieldCheck className="size-4" />
-            Admin
+            {t('nav.admin')}
           </Button>
         </div>
 
@@ -227,12 +230,12 @@ export function Navbar() {
             size="icon"
             className="relative size-9 transition-colors duration-200 hover:text-foreground"
             onClick={() => setNotificationCount(0)}
-            aria-label="Notificaciones"
+            aria-label={t('nav.notifications')}
           >
             <Bell className="size-[18px]" />
             {notificationCount > 0 && (
               <span className="absolute right-1.5 top-1.5 flex size-2 items-center justify-center rounded-full bg-emerald-500">
-                <span className="sr-only">{notificationCount} notificaciones</span>
+                <span className="sr-only">{notificationCount} {t('nav.notifications').toLowerCase()}</span>
               </span>
             )}
           </Button>
@@ -255,7 +258,7 @@ export function Navbar() {
                     {user?.name}
                   </span>
                   <span className="text-[11px] leading-tight text-muted-foreground">
-                    {user?.role === 'admin' ? 'Administrador' : 'Inversionista'}
+                    {user?.role === 'admin' ? t('nav.admin') : t('nav.portfolio').replace('Mi ', '')}
                   </span>
                 </div>
                 <ChevronDown className="size-3.5 text-muted-foreground" />
@@ -270,7 +273,7 @@ export function Navbar() {
                     variant="outline"
                     className="mt-0.5 w-fit bg-primary/5 text-[10px] font-medium text-primary border-primary/15"
                   >
-                    {user?.role === 'admin' ? 'Admin' : 'Inversionista'}
+                    {user?.role === 'admin' ? t('nav.admin') : t('nav.portfolio').replace('Mi ', '')}
                   </Badge>
                 </div>
               </DropdownMenuLabel>
@@ -278,26 +281,26 @@ export function Navbar() {
               <DropdownMenuGroup>
                 <DropdownMenuItem onClick={() => navigate('dashboard')} className="cursor-pointer">
                   <LayoutDashboard className="size-4" />
-                  Mi Portafolio
+                  {t('nav.portfolio')}
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer">
                   <User className="size-4" />
-                  Mi Perfil
+                  {t('nav.profile')}
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer">
                   <Settings className="size-4" />
-                  Configuración
+                  {t('nav.settings')}
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate('admin')} className="cursor-pointer">
                 <ShieldCheck className="size-4" />
-                Panel Admin
+                {t('nav.adminPanel')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive" className="text-destructive cursor-pointer">
+              <DropdownMenuItem variant="destructive" className="text-destructive cursor-pointer" onClick={() => signOut({ callbackUrl: '/' })}>
                 <LogOut className="size-4" />
-                Cerrar Sesión
+                {t('nav.logout')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -305,7 +308,7 @@ export function Navbar() {
           {/* Mobile Menu */}
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden transition-colors duration-200" aria-label="Abrir menú">
+              <Button variant="ghost" size="icon" className="md:hidden transition-colors duration-200" aria-label={t('nav.menu')}>
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>
@@ -335,7 +338,7 @@ export function Navbar() {
                   <div className="flex flex-col">
                     <span className="text-sm font-medium">{user.name}</span>
                     <span className="text-xs text-muted-foreground">
-                      {user.role === 'admin' ? 'Administrador' : 'Inversionista'}
+                      {user?.role === 'admin' ? t('nav.admin') : t('nav.portfolio').replace('Mi ', '')}
                     </span>
                   </div>
                 </div>
@@ -343,7 +346,7 @@ export function Navbar() {
 
               <div className="flex flex-col gap-1 px-2 pt-3">
                 <span className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-                  Navegación
+                  {t('nav.menu')}
                 </span>
                 {navLinks.map((link) => {
                   const isActive = currentPage === link.page
@@ -369,7 +372,7 @@ export function Navbar() {
                         >
                           {link.icon}
                         </span>
-                        {link.label}
+                        {t(link.labelKey)}
                       </Button>
                     </SheetClose>
                   )
@@ -378,7 +381,7 @@ export function Navbar() {
                 <Separator className="my-2" />
 
                 <span className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-                  Administración
+                  {t('nav.admin')}
                 </span>
                 <SheetClose asChild>
                   <Button
@@ -401,7 +404,7 @@ export function Navbar() {
                     >
                       <ShieldCheck className="size-4" />
                     </span>
-                    Panel de Administración
+                    {t('nav.adminPanel')}
                   </Button>
                 </SheetClose>
 
@@ -410,7 +413,7 @@ export function Navbar() {
                 {/* Mobile: Theme, Language, Currency Controls */}
                 <div className="flex flex-col gap-1 px-2">
                   <span className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-                    Preferencias
+                    {t('nav.settings')}
                   </span>
 
                   {/* Theme Toggle */}
@@ -422,13 +425,13 @@ export function Navbar() {
                     <span className="flex size-9 items-center justify-center rounded-lg bg-muted">
                       {appTheme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
                     </span>
-                    {appTheme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}
+                    {appTheme === 'dark' ? t('settings.theme.light') : t('settings.theme.dark')}
                   </Button>
 
                   {/* Language Selector */}
                   <div className="flex items-center gap-1 px-3 py-2">
                     <Globe className="size-4 text-muted-foreground" />
-                    <span className="mr-auto text-sm text-muted-foreground">Idioma</span>
+                    <span className="mr-auto text-sm text-muted-foreground">{t('settings.language')}</span>
                     <Button
                       variant={language === 'es' ? 'secondary' : 'ghost'}
                       size="sm"
@@ -450,7 +453,7 @@ export function Navbar() {
                   {/* Currency Selector */}
                   <div className="flex items-center gap-1 px-3 py-2">
                     <DollarSign className="size-4 text-muted-foreground" />
-                    <span className="mr-auto text-sm text-muted-foreground">Moneda</span>
+                    <span className="mr-auto text-sm text-muted-foreground">{t('common.currency')}</span>
                     <select
                       value={currency}
                       onChange={(e) => setCurrency(e.target.value)}

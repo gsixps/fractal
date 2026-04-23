@@ -1,6 +1,7 @@
 'use client'
 
 import { useAppStore } from '@/lib/store'
+import { useT } from '@/lib/i18n-utils'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
@@ -21,33 +22,10 @@ import {
   Globe,
   DollarSign,
 } from 'lucide-react'
-
-const plataformaLinks = [
-  { label: 'Marketplace', page: 'marketplace' as const },
-  { label: 'Mi Portafolio', page: 'dashboard' as const },
-  { label: 'Mercado Secundario', page: 'liquidity' as const },
-]
-
-const legalLinks = [
-  { label: 'Términos y Condiciones', icon: FileText },
-  { label: 'Política de Privacidad', icon: ShieldCheck },
-  { label: 'Aviso Legal', icon: Scale },
-]
-
-const contactoInfo = [
-  { icon: Mail, text: 'contacto@gsp-inversiones.cl' },
-  { icon: Phone, text: '+56 2 2345 6789' },
-  { icon: MapPin, text: 'Santiago, Chile' },
-]
-
-const socialLinks = [
-  { icon: Linkedin, label: 'LinkedIn', href: '#' },
-  { icon: Twitter, label: 'Twitter', href: '#' },
-  { icon: Facebook, label: 'Facebook', href: '#' },
-  { icon: Instagram, label: 'Instagram', href: '#' },
-]
+import { useMemo } from 'react'
 
 export function Footer() {
+  const t = useT()
   const navigate = useAppStore((s) => s.navigate)
   const appTheme = useAppStore((s) => s.theme)
   const setAppTheme = useAppStore((s) => s.setTheme)
@@ -55,6 +33,18 @@ export function Footer() {
   const setLanguage = useAppStore((s) => s.setLanguage)
   const currency = useAppStore((s) => s.currency)
   const setCurrency = useAppStore((s) => s.setCurrency)
+
+  const plataformaLinks = useMemo(() => [
+    { label: t('nav.marketplace'), page: 'marketplace' as const },
+    { label: t('nav.portfolio'), page: 'dashboard' as const },
+    { label: t('nav.liquidity'), page: 'liquidity' as const },
+  ], [t])
+
+  const legalLinks = useMemo(() => [
+    { label: t('footer.terms'), icon: FileText },
+    { label: t('footer.privacy'), icon: ShieldCheck },
+    { label: t('footer.legal'), icon: Scale },
+  ], [t])
 
   return (
     <footer className="mt-auto border-t bg-foreground text-background">
@@ -71,13 +61,16 @@ export function Footer() {
               </span>
             </div>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/60">
-              Global Solidarity Partners — Plataforma líder en inversión
-              fraccionada de bienes raíces en Chile. Democratizamos el acceso
-              al mercado inmobiliario.
+              Global Solidarity Partners — {t('footer.company')}
             </p>
             {/* Social Links */}
             <div className="mt-5 flex items-center gap-3">
-              {socialLinks.map((social) => (
+              {[
+                { icon: Linkedin, label: 'LinkedIn', href: '#' },
+                { icon: Twitter, label: 'Twitter', href: '#' },
+                { icon: Facebook, label: 'Facebook', href: '#' },
+                { icon: Instagram, label: 'Instagram', href: '#' },
+              ].map((social) => (
                 <a
                   key={social.label}
                   href={social.href}
@@ -93,7 +86,7 @@ export function Footer() {
           {/* Plataforma Column */}
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-white/40">
-              Plataforma
+              {t('footer.company')}
             </h3>
             <ul className="mt-4 space-y-3">
               {plataformaLinks.map((link) => (
@@ -113,7 +106,7 @@ export function Footer() {
           {/* Legal Column */}
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-white/40">
-              Legal
+              {t('footer.legal')}
             </h3>
             <ul className="mt-4 space-y-3">
               {legalLinks.map((link) => (
@@ -130,10 +123,14 @@ export function Footer() {
           {/* Contacto Column */}
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-white/40">
-              Contacto
+              {t('footer.contact')}
             </h3>
             <ul className="mt-4 space-y-3">
-              {contactoInfo.map((item) => (
+              {[
+                { icon: Mail, text: 'contacto@gsp-inversiones.cl' },
+                { icon: Phone, text: '+56 2 2345 6789' },
+                { icon: MapPin, text: 'Santiago, Chile' },
+              ].map((item) => (
                 <li key={item.text} className="flex items-start gap-2.5">
                   <item.icon className="mt-0.5 size-4 shrink-0 text-emerald-500/60" />
                   <span className="text-sm text-white/60">{item.text}</span>
@@ -148,8 +145,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
           <p className="text-center text-xs text-white/40 sm:text-left">
-            &copy; {new Date().getFullYear()} Global Solidarity Partners. Todos
-            los derechos reservados.
+            &copy; {new Date().getFullYear()} Global Solidarity Partners. {t('footer.rights')}.
           </p>
           <div className="flex flex-col items-center gap-2 sm:items-center">
             {/* Controls Row */}
@@ -210,12 +206,10 @@ export function Footer() {
               </select>
             </div>
             <p className="text-center text-xs text-white/40 sm:text-right">
-              Regulado bajo la CMF de Chile
+              {t('home.trust.badge1')} CMF {t('footer.about').toLowerCase()}
             </p>
             <p className="text-center text-[11px] leading-relaxed text-white/25 sm:text-right">
-              La inversión en bienes raíces fraccionados conlleva riesgos.
-              Infórmese antes de invertir. Rendimientos pasados no garantizan
-              resultados futuros.
+              {t('footer.riskWarning')}
             </p>
           </div>
         </div>

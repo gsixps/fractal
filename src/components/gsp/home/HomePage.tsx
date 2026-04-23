@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, useInView } from 'framer-motion'
-import { useRef, useState, useMemo } from 'react'
+import { useRef, useState, useMemo, useEffect } from 'react'
 import {
   ArrowRight, Building2, CheckCircle2, Clock, DollarSign,
   FlaskConical, HandCoins, Layers, Lock, Mail, Pickaxe,
@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
 
 import { useAppStore } from '@/lib/store'
 import { useT } from '@/lib/i18n-utils'
@@ -219,7 +220,11 @@ function FeaturedAssetsSection() {
   const { format } = useCurrency()
   const navigate = useAppStore((s) => s.navigate)
   const selectAsset = useAppStore((s) => s.selectAsset)
-  const assets = useAppStore((s) => s.assets.filter(a => a.status === 'active')).slice(0, 3)
+  const fetchAssets = useAppStore((s) => s.fetchAssets)
+  const assetsLoading = useAppStore((s) => s.assetsLoading)
+  const assets = useAppStore((s) => s.assets).filter(a => a.status === 'active').slice(0, 3)
+
+  useEffect(() => { fetchAssets() }, [fetchAssets])
 
   const typeLabels = useMemo(() => ({
     real_estate: t('marketplace.realEstate'),
@@ -228,6 +233,36 @@ function FeaturedAssetsSection() {
     solar_energy: t('marketplace.solarEnergy'),
     mining: t('marketplace.mining'),
   }), [t])
+
+  if (assetsLoading) {
+    return (
+      <AnimatedSection className="gsp-section bg-secondary/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <Skeleton className="h-6 w-48 mx-auto mb-4" />
+            <Skeleton className="h-10 w-64 mx-auto mb-3" />
+            <Skeleton className="h-5 w-96 mx-auto" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i} className="overflow-hidden border-border/40">
+                <Skeleton className="h-48 w-full" />
+                <CardContent className="p-5 space-y-4">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-2 w-full" />
+                  <div className="flex justify-between pt-2">
+                    <Skeleton className="h-6 w-24" />
+                    <Skeleton className="h-9 w-24" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </AnimatedSection>
+    )
+  }
 
   return (
     <AnimatedSection className="gsp-section bg-secondary/30">
@@ -240,8 +275,11 @@ function FeaturedAssetsSection() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {assets.map((asset, i) => (
+        {assets.length === 0 ? (
+          <p className="text-center text-muted-foreground py-12">{t('common.noData')}</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {assets.map((asset, i) => (
             <motion.div key={asset.id} custom={i + 1} variants={fadeUp}>
               <Card
                 className="overflow-hidden gsp-card-hover border-border/40 group h-full flex flex-col"
@@ -310,8 +348,9 @@ function FeaturedAssetsSection() {
                 </CardContent>
               </Card>
             </motion.div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         <motion.div custom={5} variants={fadeUp} className="text-center mt-10">
           <Button variant="outline" size="lg" onClick={() => navigate('marketplace')}

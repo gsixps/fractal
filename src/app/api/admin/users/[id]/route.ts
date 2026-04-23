@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requireAdmin } from '@/lib/api-auth';
 
 // GET /api/admin/users/:id — Get single user with investments and transactions count
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { error } = await requireAdmin();
+  if (error) return error;
+
   try {
     const { id } = await params;
 
@@ -25,6 +29,7 @@ export async function GET(
         balance: true,
         totalInvested: true,
         totalEarnings: true,
+        isActive: true,
         createdAt: true,
         updatedAt: true,
         _count: {
@@ -72,6 +77,9 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { error } = await requireAdmin();
+  if (error) return error;
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -113,9 +121,9 @@ export async function PUT(
     // Build update data
     const updateData: Record<string, unknown> = {};
     const allowedFields = [
-      'email', 'passwordHash', 'name', 'phone', 'rut',
+      'email', 'name', 'phone', 'rut',
       'role', 'kycStatus', 'avatarUrl', 'stripeCustomerId',
-      'balance', 'totalInvested', 'totalEarnings',
+      'balance', 'totalInvested', 'totalEarnings', 'isActive',
     ];
 
     for (const field of allowedFields) {
@@ -156,6 +164,9 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { error } = await requireAdmin();
+  if (error) return error;
+
   try {
     const { id } = await params;
 

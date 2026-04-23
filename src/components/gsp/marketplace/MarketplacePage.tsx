@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -11,6 +11,7 @@ import {
   Search, Building2, FlaskConical, Truck, Sun, Pickaxe,
   ArrowUpDown, MapPin, SlidersHorizontal,
 } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from '@/components/ui/sheet'
@@ -49,9 +50,13 @@ function formatCurrency(v: number) {
 export default function MarketplacePage() {
   const selectAsset = useAppStore((s) => s.selectAsset)
   const storeAssets = useAppStore((s) => s.assets)
+  const fetchAssets = useAppStore((s) => s.fetchAssets)
+  const assetsLoading = useAppStore((s) => s.assetsLoading)
   const [typeFilter, setTypeFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState('yield')
+
+  useEffect(() => { fetchAssets() }, [fetchAssets])
 
   const sorted = useMemo(() => {
     let arr = storeAssets.filter(a => a.status === 'active')
@@ -153,11 +158,28 @@ export default function MarketplacePage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20">
         <div className="flex items-center justify-between mb-6">
           <p className="text-sm text-muted-foreground font-light">
-            {`${sorted.length} activo${sorted.length !== 1 ? 's' : ''} encontrado${sorted.length !== 1 ? 's' : ''}`}
+            {assetsLoading ? 'Cargando...' : `${sorted.length} activo${sorted.length !== 1 ? 's' : ''} encontrado${sorted.length !== 1 ? 's' : ''}`}
           </p>
         </div>
 
-        {sorted.length === 0 ? (
+        {assetsLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Card key={i} className="overflow-hidden border-border/40">
+                <Skeleton className="h-48 w-full" />
+                <CardContent className="p-5 space-y-3">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                  <Skeleton className="h-2 w-full" />
+                  <div className="flex justify-between pt-1">
+                    <Skeleton className="h-5 w-20" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : sorted.length === 0 ? (
           <div className="text-center py-20">
             <Search className="size-12 text-muted-foreground/40 mx-auto mb-4" />
             <h3 className="text-lg font-semibold">No se encontraron activos</h3>

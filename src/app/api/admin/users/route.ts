@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requireAdmin } from '@/lib/api-auth';
 
 // GET /api/admin/users — List all users with filters
 export async function GET(request: NextRequest) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const { searchParams } = new URL(request.url);
     const role = searchParams.get('role');
@@ -41,6 +45,7 @@ export async function GET(request: NextRequest) {
           balance: true,
           totalInvested: true,
           totalEarnings: true,
+          isActive: true,
           createdAt: true,
           _count: {
             select: {
@@ -67,6 +72,9 @@ export async function GET(request: NextRequest) {
 
 // POST /api/admin/users — Create a new user
 export async function POST(request: NextRequest) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const body = await request.json();
 

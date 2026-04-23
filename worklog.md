@@ -86,3 +86,27 @@ Stage Summary:
 - Real-time language switching: EN/ES with 764 translation keys connected via useT() hook
 - Real-time currency switching: CLP/USD/EUR/MXN/COP/ARS/PEN/BRL with locale-aware formatting
 - Server running on port 3000 via sandbox managed process
+
+---
+Task ID: 5
+Agent: Main Agent
+Task: Public home page, password change, all data in database
+
+Work Log:
+- Refactored AppShell: removed login gate, app now starts on Home page publicly
+- Protected pages (dashboard, admin) require auth but redirect to login instead of blocking
+- Updated Navbar: shows "Login" button for anonymous users, hides admin links for non-admins, dynamic nav links based on auth state
+- Created ChangePasswordDialog component with current/new/confirm password fields
+- Created PUT /api/user/password endpoint with bcrypt verification
+- Subagent seeded 6 assets, 3 users, 3 investments, 10 transactions, 5 testimonials, 12 FAQs into SQLite DB
+- Subagent created all API endpoints: assets (public), admin assets/users/settings/testimonials/faqs (protected), dashboard (auth)
+- Subagent connected HomePage, MarketplacePage, DashboardPage, AssetDetailPage to fetch from DB APIs
+- Store now fetches assets from /api/assets and dashboard from /api/dashboard instead of seed-data.ts
+
+Stage Summary:
+- App starts on Home page (no login required)
+- Login/Register accessible from Navbar button
+- Password change via Settings in user dropdown (PUT /api/user/password)
+- All 6 assets stored in DB with full images/documents/cash flows
+- Dashboard data computed from real DB records
+- Admin API endpoints for managing all CMS data

@@ -111,15 +111,19 @@ function StatusBadge({ status }: { status: string }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function AssetDetailPage() {
-  const { selectedAssetId, getAssetById, navigate } = useAppStore()
+  const { selectedAssetId, selectedAsset, selectedAssetLoading, fetchAssetById, navigate } = useAppStore()
   const [quantity, setQuantity] = useState(1)
 
-  useEffect(() => { if (!selectedAssetId) navigate('marketplace') }, [selectedAssetId, navigate])
-
-  const asset = selectedAssetId ? getAssetById(selectedAssetId) : undefined
+  useEffect(() => {
+    if (!selectedAssetId) { navigate('marketplace'); return }
+    fetchAssetById(selectedAssetId)
+  }, [selectedAssetId, fetchAssetById, navigate])
 
   if (!selectedAssetId) return null
-  if (!asset) return <ErrorState message='No se pudo encontrar el activo solicitado.' onBack={() => navigate('marketplace')} />
+  if (selectedAssetLoading) return <AssetDetailSkeleton />
+  if (!selectedAsset) return <ErrorState message='No se pudo encontrar el activo solicitado.' onBack={() => navigate('marketplace')} />
+
+  const asset = selectedAsset
 
   const coverImage = asset.images[0]?.url
   const highlightsList = parseHighlights(asset.highlights)

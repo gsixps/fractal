@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from 'react'
 import { useTranslation, type Locale } from '@/lib/i18n'
 
 export type Page =
@@ -67,17 +67,17 @@ export interface Asset {
   projectedAppreciation: number
   totalProjectedReturn: number
   leaseStatus: string
-  monthlyRent: number
-  tenantName: string
-  totalArea: number
-  units: number
-  constructionYear: number
-  landUse: string
+  monthlyRent: number | null
+  tenantName: string | null
+  totalArea: number | null
+  units: number | null
+  constructionYear: number | null
+  landUse: string | null
   shortDescription: string
   fullDescription: string
   highlights: string
   badge?: string
-  operationalCostsPct: number
+  operationalCostsPct: number | null
   images: AssetImage[]
   documents: AssetDocument[]
   cashFlowProjections: CashFlowProjection[]
@@ -180,16 +180,25 @@ export interface DashboardData {
   unreadNotifications: number
 }
 
-// ─── Seed Data (moved to separate file to keep store clean) ──────────────────
+// ─── Default empty dashboard data ──────────────────────────────────────────
 
-// Import seed data
-import { SEED_ASSETS, SEED_DASHBOARD_DATA } from './seed-data'
+const EMPTY_DASHBOARD_DATA: DashboardData = {
+  user: null,
+  investments: [],
+  transactions: [],
+  dividendPayments: [],
+  liquidityPool: null,
+  notifications: [],
+  totalDividends: 0,
+  unreadNotifications: 0,
+}
 
 // ─── Context Types ──────────────────────────────────────────────────────────
 
 interface AppState {
   currentPage: Page
   selectedAssetId: string | null
+  selectedAsset: Asset | null
   user: {
     id: string
     name: string
@@ -201,7 +210,10 @@ interface AppState {
   isSidebarOpen: boolean
   adminTab: string
   assets: Asset[]
+  assetsLoading: boolean
   dashboardData: DashboardData
+  dashboardLoading: boolean
+  selectedAssetLoading: boolean
   theme: 'light' | 'dark'
   language: 'es' | 'en'
   currency: string
@@ -211,6 +223,9 @@ interface AppState {
   toggleSidebar: () => void
   setAdminTab: (tab: string) => void
   getAssetById: (id: string) => Asset | undefined
+  fetchAssets: () => Promise<void>
+  fetchDashboard: () => Promise<void>
+  fetchAssetById: (id: string) => Promise<void>
   setTheme: (theme: 'light' | 'dark') => void
   setLanguage: (language: 'es' | 'en') => void
   setCurrency: (currency: string) => void
@@ -235,6 +250,7 @@ export { useTranslation, type Locale } from '@/lib/i18n'
 export function AppProvider({ children }: { children: ReactNode }) {
   const [currentPage, setCurrentPage] = useState<Page>('home')
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null)
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [adminTab, setAdminTab] = useState('overview')
   const [theme, setThemeState] = useState<'light' | 'dark'>('light')
@@ -242,6 +258,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [currency, setCurrencyState] = useState<string>('CLP')
 
   const [user, setUser] = useState<AppState['user']>(null)
+  const [assets, setAssets] = useState<Asset[]>([])
+  const [assetsLoading, setAssetsLoading] = useState(false)
+  const [dashboardData, setDashboardData] = useState<DashboardData>(EMPTY_DASHBOARD_DATA)
+  const [dashboardLoading, setDashboardLoading] = useState(false)
+  const [selectedAssetLoading, setSelectedAssetLoading] = useState(false)
+
+  const assetsFetched = useRef(false)
+  const dashboardFetched = useRef(false)
 
   const setTheme = useCallback((t: 'light' | 'dark') => {
     setThemeState(t)
@@ -280,26 +304,81 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const getAssetById = useCallback((id: string) => {
-    return SEED_ASSETS.find((a) => a.id === id || a.slug === id)
+    return assets.find((a) => a.id === id || a.slug === id)
+  }, [assets])
+
+  const fetchAssets = useCallback(async () => {
+    try {
+      setAssetsLoading(true)
+      const res = await fetch('/api/assets')
+      if (!res.ok) return
+      const data = await res.json()
+      setAssets(data)
+      assetsFetched.current = true
+    } catch {
+      // Silently fail — assets will remain empty
+    } finally {
+      setAssetsLoading(false)
+    }
+  }, [])
+
+  const fetchDashboard = useCallback(async () => {
+    try {
+      setDashboardLoading(true)
+      const res = await fetch('/api/dashboard')
+      if (!res.ok) return
+      const data = await res.json()
+      setDashboardData(data)
+      dashboardFetched.current = true
+    } catch {
+      // Silently fail — dashboard will remain empty
+    } finally {
+      setDashboardLoading(false)
+    }
+  }, [])
+
+  const fetchAssetById = useCallback(async (id: string) => {
+    try {
+      setSelectedAssetLoading(true)
+      setSelectedAsset(null)
+      const res = await fetch(`/api/assets/${id}`)
+      if (!res.ok) {
+        setSelectedAsset(null)
+        return
+      }
+      const data = await res.json()
+      setSelectedAsset(data)
+    } catch {
+      setSelectedAsset(null)
+    } finally {
+      setSelectedAssetLoading(false)
+    }
   }, [])
 
   const value: AppState = {
     currentPage,
     selectedAssetId,
+    selectedAsset,
     user,
     isSidebarOpen,
     adminTab,
     theme,
     language,
     currency,
-    assets: SEED_ASSETS,
-    dashboardData: SEED_DASHBOARD_DATA,
+    assets,
+    assetsLoading,
+    dashboardData,
+    dashboardLoading,
+    selectedAssetLoading,
     navigate,
     selectAsset,
     setUser,
     toggleSidebar,
     setAdminTab: handleSetAdminTab,
     getAssetById,
+    fetchAssets,
+    fetchDashboard,
+    fetchAssetById,
     setTheme,
     setLanguage,
     setCurrency,
@@ -307,3 +386,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
 }
+
+// Re-export for external usage
+export type { Asset, DashboardData, DashboardUser, DashboardInvestment, DashboardTransaction, DashboardDividend, DashboardLiquidityPool, DashboardNotification }

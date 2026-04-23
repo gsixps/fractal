@@ -1,12 +1,16 @@
 'use client'
 
-import { useEffect, lazy, Suspense } from 'react'
+import { useEffect, lazy, Suspense, useState, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
+import { signIn } from 'next-auth/react'
 import { useAppStore } from '@/lib/store'
 import { Navbar } from '@/components/gsp/layout/Navbar'
 import { Footer } from '@/components/gsp/layout/Footer'
 import { LoginPage } from '@/components/gsp/auth/LoginPage'
-import { Loader2 } from 'lucide-react'
+import { ChangePasswordDialog } from '@/components/gsp/auth/ChangePasswordDialog'
+import { Loader2, LogIn } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { useT } from '@/lib/i18n-utils'
 
 const HomePage = lazy(() => import('@/components/gsp/home/HomePage'))
 const MarketplacePage = lazy(() => import('@/components/gsp/marketplace/MarketplacePage'))
@@ -22,12 +26,17 @@ function PageLoader() {
   )
 }
 
+// Pages that require authentication
+const PROTECTED_PAGES = new Set(['dashboard', 'admin', 'admin-assets', 'admin-users', 'admin-financial', 'admin-liquidity'])
+
 export default function AppShell() {
   const currentPage = useAppStore((s) => s.currentPage)
   const user = useAppStore((s) => s.user)
   const setUser = useAppStore((s) => s.setUser)
   const navigate = useAppStore((s) => s.navigate)
   const { data: session, status } = useSession()
+  const t = useT()
+  const [showChangePassword, setShowChangePassword] = useState(false)
 
   // Sync NextAuth session with app store
   useEffect(() => {
@@ -49,19 +58,26 @@ export default function AppShell() {
   // Scroll to top on page change
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }) }, [currentPage])
 
-  // Show login page when user is not authenticated
-  if (!user) {
+  // If navigating to login page, show login form
+  if (currentPage === 'login') {
+    return <LoginPage />
+  }
+
+  // Check if current page requires auth
+  const requiresAuth = PROTECTED_PAGES.has(currentPage)
+  if (requiresAuth && !user) {
+    // Show login page for protected routes
     return <LoginPage />
   }
 
   const renderPage = () => {
     switch (currentPage) {
-      case 'login': return <HomePage />
       case 'home': return <HomePage />
       case 'marketplace': return <MarketplacePage />
       case 'asset-detail': return <AssetDetailPage />
-      case 'dashboard': return <DashboardPage />
-      case 'admin': case 'admin-assets': case 'admin-users': case 'admin-financial': case 'admin-liquidity': return <AdminPage />
+      case 'dashboard': return user ? <DashboardPage /> : <LoginPage />
+      case 'admin': case 'admin-assets': case 'admin-users': case 'admin-financial': case 'admin-liquidity':
+        return user ? <AdminPage /> : <LoginPage />
       default: return <HomePage />
     }
   }
@@ -73,6 +89,7 @@ export default function AppShell() {
         <Suspense fallback={<PageLoader />}>{renderPage()}</Suspense>
       </main>
       <Footer />
+      <ChangePasswordDialog open={showChangePassword} onOpenChange={setShowChangePassword} />
     </>
   )
 }

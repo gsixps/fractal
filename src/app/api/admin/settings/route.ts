@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { requireAdmin } from '@/lib/api-auth'
 
 // GET /api/admin/settings - Return all settings grouped by group
 export async function GET() {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const settings = await db.siteSetting.findMany({
       orderBy: { group: 'asc' },
@@ -28,6 +32,9 @@ export async function GET() {
 
 // PUT /api/admin/settings - Bulk update settings
 export async function PUT(request: NextRequest) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const body = await request.json()
     const { settings } = body as { settings: Array<{ key: string; value: string }> }

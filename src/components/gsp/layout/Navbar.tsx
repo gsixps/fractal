@@ -35,7 +35,6 @@ import {
   Store,
   PieChart,
   ShieldCheck,
-  Settings,
   LogOut,
   User,
   LayoutDashboard,
@@ -43,6 +42,7 @@ import {
   Moon,
   Globe,
   DollarSign,
+  LogIn,
 } from 'lucide-react'
 
 interface NavLink {
@@ -50,12 +50,6 @@ interface NavLink {
   page: Page
   icon: React.ReactNode
 }
-
-const navLinks: NavLink[] = [
-  { labelKey: 'nav.home', page: 'home', icon: <Home className="size-4" /> },
-  { labelKey: 'nav.marketplace', page: 'marketplace', icon: <Store className="size-4" /> },
-  { labelKey: 'nav.portfolio', page: 'dashboard', icon: <PieChart className="size-4" /> },
-]
 
 export function Navbar() {
   const t = useT()
@@ -70,6 +64,20 @@ export function Navbar() {
   const setCurrency = useAppStore((s) => s.setCurrency)
   const [notificationCount, setNotificationCount] = useState(3)
   const [isScrolled, setIsScrolled] = useState(false)
+
+  // Dynamic nav links based on auth state
+  const navLinks = user
+    ? [
+        { labelKey: 'nav.home', page: 'home' as Page, icon: <Home className="size-4" /> },
+        { labelKey: 'nav.marketplace', page: 'marketplace' as Page, icon: <Store className="size-4" /> },
+        { labelKey: 'nav.portfolio', page: 'dashboard' as Page, icon: <PieChart className="size-4" /> },
+      ]
+    : [
+        { labelKey: 'nav.home', page: 'home' as Page, icon: <Home className="size-4" /> },
+        { labelKey: 'nav.marketplace', page: 'marketplace' as Page, icon: <Store className="size-4" /> },
+      ]
+
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin'
 
   const handleScroll = useCallback(() => {
     setIsScrolled(window.scrollY > 8)
@@ -135,7 +143,8 @@ export function Navbar() {
               </Button>
             )
           })}
-          {/* Admin Link */}
+          {/* Admin Link - only for admins */}
+          {isAdmin && (
           <Button
             variant="ghost"
             size="sm"
@@ -150,6 +159,7 @@ export function Navbar() {
             <ShieldCheck className="size-4" />
             {t('nav.admin')}
           </Button>
+          )}
         </div>
 
         {/* Right Side Actions */}
@@ -224,7 +234,8 @@ export function Navbar() {
             </DropdownMenu>
           </div>
 
-          {/* Notification Bell */}
+          {/* Notification Bell - only when logged in */}
+          {user && (
           <Button
             variant="ghost"
             size="icon"
@@ -239,8 +250,10 @@ export function Navbar() {
               </span>
             )}
           </Button>
+          )}
 
-          {/* User Dropdown */}
+          {/* User Dropdown or Login Button */}
+          {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -250,15 +263,15 @@ export function Navbar() {
                 <Avatar className="size-7 ring-2 ring-primary/10">
                   <AvatarImage src={user?.avatarUrl} alt={user?.name} />
                   <AvatarFallback className="bg-primary text-[11px] font-semibold text-primary-foreground">
-                    {user?.name ? getInitials(user.name) : 'US'}
+                    {user.name ? getInitials(user.name) : 'US'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden flex-col items-start text-left lg:flex">
                   <span className="text-sm font-medium leading-tight">
-                    {user?.name}
+                    {user.name}
                   </span>
                   <span className="text-[11px] leading-tight text-muted-foreground">
-                    {user?.role === 'admin' ? t('nav.admin') : t('nav.portfolio').replace('Mi ', '')}
+                    {user.role === 'admin' || user.role === 'superadmin' ? t('nav.admin') : t('nav.portfolio').replace('Mi ', '')}
                   </span>
                 </div>
                 <ChevronDown className="size-3.5 text-muted-foreground" />
@@ -287,16 +300,16 @@ export function Navbar() {
                   <User className="size-4" />
                   {t('nav.profile')}
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
-                  <Settings className="size-4" />
-                  {t('nav.settings')}
-                </DropdownMenuItem>
               </DropdownMenuGroup>
+              {isAdmin && (
+              <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => navigate('admin')} className="cursor-pointer">
                 <ShieldCheck className="size-4" />
                 {t('nav.adminPanel')}
               </DropdownMenuItem>
+              </>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive" className="text-destructive cursor-pointer" onClick={() => signOut({ callbackUrl: '/' })}>
                 <LogOut className="size-4" />
@@ -304,6 +317,16 @@ export function Navbar() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          ) : (
+            <Button
+              onClick={() => navigate('login')}
+              className="gap-2 gsp-gradient text-white hover:shadow-lg hover:shadow-emerald-500/20 transition-all duration-200"
+              size="sm"
+            >
+              <LogIn className="size-4" />
+              <span className="hidden sm:inline">{t('nav.login')}</span>
+            </Button>
+          )}
 
           {/* Mobile Menu */}
           <Sheet>
@@ -338,10 +361,18 @@ export function Navbar() {
                   <div className="flex flex-col">
                     <span className="text-sm font-medium">{user.name}</span>
                     <span className="text-xs text-muted-foreground">
-                      {user?.role === 'admin' ? t('nav.admin') : t('nav.portfolio').replace('Mi ', '')}
+                      {user.role === 'admin' || user.role === 'superadmin' ? t('nav.admin') : t('nav.portfolio').replace('Mi ', '')}
                     </span>
                   </div>
                 </div>
+              )}
+              {!user && (
+                <SheetClose asChild>
+                  <Button onClick={() => navigate('login')} className="w-full gap-2 gsp-gradient text-white hover:shadow-lg">
+                    <LogIn className="size-4" />
+                    {t('nav.login')}
+                  </Button>
+                </SheetClose>
               )}
 
               <div className="flex flex-col gap-1 px-2 pt-3">
@@ -380,6 +411,8 @@ export function Navbar() {
 
                 <Separator className="my-2" />
 
+                {isAdmin && (
+                <>
                 <span className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
                   {t('nav.admin')}
                 </span>
@@ -407,6 +440,8 @@ export function Navbar() {
                     {t('nav.adminPanel')}
                   </Button>
                 </SheetClose>
+                </>
+                )}
 
                 <Separator className="my-3" />
 

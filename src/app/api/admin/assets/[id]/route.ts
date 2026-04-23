@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requireAdmin } from '@/lib/api-auth';
 
 // GET /api/admin/assets/:id — Get single asset with all related data
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { error } = await requireAdmin();
+  if (error) return error;
+
   try {
     const { id } = await params;
 
@@ -46,6 +50,9 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { error } = await requireAdmin();
+  if (error) return error;
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -180,11 +187,14 @@ export async function PUT(
   }
 }
 
-// DELETE /api/admin/assets/:id — Delete asset and cascade
+// DELETE /api/admin/assets/:id — Soft-delete (set status to archived)
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { error } = await requireAdmin();
+  if (error) return error;
+
   try {
     const { id } = await params;
 
@@ -196,25 +206,24 @@ export async function DELETE(
       );
     }
 
-    // Check if asset has active investments
-    const activeInvestments = await db.investment.count({
-      where: { assetId: id, status: { in: ['active', 'completed'] } },
-    });
-
-    if (activeInvestments > 0) {
+    if (existing.status === 'archived') {
       return NextResponse.json(
-        { error: `Cannot delete asset with ${activeInvestments} active investment(s). Deactivate investments first.` },
+        { error: 'Asset is already archived' },
         { status: 400 }
       );
     }
 
-    await db.asset.delete({ where: { id } });
+    // Soft-delete: set status to archived
+    await db.asset.update({
+      where: { id },
+      data: { status: 'archived' },
+    });
 
-    return NextResponse.json({ message: 'Asset deleted successfully' });
+    return NextResponse.json({ message: 'Asset archived successfully' });
   } catch (error) {
-    console.error('Error deleting asset:', error);
+    console.error('Error archiving asset:', error);
     return NextResponse.json(
-      { error: 'Failed to delete asset' },
+      { error: 'Failed to archive asset' },
       { status: 500 }
     );
   }

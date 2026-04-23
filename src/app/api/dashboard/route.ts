@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { requireAuth } from '@/lib/api-auth'
 
 export async function GET() {
+  const { error, session } = await requireAuth()
+  if (error) return error
+
   try {
-    const userId = 'usr_demo_001'
+    const userId = session!.user.id
 
     const [user, investments, transactions, dividendPayments, liquidityPool, notifications] =
       await Promise.all([

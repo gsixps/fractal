@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { requireAdmin } from '@/lib/api-auth'
 
 // PUT /api/admin/faq/[id] - Update FAQ
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const { id } = await params
     const body = await request.json()
@@ -40,6 +44,9 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const { id } = await params
 

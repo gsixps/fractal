@@ -1,27 +1,31 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { NextRequest, NextResponse } from 'next/server'
+import { db } from '@/lib/db'
+import { requireAdmin } from '@/lib/api-auth'
 
 // GET /api/admin/assets — List all assets with filters
 export async function GET(request: NextRequest) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
-    const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type');
-    const status = searchParams.get('status');
-    const search = searchParams.get('search');
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = parseInt(searchParams.get('limit') || '20', 10);
-    const skip = (page - 1) * limit;
+    const { searchParams } = new URL(request.url)
+    const type = searchParams.get('type')
+    const status = searchParams.get('status')
+    const search = searchParams.get('search')
+    const page = parseInt(searchParams.get('page') || '1', 10)
+    const limit = parseInt(searchParams.get('limit') || '20', 10)
+    const skip = (page - 1) * limit
 
-    const where: Record<string, unknown> = {};
+    const where: Record<string, unknown> = {}
 
-    if (type) where.type = type;
-    if (status) where.status = status;
+    if (type) where.type = type
+    if (status) where.status = status
     if (search) {
       where.OR = [
         { name: { contains: search } },
         { city: { contains: search } },
         { address: { contains: search } },
-      ];
+      ]
     }
 
     const [assets, total] = await Promise.all([
@@ -40,13 +44,13 @@ export async function GET(request: NextRequest) {
         },
       }),
       db.asset.count({ where }),
-    ]);
+    ])
 
     const assetsWithCount = assets.map((asset) => ({
       ...asset,
       investmentCount: asset.investments.length,
       investments: undefined,
-    }));
+    }))
 
     return NextResponse.json({
       assets: assetsWithCount,
@@ -56,20 +60,23 @@ export async function GET(request: NextRequest) {
         total,
         totalPages: Math.ceil(total / limit),
       },
-    });
+    })
   } catch (error) {
-    console.error('Error listing assets:', error);
+    console.error('Error listing assets:', error)
     return NextResponse.json(
       { error: 'Failed to list assets' },
       { status: 500 }
-    );
+    )
   }
 }
 
 // POST /api/admin/assets — Create a new asset
 export async function POST(request: NextRequest) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
-    const body = await request.json();
+    const body = await request.json()
 
     // Generate slug from name
     const slug = body.slug || body.name
@@ -77,15 +84,15 @@ export async function POST(request: NextRequest) {
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)+/g, '');
+      .replace(/(^-|-$)+/g, '')
 
     // Check for duplicate slug
-    const existing = await db.asset.findUnique({ where: { slug } });
+    const existing = await db.asset.findUnique({ where: { slug } })
     if (existing) {
       return NextResponse.json(
         { error: 'An asset with this slug already exists' },
         { status: 409 }
-      );
+      )
     }
 
     const asset = await db.asset.create({
@@ -152,14 +159,14 @@ export async function POST(request: NextRequest) {
           ? {
               create: body.cashFlowProjections.map(
                 (cfp: {
-                  period: string;
-                  periodType?: string;
-                  grossIncome: number;
-                  operationalCost: number;
-                  netIncome: number;
-                  appreciation?: number;
-                  totalReturn?: number;
-                  cumulativeReturn?: number;
+                  period: string
+                  periodType?: string
+                  grossIncome: number
+                  operationalCost: number
+                  netIncome: number
+                  appreciation?: number
+                  totalReturn?: number
+                  cumulativeReturn?: number
                 }) => ({
                   period: cfp.period,
                   periodType: cfp.periodType || 'yearly',
@@ -179,14 +186,14 @@ export async function POST(request: NextRequest) {
         documents: true,
         cashFlowProjections: { orderBy: { period: 'asc' } },
       },
-    });
+    })
 
-    return NextResponse.json({ asset }, { status: 201 });
+    return NextResponse.json({ asset }, { status: 201 })
   } catch (error) {
-    console.error('Error creating asset:', error);
+    console.error('Error creating asset:', error)
     return NextResponse.json(
       { error: 'Failed to create asset' },
       { status: 500 }
-    );
+    )
   }
 }

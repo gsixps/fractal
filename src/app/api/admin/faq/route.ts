@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { requireAdmin } from '@/lib/api-auth'
 
 // GET /api/admin/faq - List all FAQs with categories
 export async function GET(request: Request) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const { searchParams } = new URL(request.url)
     const category = searchParams.get('category')
@@ -31,6 +35,9 @@ export async function GET(request: Request) {
 
 // POST /api/admin/faq - Create new FAQ
 export async function POST(request: Request) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const body = await request.json()
     const { question, answer, category, sortOrder, isActive } = body

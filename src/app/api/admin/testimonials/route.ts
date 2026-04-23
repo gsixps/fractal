@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { requireAdmin } from '@/lib/api-auth'
 
 // GET /api/admin/testimonials - List all testimonials
 export async function GET(request: Request) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
@@ -24,6 +28,9 @@ export async function GET(request: Request) {
 
 // POST /api/admin/testimonials - Create new testimonial
 export async function POST(request: Request) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const body = await request.json()
     const { name, role, avatarUrl, quote, rating, investmentAmount, assetName, isFeatured, isVerified, sortOrder, status } = body

@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect } from 'react'
+
 import {
   Wallet,
   TrendingUp,
@@ -16,6 +18,7 @@ import {
   Eye,
 } from 'lucide-react'
 
+import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/lib/store'
 import { Button } from '@/components/ui/button'
@@ -258,12 +261,38 @@ function TransactionStatusBadge({ status }: { status: string }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const { navigate, selectAsset, dashboardData: data } = useAppStore()
+  const { navigate, selectAsset, fetchDashboard, dashboardLoading } = useAppStore()
+  const dashboardData = useAppStore((s) => s.dashboardData)
 
-  const user = data.user
-  const portfolioValue = (user?.totalInvested || 0) + data.totalDividends
-  const recentDividends = data.dividendPayments.slice(0, 10)
-  const recentTransactions = data.transactions.slice(0, 10)
+  useEffect(() => { fetchDashboard() }, [fetchDashboard])
+
+  const user = dashboardData.user
+  const portfolioValue = (user?.totalInvested || 0) + dashboardData.totalDividends
+  const recentDividends = dashboardData.dividendPayments.slice(0, 10)
+  const recentTransactions = dashboardData.transactions.slice(0, 10)
+
+  if (dashboardLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton className="h-4 w-72 mb-8" />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-8">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-32 rounded-xl" />
+            ))}
+          </div>
+          <Skeleton className="h-64 rounded-xl mb-8" />
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 mb-8">
+            <Skeleton className="h-80 rounded-xl" />
+            <Skeleton className="h-80 rounded-xl" />
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  const data = dashboardData
 
   function handleViewAsset(assetId: string) {
     selectAsset(assetId)

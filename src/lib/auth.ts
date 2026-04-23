@@ -2,6 +2,7 @@ import type { NextAuthOptions, User as NextAuthUser, Session, DefaultSession } f
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
+import { seedCurrencies } from '@/lib/seed-i18n'
 
 // Extend NextAuth types
 declare module 'next-auth' {
@@ -138,3 +139,4 @@ export async function seedSuperAdmin() {
 
 // Run seed on module load
 seedSuperAdmin().catch(() => {})
+seedCurrencies().catch(() => {})

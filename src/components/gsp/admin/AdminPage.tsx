@@ -34,6 +34,8 @@ import {
   Mail,
   Star,
   Layers,
+  Languages,
+  Coins,
 } from 'lucide-react'
 import { SettingsView } from './sections/SettingsView'
 import { BlogView } from './sections/BlogView'
@@ -44,6 +46,8 @@ import { PromotionsView } from './sections/PromotionsView'
 import { TeamView } from './sections/TeamView'
 import { EmailTemplatesView } from './sections/EmailTemplatesView'
 import { AssetTypesView } from './sections/AssetTypesView'
+import { TranslationsView } from './sections/TranslationsView'
+import { CurrenciesView } from './sections/CurrenciesView'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -363,6 +367,9 @@ const navItems: Array<{ id: string; label: string; icon: React.ElementType | nul
   { id: 'promotions', label: 'Promociones', icon: Tag },
   { id: 'team', label: 'Equipo', icon: UsersRound },
   { id: 'email-templates', label: 'Emails', icon: Mail },
+  { id: '_sep_i18n', label: '', icon: null, isSeparator: true },
+  { id: 'translations', label: 'Traducciones', icon: Languages },
+  { id: 'currencies', label: 'Monedas', icon: Coins },
 ]
 
 function SidebarNav({
@@ -1836,6 +1843,8 @@ export default function AdminPage() {
       case 'team': return <TeamView />
       case 'email-templates': return <EmailTemplatesView />
       case 'asset-types': return <AssetTypesView />
+      case 'translations': return <TranslationsView />
+      case 'currencies': return <CurrenciesView />
       default: return <PanelGeneralView />
     }
   }

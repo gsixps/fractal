@@ -495,3 +495,31 @@ model AssetType {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+// ==================== CMS: TRANSLATIONS ====================
+
+model Translation {
+  id          String   @id @default(cuid())
+  key         String
+  locale      String   @default("es")
+  value       String   @default("")
+
+  @@unique([key, locale])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ==================== CMS: CURRENCIES ====================
+
+model Currency {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  symbol      String   @default("")
+  flag        String   @default("")
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

@@ -18,6 +18,7 @@ import {
   SheetTrigger,
   SheetClose,
 } from '@/components/ui/sheet'
+import { ChangePasswordDialog } from '@/components/gsp/auth/ChangePasswordDialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,6 +44,7 @@ import {
   Globe,
   DollarSign,
   LogIn,
+  Lock,
 } from 'lucide-react'
 
 interface NavLink {
@@ -64,6 +66,16 @@ export function Navbar() {
   const setCurrency = useAppStore((s) => s.setCurrency)
   const [notificationCount, setNotificationCount] = useState(3)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [showChangePassword, setShowChangePassword] = useState(false)
+  const [dbCurrencies, setDbCurrencies] = useState<Array<{ code: string; name: string; symbol: string; flag: string; isActive: boolean }>>([])
+
+  // Fetch currencies from database
+  useEffect(() => {
+    fetch('/api/currencies')
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data) && data.length > 0) setDbCurrencies(data.filter((c: { isActive: boolean }) => c.isActive)) })
+      .catch(() => {})
+  }, [])
 
   // Dynamic nav links based on auth state
   const navLinks = user
@@ -212,22 +224,22 @@ export function Navbar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {[
-                  { code: 'CLP', label: '🇨🇱 CLP - Peso Chileno' },
-                  { code: 'USD', label: '🇺🇸 USD - Dólar' },
-                  { code: 'EUR', label: '🇪🇺 EUR - Euro' },
-                  { code: 'MXN', label: '🇲🇽 MXN - Peso Mexicano' },
-                  { code: 'COP', label: '🇨🇴 COP - Peso Colombiano' },
-                  { code: 'ARS', label: '🇦🇷 ARS - Peso Argentino' },
-                  { code: 'PEN', label: '🇵🇪 PEN - Sol Peruano' },
-                  { code: 'BRL', label: '🇧🇷 BRL - Real Brasilero' },
-                ].map((c) => (
+                {(dbCurrencies.length > 0 ? dbCurrencies : [
+                  { code: 'CLP', name: 'Peso Chileno', flag: '🇨🇱' },
+                  { code: 'USD', name: 'Dólar', flag: '🇺🇸' },
+                  { code: 'EUR', name: 'Euro', flag: '🇪🇺' },
+                  { code: 'MXN', name: 'Peso Mexicano', flag: '🇲🇽' },
+                  { code: 'COP', name: 'Peso Colombiano', flag: '🇨🇴' },
+                  { code: 'ARS', name: 'Peso Argentino', flag: '🇦🇷' },
+                  { code: 'PEN', name: 'Sol Peruano', flag: '🇵🇪' },
+                  { code: 'BRL', name: 'Real Brasileño', flag: '🇧🇷' },
+                ]).map((c) => (
                   <DropdownMenuItem
                     key={c.code}
                     onClick={() => setCurrency(c.code)}
                     className={currency === c.code ? 'bg-secondary' : ''}
                   >
-                    {c.label}
+                    {c.flag} {c.code} - {c.name}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -299,6 +311,10 @@ export function Navbar() {
                 <DropdownMenuItem className="cursor-pointer">
                   <User className="size-4" />
                   {t('nav.profile')}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowChangePassword(true)} className="cursor-pointer">
+                  <Lock className="size-4" />
+                  {t('settings.changePassword')}
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               {isAdmin && (
@@ -494,14 +510,14 @@ export function Navbar() {
                       onChange={(e) => setCurrency(e.target.value)}
                       className="h-7 rounded-md border border-input bg-background px-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-ring"
                     >
-                      <option value="CLP">🇨🇱 CLP</option>
-                      <option value="USD">🇺🇸 USD</option>
-                      <option value="EUR">🇪🇺 EUR</option>
-                      <option value="MXN">🇲🇽 MXN</option>
-                      <option value="COP">🇨🇴 COP</option>
-                      <option value="ARS">🇦🇷 ARS</option>
-                      <option value="PEN">🇵🇪 PEN</option>
-                      <option value="BRL">🇧🇷 BRL</option>
+                      {(dbCurrencies.length > 0 ? dbCurrencies : [
+                        { code: 'CLP', flag: '🇨🇱' }, { code: 'USD', flag: '🇺🇸' },
+                        { code: 'EUR', flag: '🇪🇺' }, { code: 'MXN', flag: '🇲🇽' },
+                        { code: 'COP', flag: '🇨🇴' }, { code: 'ARS', flag: '🇦🇷' },
+                        { code: 'PEN', flag: '🇵🇪' }, { code: 'BRL', flag: '🇧🇷' },
+                      ]).map((c) => (
+                        <option key={c.code} value={c.code}>{c.flag} {c.code}</option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -510,6 +526,7 @@ export function Navbar() {
           </Sheet>
         </div>
       </nav>
+      <ChangePasswordDialog open={showChangePassword} onOpenChange={setShowChangePassword} />
     </header>
   )
 }

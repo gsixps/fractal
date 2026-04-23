@@ -5,6 +5,8 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
+  useRef,
   useMemo,
   type ReactNode,
 } from 'react'
@@ -17,6 +19,7 @@ interface I18nContextValue {
   locale: Locale
   setLocale: (locale: Locale) => void
   t: (key: string) => string
+  loading: boolean
 }
 
 // ─── Translation Maps ──────────────────────────────────────────────────────────
@@ -909,6 +912,22 @@ function resolve(
 
 const I18nContext = createContext<I18nContextValue | null>(null)
 
+// ─── DB Translation Fetcher ──────────────────────────────────────────────────
+
+/**
+ * Fetch translations from the database for a given locale.
+ * Returns a flat { key: value } object, or an empty object on failure.
+ */
+async function fetchDbTranslations(locale: string): Promise<Record<string, string>> {
+  try {
+    const res = await fetch(`/api/translations?locale=${locale}`)
+    if (!res.ok) return {}
+    return await res.json()
+  } catch {
+    return {}
+  }
+}
+
 // ─── Provider ──────────────────────────────────────────────────────────────────
 
 export function I18nProvider({
@@ -919,13 +938,43 @@ export function I18nProvider({
   defaultLocale?: Locale
 }) {
   const [locale, setLocale] = useState<Locale>(defaultLocale)
+  const [dbOverrides, setDbOverrides] = useState<TranslationMap>({})
+  const [loading, setLoading] = useState(true)
+  const fetchedLocales = useRef<Set<string>>(new Set())
+
+  // Merge DB translations with hardcoded fallbacks (DB takes priority)
+  const mergedMap = useMemo<TranslationMap>(() => {
+    const base = { ...translations[locale] }
+    for (const [key, value] of Object.entries(dbOverrides)) {
+      base[key] = value
+    }
+    return base
+  }, [locale, dbOverrides])
+
+  // Fetch DB translations when locale changes
+  useEffect(() => {
+    let cancelled = false
+
+    const load = async () => {
+      setLoading(true)
+      const dbMap = await fetchDbTranslations(locale)
+      if (!cancelled) {
+        setDbOverrides(dbMap)
+        fetchedLocales.current.add(locale)
+        setLoading(false)
+      }
+    }
+
+    load()
+
+    return () => { cancelled = true }
+  }, [locale])
 
   const t = useCallback(
     (key: string): string => {
-      const map = translations[locale]
-      return resolve(key, map)
+      return resolve(key, mergedMap)
     },
-    [locale],
+    [mergedMap],
   )
 
   const handleSetLocale = useCallback((next: Locale) => {
@@ -937,8 +986,9 @@ export function I18nProvider({
       locale,
       setLocale: handleSetLocale,
       t,
+      loading,
     }),
-    [locale, handleSetLocale, t],
+    [locale, handleSetLocale, t, loading],
   )
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>

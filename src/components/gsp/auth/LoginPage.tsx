@@ -29,7 +29,7 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
 
-  const { setUser } = useAppStore()
+  const { setUser, navigate } = useAppStore()
   const { toast } = useToast()
 
   const resetForm = () => {
@@ -62,11 +62,12 @@ export function LoginPage() {
 
         if (sessionData?.user) {
           const su = sessionData.user
+          const role = (su.role as 'investor' | 'admin' | 'superadmin') || 'investor'
           setUser({
             id: su.id,
             name: su.name || '',
             email: su.email || '',
-            role: (su.role as 'investor' | 'admin' | 'superadmin') || 'investor',
+            role,
             kycStatus: (su.kycStatus as 'pending' | 'submitted' | 'verified' | 'rejected') || 'pending',
             avatarUrl: su.image as string | undefined,
           })
@@ -75,6 +76,9 @@ export function LoginPage() {
             title: '¡Bienvenido de vuelta!',
             description: `Hola ${su.name || 'Inversionista'}, tu sesión ha sido iniciada correctamente.`,
           })
+
+          // Navigate to admin backend after login
+          setTimeout(() => navigate('admin'), 300)
         }
       }
     } catch {

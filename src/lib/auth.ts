@@ -1,7 +1,31 @@
-import type { NextAuthOptions } from 'next-auth'
+import type { NextAuthOptions, User as NextAuthUser, Session, DefaultSession } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
+
+// Extend NextAuth types
+declare module 'next-auth' {
+  interface Session extends DefaultSession {
+    user: {
+      id: string
+      role: string
+      kycStatus: string
+    } & DefaultSession['user']
+  }
+
+  interface User extends NextAuthUser {
+    role?: string
+    kycStatus?: string
+  }
+}
+
+declare module 'next-auth/jwt' {
+  interface JWT {
+    userId?: string
+    role?: string
+    kycStatus?: string
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -55,18 +79,20 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user }) {
+      // On first sign in, add custom fields to the token
       if (user) {
-        token.id = user.id
-        token.role = (user as { role: string }).role
-        token.kycStatus = (user as { kycStatus: string }).kycStatus
+        token.userId = user.id
+        token.role = user.role
+        token.kycStatus = user.kycStatus
       }
       return token
     },
     async session({ session, token }) {
+      // Forward custom fields from token to session
       if (session.user) {
-        (session.user as Record<string, unknown>).id = token.id
-        (session.user as Record<string, unknown>).role = token.role
-        (session.user as Record<string, unknown>).kycStatus = token.kycStatus
+        session.user.id = token.userId || ''
+        session.user.role = token.role || 'investor'
+        session.user.kycStatus = token.kycStatus || 'pending'
       }
       return session
     },
@@ -76,7 +102,7 @@ export const authOptions: NextAuthOptions = {
   },
 }
 
-// Seed superadmin if none exists (called on first auth init)
+// Seed superadmin if none exists
 export async function seedSuperAdmin() {
   try {
     const existingAdmin = await db.user.findUnique({
@@ -105,11 +131,10 @@ export async function seedSuperAdmin() {
       })
       console.log('✅ Existing admin user promoted to superadmin')
     }
-  } catch (error) {
+  } catch {
     // Ignore race condition errors during hot reload
-    console.log('⚠️ Seed admin skipped (already exists or race condition)')
   }
 }
 
 // Run seed on module load
-seedSuperAdmin().catch(console.error)
+seedSuperAdmin().catch(() => {})

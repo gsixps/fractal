@@ -61,3 +61,28 @@ Stage Summary:
 - Real-time currency conversion: 8 currencies (CLP, USD, EUR, MXN, COP, ARS, PEN, BRL) with locale-aware formatting
 - Currency switching updates all price displays reactively
 - Exchange rates relative to CLP base currency
+
+---
+Task ID: 4
+Agent: Main Agent
+Task: Fix login not working - diagnose and resolve NextAuth JWT_SESSION_ERROR
+
+Work Log:
+- Diagnosed EADDRINUSE errors: caused by sandbox managed dev server (PID 578) running automatically via .zscripts/dev.sh
+- Found server was actually running and responding with HTTP 200 all along
+- Discovered critical bug in dev.log: `[next-auth][error][JWT_SESSION_ERROR] token.id is not a function`
+- Root cause: In NextAuth v4 with JWT strategy, using `token.id` in the session callback conflicts with NextAuth's internal property handling
+- Fixed src/lib/auth.ts: renamed `token.id` to `token.userId` in JWT callback, added proper TypeScript module augmentation for next-auth types (Session, User, JWT)
+- Updated src/components/gsp/AppShell.tsx: simplified session sync, removed unsafe type casts
+- Updated src/components/gsp/auth/LoginPage.tsx: removed Record<string, unknown> casts, using properly typed session
+- Verified login works: superadmin (admin@gsp.cl / GSP@admin2024) authenticates successfully
+- Verified session returns correct user data with id, role, kycStatus
+- Confirmed real-time i18n works: useT() hook in Navbar and HomePage, setLanguage syncs with i18n setLocale
+- Confirmed real-time currency works: useCurrency() hook in HomePage with format() and convert(), 8 currencies supported
+
+Stage Summary:
+- Login now works: NextAuth v4 CredentialsProvider with JWT strategy
+- Session management fixed: proper JWT token extension (userId, role, kycStatus)
+- Real-time language switching: EN/ES with 764 translation keys connected via useT() hook
+- Real-time currency switching: CLP/USD/EUR/MXN/COP/ARS/PEN/BRL with locale-aware formatting
+- Server running on port 3000 via sandbox managed process

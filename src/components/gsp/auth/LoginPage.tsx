@@ -58,21 +58,22 @@ export function LoginPage() {
       } else if (result?.ok) {
         // Fetch session data to get user info
         const sessionRes = await fetch('/api/auth/session')
-        const session = await sessionRes.json()
+        const sessionData = await sessionRes.json()
 
-        if (session?.user) {
+        if (sessionData?.user) {
+          const su = sessionData.user
           setUser({
-            id: (session.user as Record<string, unknown>).id as string,
-            name: session.user.name || '',
-            email: session.user.email || '',
-            role: (session.user as Record<string, unknown>).role as 'investor' | 'admin' | 'superadmin',
-            kycStatus: (session.user as Record<string, unknown>).kycStatus as 'pending' | 'submitted' | 'verified' | 'rejected',
-            avatarUrl: session.user.image as string | undefined,
+            id: su.id,
+            name: su.name || '',
+            email: su.email || '',
+            role: (su.role as 'investor' | 'admin' | 'superadmin') || 'investor',
+            kycStatus: (su.kycStatus as 'pending' | 'submitted' | 'verified' | 'rejected') || 'pending',
+            avatarUrl: su.image as string | undefined,
           })
 
           toast({
             title: '¡Bienvenido de vuelta!',
-            description: `Hola ${session.user.name || 'Inversionista'}, tu sesión ha sido iniciada correctamente.`,
+            description: `Hola ${su.name || 'Inversionista'}, tu sesión ha sido iniciada correctamente.`,
           })
         }
       }

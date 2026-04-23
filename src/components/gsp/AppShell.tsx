@@ -31,21 +31,20 @@ export default function AppShell() {
 
   // Sync NextAuth session with app store
   useEffect(() => {
-    if (status === 'authenticated' && session?.user && !user) {
-      const sUser = session.user as Record<string, unknown>
+    if (status === 'authenticated' && session?.user) {
+      const su = session.user
       setUser({
-        id: sUser.id as string,
-        name: session.user.name || '',
-        email: session.user.email || '',
-        role: sUser.role as 'investor' | 'admin' | 'superadmin',
-        kycStatus: sUser.kycStatus as 'pending' | 'submitted' | 'verified' | 'rejected',
-        avatarUrl: session.user.image as string | undefined,
+        id: su.id,
+        name: su.name || '',
+        email: su.email || '',
+        role: (su.role as 'investor' | 'admin' | 'superadmin') || 'investor',
+        kycStatus: (su.kycStatus as 'pending' | 'submitted' | 'verified' | 'rejected') || 'pending',
+        avatarUrl: su.image as string | undefined,
       })
-    } else if (status === 'unauthenticated' && user) {
+    } else if (status === 'unauthenticated') {
       setUser(null)
-      navigate('login')
     }
-  }, [session, status, user, setUser, navigate])
+  }, [session, status, setUser])
 
   // Scroll to top on page change
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'smooth' }) }, [currentPage])

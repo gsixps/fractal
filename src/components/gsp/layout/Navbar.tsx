@@ -37,6 +37,10 @@ import {
   LogOut,
   User,
   LayoutDashboard,
+  Sun,
+  Moon,
+  Globe,
+  DollarSign,
 } from 'lucide-react'
 
 interface NavLink {
@@ -55,6 +59,12 @@ export function Navbar() {
   const navigate = useAppStore((s) => s.navigate)
   const currentPage = useAppStore((s) => s.currentPage)
   const user = useAppStore((s) => s.user)
+  const appTheme = useAppStore((s) => s.theme)
+  const setAppTheme = useAppStore((s) => s.setTheme)
+  const language = useAppStore((s) => s.language)
+  const setLanguage = useAppStore((s) => s.setLanguage)
+  const currency = useAppStore((s) => s.currency)
+  const setCurrency = useAppStore((s) => s.setCurrency)
   const [notificationCount, setNotificationCount] = useState(3)
   const [isScrolled, setIsScrolled] = useState(false)
 
@@ -141,6 +151,76 @@ export function Navbar() {
 
         {/* Right Side Actions */}
         <div className="flex items-center gap-1.5">
+          {/* Controls: Theme, Language, Currency */}
+          <div className="hidden items-center gap-0.5 sm:flex">
+            {/* Theme Toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-9 transition-colors duration-200 hover:text-foreground"
+              onClick={() => setAppTheme(appTheme === 'dark' ? 'light' : 'dark')}
+              aria-label="Toggle theme"
+            >
+              {appTheme === 'dark' ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
+            </Button>
+
+            {/* Language Selector */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 gap-1.5 px-2 text-xs font-medium transition-colors duration-200 hover:text-foreground"
+                >
+                  <Globe className="size-3.5" />
+                  {language === 'es' ? 'ES' : 'EN'}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setLanguage('es')} className={language === 'es' ? 'bg-secondary' : ''}>
+                  🇨🇱 Español
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage('en')} className={language === 'en' ? 'bg-secondary' : ''}>
+                  🇺🇸 English
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Currency Selector */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 gap-1.5 px-2 text-xs font-medium transition-colors duration-200 hover:text-foreground"
+                >
+                  <DollarSign className="size-3.5" />
+                  {currency}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {[
+                  { code: 'CLP', label: '🇨🇱 CLP - Peso Chileno' },
+                  { code: 'USD', label: '🇺🇸 USD - Dólar' },
+                  { code: 'EUR', label: '🇪🇺 EUR - Euro' },
+                  { code: 'MXN', label: '🇲🇽 MXN - Peso Mexicano' },
+                  { code: 'COP', label: '🇨🇴 COP - Peso Colombiano' },
+                  { code: 'ARS', label: '🇦🇷 ARS - Peso Argentino' },
+                  { code: 'PEN', label: '🇵🇪 PEN - Sol Peruano' },
+                  { code: 'BRL', label: '🇧🇷 BRL - Real Brasilero' },
+                ].map((c) => (
+                  <DropdownMenuItem
+                    key={c.code}
+                    onClick={() => setCurrency(c.code)}
+                    className={currency === c.code ? 'bg-secondary' : ''}
+                  >
+                    {c.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
           {/* Notification Bell */}
           <Button
             variant="ghost"
@@ -324,6 +404,69 @@ export function Navbar() {
                     Panel de Administración
                   </Button>
                 </SheetClose>
+
+                <Separator className="my-3" />
+
+                {/* Mobile: Theme, Language, Currency Controls */}
+                <div className="flex flex-col gap-1 px-2">
+                  <span className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    Preferencias
+                  </span>
+
+                  {/* Theme Toggle */}
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-3 px-3 py-3 rounded-xl transition-colors duration-200 cursor-pointer text-muted-foreground hover:text-foreground"
+                    onClick={() => setAppTheme(appTheme === 'dark' ? 'light' : 'dark')}
+                  >
+                    <span className="flex size-9 items-center justify-center rounded-lg bg-muted">
+                      {appTheme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
+                    </span>
+                    {appTheme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}
+                  </Button>
+
+                  {/* Language Selector */}
+                  <div className="flex items-center gap-1 px-3 py-2">
+                    <Globe className="size-4 text-muted-foreground" />
+                    <span className="mr-auto text-sm text-muted-foreground">Idioma</span>
+                    <Button
+                      variant={language === 'es' ? 'secondary' : 'ghost'}
+                      size="sm"
+                      className="h-7 px-2.5 text-xs"
+                      onClick={() => setLanguage('es')}
+                    >
+                      🇨🇱 ES
+                    </Button>
+                    <Button
+                      variant={language === 'en' ? 'secondary' : 'ghost'}
+                      size="sm"
+                      className="h-7 px-2.5 text-xs"
+                      onClick={() => setLanguage('en')}
+                    >
+                      🇺🇸 EN
+                    </Button>
+                  </div>
+
+                  {/* Currency Selector */}
+                  <div className="flex items-center gap-1 px-3 py-2">
+                    <DollarSign className="size-4 text-muted-foreground" />
+                    <span className="mr-auto text-sm text-muted-foreground">Moneda</span>
+                    <select
+                      value={currency}
+                      onChange={(e) => setCurrency(e.target.value)}
+                      className="h-7 rounded-md border border-input bg-background px-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-ring"
+                    >
+                      <option value="CLP">🇨🇱 CLP</option>
+                      <option value="USD">🇺🇸 USD</option>
+                      <option value="EUR">🇪🇺 EUR</option>
+                      <option value="MXN">🇲🇽 MXN</option>
+                      <option value="COP">🇨🇴 COP</option>
+                      <option value="ARS">🇦🇷 ARS</option>
+                      <option value="PEN">🇵🇪 PEN</option>
+                      <option value="BRL">🇧🇷 BRL</option>
+                    </select>
+                  </div>
+                </div>
               </div>
             </SheetContent>
           </Sheet>

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { Plus, Pencil, Trash2, Loader2, Mail } from 'lucide-react'
+import { Plus, Pencil, Trash2, Loader2, Mail, Send } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -63,6 +63,11 @@ export function EmailTemplatesView() {
 
   const [deleteTarget, setDeleteTarget] = useState<EmailTemplate | null>(null)
   const [deleting, setDeleting] = useState(false)
+
+  const [testTarget, setTestTarget] = useState<EmailTemplate | null>(null)
+  const [testEmail, setTestEmail] = useState('')
+  const [sending, setSending] = useState(false)
+  const [testResult, setTestResult] = useState<{ success: boolean; renderedHtml: string; renderedText: string; subject: string } | null>(null)
 
   const { toast } = useToast()
 
@@ -145,6 +150,45 @@ export function EmailTemplatesView() {
     }
   }
 
+  const openTestDialog = (item: EmailTemplate) => {
+    setTestTarget(item)
+    setTestEmail('')
+    setTestResult(null)
+  }
+
+  const handleSendTest = async () => {
+    if (!testTarget || !testEmail.trim()) {
+      toast({ title: 'Error', description: 'Email de destino es obligatorio', variant: 'destructive' })
+      return
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(testEmail)) {
+      toast({ title: 'Error', description: 'Formato de email inválido', variant: 'destructive' })
+      return
+    }
+    try {
+      setSending(true)
+      setTestResult(null)
+      const res = await fetch('/api/emails/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: testEmail,
+          templateName: testTarget.name,
+          variables: { user_name: 'Usuario Test', amount: '$250.000', asset_name: 'Activo Demo', period: 'Marzo 2025' },
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Error al enviar')
+      setTestResult({ success: true, renderedHtml: data.renderedHtml, renderedText: data.renderedText, subject: data.subject })
+      toast({ title: 'Email de prueba enviado', description: `Email enviado a ${testEmail}` })
+    } catch (err) {
+      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Error desconocido', variant: 'destructive' })
+    } finally {
+      setSending(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -194,6 +238,7 @@ export function EmailTemplatesView() {
                         </TableCell>
                         <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-end gap-1">
+                            <Button variant="ghost" size="icon" className="size-8 cursor-pointer" title="Enviar prueba" onClick={() => openTestDialog(item)}><Send className="size-4" /></Button>
                             <Button variant="ghost" size="icon" className="size-8 cursor-pointer" onClick={() => openEdit(item)}><Pencil className="size-4" /></Button>
                             <Button variant="ghost" size="icon" className="size-8 text-red-500 hover:text-red-600 cursor-pointer" onClick={() => setDeleteTarget(item)}><Trash2 className="size-4" /></Button>
                           </div>
@@ -264,6 +309,56 @@ export function EmailTemplatesView() {
             <Button className="bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer" onClick={handleSubmit} disabled={submitting}>
               {submitting && <Loader2 className="mr-2 size-4 animate-spin" />}
               {editing ? 'Guardar Cambios' : 'Crear Plantilla'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Test Email Dialog */}
+      <Dialog open={!!testTarget} onOpenChange={(open) => { if (!open) { setTestTarget(null); setTestResult(null) } }}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+          <DialogHeader>
+            <DialogTitle>Enviar Email de Prueba</DialogTitle>
+            <DialogDescription>
+              Envía un correo de prueba para la plantilla: <span className="font-semibold">{testTarget?.name}</span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="test-email">Email de destino</Label>
+              <Input
+                id="test-email"
+                type="email"
+                placeholder="usuario@ejemplo.com"
+                value={testEmail}
+                onChange={(e) => setTestEmail(e.target.value)}
+              />
+            </div>
+            {testResult && (
+              <div className="space-y-4 rounded-lg border p-4 bg-muted/30">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Asunto:</p>
+                  <p className="text-sm text-muted-foreground">{testResult.subject}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">HTML generado:</p>
+                  <div className="rounded-md border bg-white p-3 max-h-48 overflow-y-auto custom-scrollbar">
+                    <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: testResult.renderedHtml }} />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Texto plano:</p>
+                  <pre className="rounded-md border bg-muted p-3 text-xs whitespace-pre-wrap max-h-32 overflow-y-auto custom-scrollbar">{testResult.renderedText}</pre>
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setTestTarget(null); setTestResult(null) }}>Cerrar</Button>
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer" onClick={handleSendTest} disabled={sending || !testEmail.trim()}>
+              {sending && <Loader2 className="mr-2 size-4 animate-spin" />}
+              <Send className="mr-2 size-4" />
+              Enviar Prueba
             </Button>
           </DialogFooter>
         </DialogContent>

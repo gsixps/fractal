@@ -698,28 +698,237 @@ const PROMOTIONS = [
 const EMAIL_TEMPLATES = [
   {
     name: 'welcome_email',
-    subject: '¡Bienvenido/a a GSP! Tu cuenta ha sido creada',
-    bodyHtml: '<h1>¡Bienvenido/a a GSP!</h1><p>Tu cuenta ha sido creada exitosamente. Completa tu verificación KYC para comenzar a invertir.</p>',
-    bodyText: '¡Bienvenido/a a GSP! Tu cuenta ha sido creada exitosamente. Completa tu verificación KYC para comenzar a invertir.',
+    subject: '¡Bienvenido/a {{user_name}} a GSP! Tu cuenta ha sido creada',
+    bodyHtml: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+  <div style="background: linear-gradient(135deg, #059669, #047857); padding: 32px; border-radius: 12px 12px 0 0; text-align: center;">
+    <h1 style="color: white; margin: 0; font-size: 28px;">¡Bienvenido/a a GSP!</h1>
+  </div>
+  <div style="padding: 32px; background: #ffffff; border: 1px solid #e5e7eb; border-top: none;">
+    <p style="font-size: 16px; color: #374151;">Hola <strong>{{user_name}}</strong>,</p>
+    <p style="font-size: 16px; color: #374151;">Tu cuenta ha sido creada exitosamente. Estamos encantados de tenerte como parte de nuestra comunidad de inversores.</p>
+    <p style="font-size: 16px; color: #374151;">Para comenzar a invertir, completa tu verificación de identidad (KYC) haciendo clic en el siguiente botón:</p>
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="{{verification_url}}" style="background: #059669; color: white; padding: 12px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">Completar Verificación</a>
+    </div>
+    <p style="font-size: 14px; color: #6b7280;">El proceso de verificación toma menos de 5 minutos.</p>
+  </div>
+  <div style="padding: 16px; text-align: center; background: #f9fafb; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+    <p style="font-size: 12px; color: #9ca3af;">GSP Inversiones SpA — Inversión fraccionaria en activos inmobiliarios</p>
+  </div>
+</div>`,
+    bodyText: '¡Bienvenido/a {{user_name}} a GSP!\n\nTu cuenta ha sido creada exitosamente. Para comenzar a invertir, completa tu verificación de identidad (KYC).\n\nCompleta tu verificación aquí: {{verification_url}}\n\nEl proceso toma menos de 5 minutos.\n\nGSP Inversiones SpA',
     variables: JSON.stringify(['{{user_name}}', '{{verification_url}}']),
+    category: 'onboarding',
+    isActive: true,
+  },
+  {
+    name: 'investment_confirmation',
+    subject: '¡Confirmación de tu inversión en {{asset_name}}!',
+    bodyHtml: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+  <div style="background: linear-gradient(135deg, #059669, #047857); padding: 32px; border-radius: 12px 12px 0 0; text-align: center;">
+    <h1 style="color: white; margin: 0; font-size: 28px;">¡Inversión Confirmada!</h1>
+  </div>
+  <div style="padding: 32px; background: #ffffff; border: 1px solid #e5e7eb; border-top: none;">
+    <p style="font-size: 16px; color: #374151;">Hola <strong>{{user_name}}</strong>,</p>
+    <p style="font-size: 16px; color: #374151;">Tu inversión ha sido procesada exitosamente. Aquí tienes los detalles:</p>
+    <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+      <tr style="border-bottom: 1px solid #e5e7eb;">
+        <td style="padding: 12px; color: #6b7280; font-weight: 600;">Activo</td>
+        <td style="padding: 12px; color: #374151; text-align: right;">{{asset_name}}</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #e5e7eb;">
+        <td style="padding: 12px; color: #6b7280; font-weight: 600;">Fracciones</td>
+        <td style="padding: 12px; color: #374151; text-align: right;">{{fraction_count}}</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #e5e7eb;">
+        <td style="padding: 12px; color: #6b7280; font-weight: 600;">Monto Total</td>
+        <td style="padding: 12px; color: #374151; text-align: right;">{{amount}}</td>
+      </tr>
+      <tr>
+        <td style="padding: 12px; color: #6b7280; font-weight: 600;">ID de Transacción</td>
+        <td style="padding: 12px; color: #374151; text-align: right;">{{transaction_id}}</td>
+      </tr>
+    </table>
+    <p style="font-size: 14px; color: #6b7280;">Los primeros dividendos se acreditarán dentro del próximo ciclo de pago.</p>
+  </div>
+  <div style="padding: 16px; text-align: center; background: #f9fafb; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+    <p style="font-size: 12px; color: #9ca3af;">GSP Inversiones SpA</p>
+  </div>
+</div>`,
+    bodyText: '¡Inversión Confirmada!\n\nHola {{user_name}},\n\nTu inversión ha sido procesada exitosamente.\n\nActivo: {{asset_name}}\nFracciones: {{fraction_count}}\nMonto Total: {{amount}}\nID de Transacción: {{transaction_id}}\n\nLos primeros dividendos se acreditarán dentro del próximo ciclo de pago.\n\nGSP Inversiones SpA',
+    variables: JSON.stringify(['{{user_name}}', '{{asset_name}}', '{{fraction_count}}', '{{amount}}', '{{transaction_id}}']),
     category: 'transactional',
     isActive: true,
   },
   {
-    name: 'dividend_payment',
-    subject: '¡Tienes un nuevo dividendo de GSP!',
-    bodyHtml: '<h1>Nuevo dividendo</h1><p>Has recibido un dividendo de <strong>{{amount}}</strong> por tu inversión en {{asset_name}}.</p>',
-    bodyText: 'Has recibido un dividendo de {{amount}} por tu inversión en {{asset_name}}.',
-    variables: JSON.stringify(['{{user_name}}', '{{amount}}', '{{asset_name}}', '{{period}}']),
-    category: 'transactional',
+    name: 'dividend_notification',
+    subject: '¡Tienes un nuevo dividendo de {{amount}}!',
+    bodyHtml: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+  <div style="background: linear-gradient(135deg, #059669, #047857); padding: 32px; border-radius: 12px 12px 0 0; text-align: center;">
+    <h1 style="color: white; margin: 0; font-size: 28px;">💰 ¡Nuevo Dividendo!</h1>
+  </div>
+  <div style="padding: 32px; background: #ffffff; border: 1px solid #e5e7eb; border-top: none;">
+    <p style="font-size: 16px; color: #374151;">Hola <strong>{{user_name}}</strong>,</p>
+    <p style="font-size: 16px; color: #374151;">Has recibido un nuevo dividendo por tu inversión en activos de GSP.</p>
+    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center;">
+      <p style="font-size: 32px; font-weight: 700; color: #059669; margin: 0;">{{amount}}</p>
+      <p style="font-size: 14px; color: #6b7280; margin: 4px 0 0;">CLP</p>
+    </div>
+    <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+      <tr style="border-bottom: 1px solid #e5e7eb;">
+        <td style="padding: 8px; color: #6b7280;">Activo</td>
+        <td style="padding: 8px; color: #374151; text-align: right;">{{asset_name}}</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #e5e7eb;">
+        <td style="padding: 8px; color: #6b7280;">Período</td>
+        <td style="padding: 8px; color: #374151; text-align: right;">{{period}}</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px; color: #6b7280;">Fracciones</td>
+        <td style="padding: 8px; color: #374151; text-align: right;">{{fraction_count}}</td>
+      </tr>
+    </table>
+    <p style="font-size: 14px; color: #6b7280;">El dividendo será depositado en tu cuenta bancaria registrada dentro de los próximos 3 días hábiles.</p>
+  </div>
+  <div style="padding: 16px; text-align: center; background: #f9fafb; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+    <p style="font-size: 12px; color: #9ca3af;">GSP Inversiones SpA</p>
+  </div>
+</div>`,
+    bodyText: '¡Nuevo Dividendo!\n\nHola {{user_name}},\n\nHas recibido un nuevo dividendo por tu inversión.\n\nMonto: {{amount}} CLP\nActivo: {{asset_name}}\nPeríodo: {{period}}\nFracciones: {{fraction_count}}\n\nEl dividendo será depositado en tu cuenta bancaria registrada dentro de los próximos 3 días hábiles.\n\nGSP Inversiones SpA',
+    variables: JSON.stringify(['{{user_name}}', '{{amount}}', '{{asset_name}}', '{{period}}', '{{fraction_count}}']),
+    category: 'notification',
     isActive: true,
   },
   {
     name: 'kyc_approved',
-    subject: '¡Tu verificación ha sido aprobada!',
-    bodyHtml: '<h1>¡Verificación aprobada!</h1><p>Tu verificación KYC ha sido aprobada. Ya puedes comenzar a invertir en activos.</p>',
-    bodyText: 'Tu verificación KYC ha sido aprobada. Ya puedes comenzar a invertir en activos.',
-    variables: JSON.stringify(['{{user_name}}']),
+    subject: '✅ ¡Tu verificación KYC ha sido aprobada, {{user_name}}!',
+    bodyHtml: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+  <div style="background: linear-gradient(135deg, #059669, #047857); padding: 32px; border-radius: 12px 12px 0 0; text-align: center;">
+    <h1 style="color: white; margin: 0; font-size: 28px;">✅ ¡Verificación Aprobada!</h1>
+  </div>
+  <div style="padding: 32px; background: #ffffff; border: 1px solid #e5e7eb; border-top: none;">
+    <p style="font-size: 16px; color: #374151;">Hola <strong>{{user_name}}</strong>,</p>
+    <p style="font-size: 16px; color: #374151;">¡Excelentes noticias! Tu verificación de identidad (KYC) ha sido aprobada exitosamente.</p>
+    <p style="font-size: 16px; color: #374151;">Ya puedes acceder a todas las funcionalidades de la plataforma:</p>
+    <ul style="font-size: 16px; color: #374151; padding-left: 20px;">
+      <li>Invertir en activos inmobiliarios fraccionarios</li>
+      <li>Recibir dividendos mensuales</li>
+      <li>Solicitar Salida Express</li>
+      <li>Acceder a tu portafolio completo</li>
+    </ul>
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="{{dashboard_url}}" style="background: #059669; color: white; padding: 12px 32px; text-decoration: none; border-radius: 8px; font-weight: 600;">Ir a mi Portafolio</a>
+    </div>
+  </div>
+  <div style="padding: 16px; text-align: center; background: #f9fafb; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+    <p style="font-size: 12px; color: #9ca3af;">GSP Inversiones SpA</p>
+  </div>
+</div>`,
+    bodyText: '¡Verificación Aprobada!\n\nHola {{user_name}},\n\n¡Excelentes noticias! Tu verificación de identidad (KYC) ha sido aprobada exitosamente.\n\nYa puedes:\n- Invertir en activos inmobiliarios fraccionarios\n- Recibir dividendos mensuales\n- Solicitar Salida Express\n- Acceder a tu portafolio completo\n\nIr a tu portafolio: {{dashboard_url}}\n\nGSP Inversiones SpA',
+    variables: JSON.stringify(['{{user_name}}', '{{dashboard_url}}']),
+    category: 'transactional',
+    isActive: true,
+  },
+  {
+    name: 'kyc_rejected',
+    subject: '⚠️ Tu verificación KYC requiere atención',
+    bodyHtml: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+  <div style="background: linear-gradient(135deg, #dc2626, #b91c1c); padding: 32px; border-radius: 12px 12px 0 0; text-align: center;">
+    <h1 style="color: white; margin: 0; font-size: 28px;">⚠️ Verificación Requerida</h1>
+  </div>
+  <div style="padding: 32px; background: #ffffff; border: 1px solid #e5e7eb; border-top: none;">
+    <p style="font-size: 16px; color: #374151;">Hola <strong>{{user_name}}</strong>,</p>
+    <p style="font-size: 16px; color: #374151;">Tu verificación de identidad no ha podido ser completada. Esto puede deberse a:</p>
+    <ul style="font-size: 16px; color: #374151; padding-left: 20px;">
+      <li>La imagen del documento no es legible</li>
+      <li>Los datos no coinciden con los registros</li>
+      <li>El documento ha expirado</li>
+    </ul>
+    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; margin: 16px 0;">
+      <p style="font-size: 14px; color: #991b1b;"><strong>Motivo:</strong> {{rejection_reason}}</p>
+    </div>
+    <p style="font-size: 16px; color: #374151;">Por favor, vuelve a subir tu documentación desde tu perfil para completar la verificación.</p>
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="{{verification_url}}" style="background: #dc2626; color: white; padding: 12px 32px; text-decoration: none; border-radius: 8px; font-weight: 600;">Reintentar Verificación</a>
+    </div>
+  </div>
+  <div style="padding: 16px; text-align: center; background: #f9fafb; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+    <p style="font-size: 12px; color: #9ca3af;">GSP Inversiones SpA</p>
+  </div>
+</div>`,
+    bodyText: '⚠️ Verificación Requerida\n\nHola {{user_name}},\n\nTu verificación de identidad no ha podido ser completada.\n\nMotivo: {{rejection_reason}}\n\nPor favor, vuelve a subir tu documentación desde tu perfil.\n\nReintentar: {{verification_url}}\n\nGSP Inversiones SpA',
+    variables: JSON.stringify(['{{user_name}}', '{{rejection_reason}}', '{{verification_url}}']),
+    category: 'transactional',
+    isActive: true,
+  },
+  {
+    name: 'password_reset',
+    subject: '🔒 Restablece tu contraseña de GSP',
+    bodyHtml: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+  <div style="background: linear-gradient(135deg, #374151, #1f2937); padding: 32px; border-radius: 12px 12px 0 0; text-align: center;">
+    <h1 style="color: white; margin: 0; font-size: 28px;">🔒 Restablecer Contraseña</h1>
+  </div>
+  <div style="padding: 32px; background: #ffffff; border: 1px solid #e5e7eb; border-top: none;">
+    <p style="font-size: 16px; color: #374151;">Hola <strong>{{user_name}}</strong>,</p>
+    <p style="font-size: 16px; color: #374151;">Hemos recibido una solicitud para restablecer tu contraseña. Si no fuiste tú, puedes ignorar este email.</p>
+    <div style="text-align: center; margin: 24px 0;">
+      <a href="{{reset_url}}" style="background: #374151; color: white; padding: 12px 32px; text-decoration: none; border-radius: 8px; font-weight: 600;">Restablecer Contraseña</a>
+    </div>
+    <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; padding: 12px; margin: 16px 0;">
+      <p style="font-size: 14px; color: #92400e;">⚠️ Este enlace expira en 24 horas por seguridad.</p>
+    </div>
+    <p style="font-size: 14px; color: #6b7280;">O copia y pega este enlace en tu navegador:</p>
+    <p style="font-size: 12px; color: #059669; word-break: break-all;">{{reset_url}}</p>
+  </div>
+  <div style="padding: 16px; text-align: center; background: #f9fafb; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+    <p style="font-size: 12px; color: #9ca3af;">GSP Inversiones SpA — Si no solicitaste este cambio, ignora este email.</p>
+  </div>
+</div>`,
+    bodyText: 'Restablecer Contraseña\n\nHola {{user_name}},\n\nHemos recibido una solicitud para restablecer tu contraseña. Si no fuiste tú, puedes ignorar este email.\n\nRestablecer: {{reset_url}}\n\nEste enlace expira en 24 horas.\n\nGSP Inversiones SpA',
+    variables: JSON.stringify(['{{user_name}}', '{{reset_url}}']),
+    category: 'security',
+    isActive: true,
+  },
+  {
+    name: 'liquidity_request_processed',
+    subject: '{{status_emoji}} Tu solicitud de Salida Express ha sido {{status_text}}',
+    bodyHtml: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+  <div style="background: linear-gradient(135deg, {{header_color}}, {{header_color_dark}}); padding: 32px; border-radius: 12px 12px 0 0; text-align: center;">
+    <h1 style="color: white; margin: 0; font-size: 28px;">{{status_emoji}} Salida Express</h1>
+  </div>
+  <div style="padding: 32px; background: #ffffff; border: 1px solid #e5e7eb; border-top: none;">
+    <p style="font-size: 16px; color: #374151;">Hola <strong>{{user_name}}</strong>,</p>
+    <p style="font-size: 16px; color: #374151;">Tu solicitud de Salida Express ha sido <strong>{{status_text}}</strong>.</p>
+    <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+      <tr style="border-bottom: 1px solid #e5e7eb;">
+        <td style="padding: 8px; color: #6b7280;">Activo</td>
+        <td style="padding: 8px; color: #374151; text-align: right;">{{asset_name}}</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #e5e7eb;">
+        <td style="padding: 8px; color: #6b7280;">Fracciones</td>
+        <td style="padding: 8px; color: #374151; text-align: right;">{{fraction_count}}</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #e5e7eb;">
+        <td style="padding: 8px; color: #6b7280;">Monto Bruto</td>
+        <td style="padding: 8px; color: #374151; text-align: right;">{{gross_amount}}</td>
+      </tr>
+      <tr style="border-bottom: 1px solid #e5e7eb;">
+        <td style="padding: 8px; color: #6b7280;">Fee Express</td>
+        <td style="padding: 8px; color: #374151; text-align: right;">{{fee_amount}}</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px; color: #6b7280; font-weight: 700;">Monto Neto</td>
+        <td style="padding: 8px; color: #059669; text-align: right; font-weight: 700;">{{net_amount}}</td>
+      </tr>
+    </table>
+    <p style="font-size: 14px; color: #6b7280;">Tiempo estimado de depósito: {{processing_days}} días hábiles.</p>
+  </div>
+  <div style="padding: 16px; text-align: center; background: #f9fafb; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+    <p style="font-size: 12px; color: #9ca3af;">GSP Inversiones SpA</p>
+  </div>
+</div>`,
+    bodyText: 'Salida Express - {{status_text}}\n\nHola {{user_name}},\n\nTu solicitud de Salida Express ha sido {{status_text}}.\n\nActivo: {{asset_name}}\nFracciones: {{fraction_count}}\nMonto Bruto: {{gross_amount}}\nFee Express: {{fee_amount}}\nMonto Neto: {{net_amount}}\n\nTiempo estimado de depósito: {{processing_days}} días hábiles.\n\nGSP Inversiones SpA',
+    variables: JSON.stringify(['{{user_name}}', '{{status_emoji}}', '{{status_text}}', '{{header_color}}', '{{header_color_dark}}', '{{asset_name}}', '{{fraction_count}}', '{{gross_amount}}', '{{fee_amount}}', '{{net_amount}}', '{{processing_days}}']),
     category: 'transactional',
     isActive: true,
   },

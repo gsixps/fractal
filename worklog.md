@@ -47,3 +47,35 @@ Stage Summary:
 - Admin panel expanded from 5 sections to 13 sections (Panel General, Activos, Usuarios, Inversiones, Liquidez, Contenido, Blog, FAQ, Testimonios, Legal, Promociones, Equipo, Emails)
 - Seed data provides realistic demo content for all new features
 - Asset form expansion (new fields in form) still pending as separate task
+---
+Task ID: 3
+Agent: Main Agent
+Task: Fix console errors + implement superadmin features, theme toggle, i18n, currency selector, email system, asset types management
+
+Work Log:
+- Fixed TestimonialsView null value error: added `|| ''` and `?? 0` guards in openEdit for nullable fields (avatarUrl, role, investmentAmount, assetName)
+- Created comprehensive i18n system (src/lib/i18n.tsx): 764 translations across 13 sections (nav, home, marketplace, asset, dashboard, admin, faq, settings, kyc, liquidity, common, footer, auth) for ES/EN
+- Updated store (src/lib/store.tsx): added theme/language/currency state + setters, added 'superadmin' role, changed default user to GSP Superadmin
+- Updated Navbar (src/components/gsp/layout/Navbar.tsx): added theme toggle (Sun/Moon), language selector dropdown (ES/EN with flags), currency selector dropdown (8 currencies: CLP, USD, EUR, MXN, COP, ARS, PEN, BRL)
+- Updated Footer (src/components/gsp/layout/Footer.tsx): added theme/language/currency controls
+- Added AssetType model to Prisma schema with fields: name, slug, icon, description, color, sortOrder, isActive
+- Created AssetTypesView admin component with full CRUD (table + create/edit/delete dialogs, color picker)
+- Created API routes: GET/POST /api/admin/asset-types, PUT/DELETE /api/admin/asset-types/[id]
+- Integrated AssetTypesView into AdminPage sidebar (nav item: "Tipos de Activo" with Layers icon)
+- Created EmailLog model in Prisma schema for tracking sent emails
+- Created email sending library (src/lib/email.ts) with template variable substitution
+- Created API routes: POST /api/emails/send, POST /api/emails/test
+- Updated EmailTemplatesView with "Send Test" button per template
+- Expanded default email templates to 7 (welcome, investment confirmation, dividend notification, KYC approved/rejected, password reset, liquidity request)
+- All files pass ESLint (only pre-existing keepalive.js errors)
+- Verified server starts and homepage loads (HTTP 200)
+- Verified asset-types API works: GET returns [], POST creates with 201
+
+Stage Summary:
+- 6 major features implemented: null value fix, asset types CRUD, superadmin access, theme toggle, i18n (ES/EN), currency selector (8 currencies), email system
+- New Prisma models: AssetType, EmailLog
+- New API routes: 4 (asset-types CRUD) + 2 (email send/test)
+- New admin section: AssetTypesView
+- Store expanded with theme, language, currency management
+- Navbar/Footer updated with control row (theme toggle, language selector, currency selector)
+- Email system functional with 7 professional HTML templates

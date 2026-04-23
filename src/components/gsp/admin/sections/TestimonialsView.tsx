@@ -111,9 +111,9 @@ export function TestimonialsView() {
   const openEdit = (item: Testimonial) => {
     setEditing(item)
     setForm({
-      name: item.name, role: item.role, avatarUrl: item.avatarUrl, quote: item.quote,
-      rating: item.rating.toString(), investmentAmount: item.investmentAmount.toString(),
-      assetName: item.assetName, isFeatured: item.isFeatured, isVerified: item.isVerified,
+      name: item.name || '', role: item.role || '', avatarUrl: item.avatarUrl || '', quote: item.quote || '',
+      rating: item.rating.toString(), investmentAmount: (item.investmentAmount ?? 0).toString(),
+      assetName: item.assetName || '', isFeatured: item.isFeatured, isVerified: item.isVerified,
       status: item.status,
     })
     setFormOpen(true)

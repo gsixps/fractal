@@ -192,7 +192,7 @@ interface AppState {
     id: string
     name: string
     email: string
-    role: 'investor' | 'admin'
+    role: 'investor' | 'admin' | 'superadmin'
     kycStatus: 'pending' | 'submitted' | 'verified' | 'rejected'
     avatarUrl?: string
   } | null
@@ -200,12 +200,18 @@ interface AppState {
   adminTab: string
   assets: Asset[]
   dashboardData: DashboardData
+  theme: 'light' | 'dark'
+  language: 'es' | 'en'
+  currency: string
   navigate: (page: Page) => void
   selectAsset: (id: string) => void
   setUser: (user: AppState['user']) => void
   toggleSidebar: () => void
   setAdminTab: (tab: string) => void
   getAssetById: (id: string) => Asset | undefined
+  setTheme: (theme: 'light' | 'dark') => void
+  setLanguage: (language: 'es' | 'en') => void
+  setCurrency: (currency: string) => void
 }
 
 const AppContext = createContext<AppState | null>(null)
@@ -225,13 +231,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [adminTab, setAdminTab] = useState('overview')
+  const [theme, setThemeState] = useState<'light' | 'dark'>('light')
+  const [language, setLanguageState] = useState<'es' | 'en'>('es')
+  const [currency, setCurrencyState] = useState<string>('CLP')
+
   const [user, setUser] = useState<AppState['user']>({
-    id: 'usr_demo_001',
-    name: 'María González',
-    email: 'maria@example.com',
-    role: 'investor',
+    id: 'usr_superadmin_001',
+    name: 'GSP Superadmin',
+    email: 'admin@gsp.cl',
+    role: 'superadmin',
     kycStatus: 'verified',
   })
+
+  const setTheme = useCallback((t: 'light' | 'dark') => {
+    setThemeState(t)
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.toggle('dark', t === 'dark')
+    }
+  }, [])
+
+  const setLanguage = useCallback((l: 'es' | 'en') => {
+    setLanguageState(l)
+  }, [])
+
+  const setCurrency = useCallback((c: string) => {
+    setCurrencyState(c)
+  }, [])
 
   const navigate = useCallback((page: Page) => {
     setCurrentPage(page)
@@ -261,6 +286,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     user,
     isSidebarOpen,
     adminTab,
+    theme,
+    language,
+    currency,
     assets: SEED_ASSETS,
     dashboardData: SEED_DASHBOARD_DATA,
     navigate,
@@ -269,6 +297,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     toggleSidebar,
     setAdminTab: handleSetAdminTab,
     getAssetById,
+    setTheme,
+    setLanguage,
+    setCurrency,
   }
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

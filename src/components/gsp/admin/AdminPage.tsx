@@ -33,6 +33,7 @@ import {
   UsersRound,
   Mail,
   Star,
+  Layers,
 } from 'lucide-react'
 import { SettingsView } from './sections/SettingsView'
 import { BlogView } from './sections/BlogView'
@@ -42,6 +43,7 @@ import { LegalView } from './sections/LegalView'
 import { PromotionsView } from './sections/PromotionsView'
 import { TeamView } from './sections/TeamView'
 import { EmailTemplatesView } from './sections/EmailTemplatesView'
+import { AssetTypesView } from './sections/AssetTypesView'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -347,6 +349,7 @@ function CardSkeleton() {
 const navItems: Array<{ id: string; label: string; icon: React.ElementType | null; isSeparator?: boolean }> = [
   { id: 'overview', label: 'Panel General', icon: LayoutDashboard },
   { id: 'assets', label: 'Activos', icon: Building2 },
+  { id: 'asset-types', label: 'Tipos de Activo', icon: Layers },
   { id: 'users', label: 'Usuarios', icon: Users },
   { id: 'investments', label: 'Inversiones', icon: Wallet },
   { id: 'liquidity', label: 'Liquidez', icon: Droplets },
@@ -1832,6 +1835,7 @@ export default function AdminPage() {
       case 'promotions': return <PromotionsView />
       case 'team': return <TeamView />
       case 'email-templates': return <EmailTemplatesView />
+      case 'asset-types': return <AssetTypesView />
       default: return <PanelGeneralView />
     }
   }

@@ -33,55 +33,24 @@ const DEMO_ASSETS = [
     constructionYear: 2021,
     landUse: 'Industrial / Logístico',
     shortDescription: 'Centro de distribución de última milla en zona de alta demanda logística, con 12 módulos independientes y contratos de arriendo a 5 años.',
-    fullDescription: `## Centro Logístico Santiago Norte
-
-Ubicado en el corazón del corredor industrial de Quilicura, este centro de distribución de última milla representa una oportunidad excepcional en el sector logístico chileno.
-
-### ¿Por qué invertir?
-
-El e-commerce en Chile creció un **340%** desde 2019, generando una demanda insatisfecha de espacios de última milla. Este activo está estratégicamente posicionado a minutos de la autopista Américo Vespucio y cuenta con acceso directo a las principales rutas de distribución.
-
-### Características del activo
-
-- **12 módulos independientes** de 375 m² cada uno
-- **Certificación LEED Gold** en eficiencia energética
-- **Sistema de seguridad** con vigilancia 24/7 y control de acceso biométrico
-- **Andenes de carga** nivelados con Dock Levelers hidráulicos
-- **Estacionamiento** para 40 vehículos y 6 espacios de carga pesada
-
-### Estructura del arriendo
-
-El contrato actual con LogiChile SpA extiende hasta febrero de 2029, con reajuste anual según IPC + 1%. El yielding neto considera todos los costos operativos ya deducidos, ofreciendo una renta pasiva verdaderamente transparente.
-
-### Nuestra ventaja operativa
-
-A diferencia del mercado que cobra entre **12% y 18%** en costos operativos, GSP mantiene una estructura de apenas **3%** gracias a nuestra automatización completa de gestión:
-- Property management automatizado con IA
-- Conciliación financiera en tiempo real
-- Gestión documental 100% digital
-- Reportes automáticos para inversores`,
-    highlights: JSON.stringify([
-      'Zona de mayor crecimiento logístico de Chile',
-      'Contrato de arriendo a 5 años con empresa AAA',
-      'Certificación LEED Gold',
-      'Costos operativos del 3% vs 15% del mercado',
-      'Retorno total estimado: 17% anual',
-    ]),
+    fullDescription: `## Centro Logístico Santiago Norte\n\nUbicado en el corazón del corredor industrial de Quilicura, este centro de distribución de última milla representa una oportunidad excepcional en el sector logístico chileno.\n\n### ¿Por qué invertir?\n\nEl e-commerce en Chile creció un **340%** desde 2019, generando una demanda insatisfecha de espacios de última milla.`,
+    highlights: JSON.stringify(['Zona de mayor crecimiento logístico de Chile', 'Contrato de arriendo a 5 años con empresa AAA', 'Certificación LEED Gold', 'Costos operativos del 3% vs 15% del mercado']),
     badge: 'En Arriendo',
     operationalCosts: 712800000,
     operationalCostsPct: 3.0,
+    riskLevel: 'medium',
+    riskDescription: 'Riesgo moderado asociado al sector logístico. Mitigado por contratos de arriendo de largo plazo.',
+    dividendFrequency: 'monthly',
+    minInvestmentPeriod: 12,
+    tags: 'logística,última milla,e-commerce,Quilicura',
+    amenities: JSON.stringify(['Andenes de carga nivelados', 'Vigilancia 24/7', 'Estacionamiento para 40 vehículos', 'Certificación LEED Gold']),
     images: [
       { url: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&h=600&fit=crop', alt: 'Centro logístico - Vista aérea', sortOrder: 0, isCover: true },
       { url: 'https://images.unsplash.com/photo-1553413077-190dd305871c?w=800&h=600&fit=crop', alt: 'Interior bodega', sortOrder: 1, isCover: false },
-      { url: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&h=600&fit=crop', alt: 'Módulo logístico', sortOrder: 2, isCover: false },
-      { url: 'https://images.unsplash.com/photo-1565008576549-57569a49371d?w=800&h=600&fit=crop', alt: 'Andenes de carga', sortOrder: 3, isCover: false },
     ],
     documents: [
       { title: 'Escritura SpA', documentType: 'escritura_spa', fileUrl: '#' },
       { title: 'Informe de Tasación 2024', documentType: 'tasacion', fileUrl: '#' },
-      { title: 'Estudio de Títulos', documentType: 'estudio_titulos', fileUrl: '#' },
-      { title: 'Contrato de Administración', documentType: 'contrato_admin', fileUrl: '#' },
-      { title: 'Estado Financiero Q1 2025', documentType: 'estado_financiero', fileUrl: '#' },
     ],
     cashFlowProjections: [
       { period: 'Año 1', periodType: 'yearly', grossIncome: 237600000, operationalCost: 7128000, netIncome: 230472000, appreciation: 162400000, totalReturn: 392872000, cumulativeReturn: 392872000 },
@@ -120,48 +89,30 @@ A diferencia del mercado que cobra entre **12% y 18%** en costos operativos, GSP
     units: 3,
     constructionYear: 2023,
     landUse: 'Tecnológico / Data Center',
-    shortDescription: 'Micro data center Tier II con infraestructura redundante y contratos de hosting a 7 años. Demanda creciente por nube local.',
-    fullDescription: `## Micro Data Center Valparaíso
-
-Un centro de datos de última generación ubicado estratégicamente en Valparaíso, el segundo hub tecnológico de Chile.
-
-### Oportunidad única
-
-La demanda de centros de datos en Chile crece un **25% anual** impulsada por la regulación de soberanía de datos. Este micro data center ofrece exposición al sector tecnológico con el respaldo de contratos de arriendo a largo plazo.
-
-### Infraestructura
-
-- **Tier II certificado** con uptime del 99.74%
-- **Sistema de enfriamiento** N+1 con eficiencia PUE de 1.3
-- **Energía redundante** con UPS y generador diésel
-- **Conectividad** con múltiples proveedores de fibra óptica
-- **Seguridad física** perimetral y biométrica`,
-    highlights: JSON.stringify([
-      'Sector tecnológico de mayor crecimiento en Chile',
-      'Contrato de arriendo a 7 años',
-      'Certificación Tier II',
-      'ROI del 21% anual',
-    ]),
+    shortDescription: 'Micro data center Tier II con infraestructura redundante y contratos de hosting a 7 años.',
+    fullDescription: `## Micro Data Center Valparaíso\n\nUn centro de datos de última generación ubicado estratégicamente en Valparaíso, el segundo hub tecnológico de Chile.`,
+    highlights: JSON.stringify(['Sector tecnológico de mayor crecimiento en Chile', 'Contrato de arriendo a 7 años', 'Certificación Tier II']),
     badge: 'Últimos cupos',
     operationalCosts: 555000000,
     operationalCostsPct: 3.0,
+    riskLevel: 'low',
+    riskDescription: 'Bajo riesgo por contratos de arriendo a largo plazo con empresa tecnológica consolidada.',
+    dividendFrequency: 'monthly',
+    minInvestmentPeriod: 24,
+    tags: 'data center,tecnología,Valparaíso,nube',
+    amenities: JSON.stringify(['Tier II certificado', 'Energía redundante', 'Seguridad biométrica', 'Fibra óptica múltiple']),
     images: [
-      { url: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&h=600&fit=crop', alt: 'Data center - Vista exterior', sortOrder: 0, isCover: true },
+      { url: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&h=600&fit=crop', alt: 'Data center', sortOrder: 0, isCover: true },
       { url: 'https://images.unsplash.com/photo-1597852074816-d933c7d2b988?w=800&h=600&fit=crop', alt: 'Servidores', sortOrder: 1, isCover: false },
-      { url: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&h=600&fit=crop', alt: 'Infraestructura', sortOrder: 2, isCover: false },
     ],
     documents: [
       { title: 'Escritura SpA', documentType: 'escritura_spa', fileUrl: '#' },
       { title: 'Informe de Tasación 2024', documentType: 'tasacion', fileUrl: '#' },
-      { title: 'Estudio de Títulos', documentType: 'estudio_titulos', fileUrl: '#' },
-      { title: 'Contrato de Administración', documentType: 'contrato_admin', fileUrl: '#' },
     ],
     cashFlowProjections: [
       { period: 'Año 1', periodType: 'yearly', grossIncome: 188160000, operationalCost: 5644800, netIncome: 182515200, appreciation: 133200000, totalReturn: 315715200, cumulativeReturn: 315715200 },
       { period: 'Año 2', periodType: 'yearly', grossIncome: 194582400, operationalCost: 5837472, netIncome: 188744928, appreciation: 142794240, totalReturn: 331539168, cumulativeReturn: 647254368 },
       { period: 'Año 3', periodType: 'yearly', grossIncome: 201273379, operationalCost: 6038201, netIncome: 195235178, appreciation: 152954208, totalReturn: 348189386, cumulativeReturn: 995443754 },
-      { period: 'Año 4', periodType: 'yearly', grossIncome: 208243200, operationalCost: 6247296, netIncome: 201995904, appreciation: 163714080, totalReturn: 365709984, cumulativeReturn: 1361153738 },
-      { period: 'Año 5', periodType: 'yearly', grossIncome: 215504160, operationalCost: 6465125, netIncome: 209039035, appreciation: 175101760, totalReturn: 384140795, cumulativeReturn: 1745294533 },
     ],
   },
   {
@@ -193,47 +144,29 @@ La demanda de centros de datos en Chile crece un **25% anual** impulsada por la 
     units: 1,
     constructionYear: 2024,
     landUse: 'Energía Renovable',
-    shortDescription: 'Parque solar de 2MW en el desierto de Atacama, el lugar con mayor radiación solar del mundo. Contrato PPA a 10 años.',
-    fullDescription: `## Parque Solar Atacama III
-
-Ubicado en el desierto de Atacama — el lugar con la **mayor radiación solar del planeta** — este parque de 2MW ofrece exposición al boom de energías renovables en Chile.
-
-### Diferenciador
-
-Chile se comprometió a alcanzar el **100% de energía renovable** para 2040. Este activo se beneficia de contratos de compra de energía (PPA) a largo plazo con garantía estatal.
-
-### Especificaciones técnicas
-
-- **2MW de capacidad instalada** con paneles bifaciales
-- **Irradiación solar** de 2,400 kWh/m²/año
-- **Contrato PPA** a 10 años con EnergíaPlus SpA
-- **Mantenimiento preventivo** incluido en contrato`,
-    highlights: JSON.stringify([
-      'Mayor radiación solar del mundo',
-      'Contrato PPA a 10 años garantizado',
-      'Sector con crecimiento obligatorio por ley',
-      'Inversión en infraestructura crítica',
-    ]),
+    shortDescription: 'Parque solar de 2MW en el desierto de Atacama, el lugar con mayor radiación solar del mundo.',
+    fullDescription: `## Parque Solar Atacama III\n\nUbicado en el desierto de Atacama — el lugar con la **mayor radiación solar del planeta**.`,
+    highlights: JSON.stringify(['Mayor radiación solar del mundo', 'Contrato PPA a 10 años', 'Sector con crecimiento obligatorio por ley']),
     badge: 'Oportunidad',
     operationalCosts: 1560000000,
     operationalCostsPct: 3.0,
+    riskLevel: 'medium',
+    riskDescription: 'Riesgo moderado. Mitigado por contrato PPA a 10 años con garantía estatal.',
+    dividendFrequency: 'quarterly',
+    minInvestmentPeriod: 36,
+    tags: 'energía solar,renovable,Atacama,PPA',
+    amenities: JSON.stringify(['2MW capacidad instalada', 'Paneles bifaciales', 'Mantenimiento preventivo incluido']),
     images: [
       { url: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=800&h=600&fit=crop', alt: 'Paneles solares', sortOrder: 0, isCover: true },
-      { url: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=800&h=600&fit=crop', alt: 'Parque solar aéreo', sortOrder: 1, isCover: false },
-      { url: 'https://images.unsplash.com/photo-1611270629569-8b357cb88da9?w=800&h=600&fit=crop', alt: 'Instalación solar', sortOrder: 2, isCover: false },
+      { url: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=800&h=600&fit=crop', alt: 'Parque solar', sortOrder: 1, isCover: false },
     ],
     documents: [
       { title: 'Escritura SpA', documentType: 'escritura_spa', fileUrl: '#' },
       { title: 'Informe de Tasación 2024', documentType: 'tasacion', fileUrl: '#' },
-      { title: 'Estudio de Títulos', documentType: 'estudio_titulos', fileUrl: '#' },
-      { title: 'Contrato PPA', documentType: 'contrato_admin', fileUrl: '#' },
     ],
     cashFlowProjections: [
       { period: 'Año 1', periodType: 'yearly', grossIncome: 342000000, operationalCost: 10260000, netIncome: 331740000, appreciation: 218400000, totalReturn: 550140000, cumulativeReturn: 550140000 },
       { period: 'Año 2', periodType: 'yearly', grossIncome: 348840000, operationalCost: 10465200, netIncome: 338374800, appreciation: 227616000, totalReturn: 565990800, cumulativeReturn: 1116130800 },
-      { period: 'Año 3', periodType: 'yearly', grossIncome: 355816800, operationalCost: 10674504, netIncome: 345142296, appreciation: 237175040, totalReturn: 582317336, cumulativeReturn: 1698448136 },
-      { period: 'Año 4', periodType: 'yearly', grossIncome: 362933136, operationalCost: 10887994, netIncome: 352045142, appreciation: 247082320, totalReturn: 599127462, cumulativeReturn: 2297575598 },
-      { period: 'Año 5', periodType: 'yearly', grossIncome: 370191799, operationalCost: 11105754, netIncome: 359086045, appreciation: 257346736, totalReturn: 616432781, cumulativeReturn: 2914008379 },
     ],
   },
   {
@@ -265,48 +198,29 @@ Chile se comprometió a alcanzar el **100% de energía renovable** para 2040. Es
     units: 8,
     constructionYear: 2022,
     landUse: 'Residencial / Arriendo',
-    shortDescription: 'Edificio residencial premium en Providencia con 8 departamentos de alto estándar. Ubicación inmejorable junto al metro Pedro Aguirre Cerda.',
-    fullDescription: `## Residencial Providencia Sky
-
-Edificio residencial de lujo en una de las comunas más cotizadas de Santiago, con excelente conectividad y demanda de arriendo consistente.
-
-### Ubicación privilegiada
-
-A metros de la estación Pedro Aguirre Cerda del Metro, rodeado de universidades, comercio y servicios. Providencia mantiene una **tasa de ocupación del 97%** en el segmento residencial premium.
-
-### Características
-
-- **8 departamentos** de 1 y 2 dormitorios
-- **Terminaciones premium**: piso flotante, cocina americana, balcones
-- **Amenidades**: gimnasio, laundry, terraza comunitaria
-- **Estacionamiento subterráneo** bicicletas`,
-    highlights: JSON.stringify([
-      'Ubicación premium en Providencia',
-      'Tasa de ocupación del 97%',
-      'Cerca del metro',
-      'Plusvalía histórica del 6.5% anual',
-    ]),
+    shortDescription: 'Edificio residencial premium en Providencia con 8 departamentos de alto estándar.',
+    fullDescription: `## Residencial Providencia Sky\n\nEdificio residencial de lujo en una de las comunas más cotizadas de Santiago.`,
+    highlights: JSON.stringify(['Ubicación premium en Providencia', 'Tasa de ocupación del 97%', 'Cerca del metro']),
     badge: 'En Arriendo',
     operationalCosts: 480000000,
     operationalCostsPct: 3.0,
+    riskLevel: 'low',
+    riskDescription: 'Bajo riesgo por ubicación premium y alta demanda residencial en Providencia.',
+    dividendFrequency: 'monthly',
+    minInvestmentPeriod: 6,
+    tags: 'residencial,Providencia,departamentos,inmueble',
+    amenities: JSON.stringify(['Gimnasio', 'Terraza comunitaria', 'Estacionamiento bicicletas', 'Laundry']),
     images: [
-      { url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop', alt: 'Edificio residencial', sortOrder: 0, isCover: true },
-      { url: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop', alt: 'Interior apartamento', sortOrder: 1, isCover: false },
-      { url: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=600&fit=crop', alt: 'Vista panorámica', sortOrder: 2, isCover: false },
-      { url: 'https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=800&h=600&fit=crop', alt: 'Sala de estar', sortOrder: 3, isCover: false },
+      { url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop', alt: 'Edificio', sortOrder: 0, isCover: true },
+      { url: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop', alt: 'Interior', sortOrder: 1, isCover: false },
     ],
     documents: [
       { title: 'Escritura SpA', documentType: 'escritura_spa', fileUrl: '#' },
       { title: 'Informe de Tasación 2024', documentType: 'tasacion', fileUrl: '#' },
-      { title: 'Estudio de Títulos', documentType: 'estudio_titulos', fileUrl: '#' },
-      { title: 'Contrato de Administración', documentType: 'contrato_admin', fileUrl: '#' },
     ],
     cashFlowProjections: [
       { period: 'Año 1', periodType: 'yearly', grossIncome: 106800000, operationalCost: 3204000, netIncome: 103596000, appreciation: 104000000, totalReturn: 207596000, cumulativeReturn: 207596000 },
       { period: 'Año 2', periodType: 'yearly', grossIncome: 110004000, operationalCost: 3300120, netIncome: 106703880, appreciation: 110760000, totalReturn: 217463880, cumulativeReturn: 425059880 },
-      { period: 'Año 3', periodType: 'yearly', grossIncome: 113304120, operationalCost: 3399124, netIncome: 109905000, appreciation: 117959000, totalReturn: 227864000, cumulativeReturn: 652923880 },
-      { period: 'Año 4', periodType: 'yearly', grossIncome: 116703244, operationalCost: 3501097, netIncome: 113202147, appreciation: 125725280, totalReturn: 238927427, cumulativeReturn: 891851307 },
-      { period: 'Año 5', periodType: 'yearly', grossIncome: 120204341, operationalCost: 3606130, netIncome: 116598211, appreciation: 133974422, totalReturn: 250572633, cumulativeReturn: 1142423940 },
     ],
   },
   {
@@ -338,48 +252,29 @@ A metros de la estación Pedro Aguirre Cerda del Metro, rodeado de universidades
     units: 1,
     constructionYear: 2020,
     landUse: 'Minero / Extractivo',
-    shortDescription: 'Complejo de apoyo minero con contratos de arriendo a 8 años. Exposición al boom del litio y cobre en el norte de Chile.',
-    fullDescription: `## Complejo Minero Atacama Norte
-
-Complejo logístico-minero con infraestructura para apoyo a operaciones extractivas en el corredor del litio chileno.
-
-### Contexto de mercado
-
-Chile posee las **mayores reservas de litio del mundo** (41%) y es el segundo productor de cobre. La demanda global de minerales críticos para la transición energética impulsa una necesidad creciente de infraestructura de apoyo.
-
-### Infraestructura
-
-- **Campamento operativo** para 200 personas
-- **Talleres mecánicos** y áreas de mantención
-- **Almacenes** de materiales y equipos
-- **Planta de tratamiento** de aguas
-- **Conexión vial** directa a Ruta 5 Norte`,
-    highlights: JSON.stringify([
-      'Exposición al boom del litio y cobre',
-      'Contrato de arriendo a 8 años',
-      'Infraestructura para 200 personas',
-      'Retorno total del 22.7% anual',
-    ]),
+    shortDescription: 'Complejo de apoyo minero con contratos de arriendo a 8 años. Exposición al boom del litio.',
+    fullDescription: `## Complejo Minero Atacama Norte\n\nComplejo logístico-minero con infraestructura para apoyo a operaciones extractivas en el corredor del litio chileno.`,
+    highlights: JSON.stringify(['Exposición al boom del litio y cobre', 'Contrato de arriendo a 8 años', 'Retorno total del 22.7% anual']),
     badge: 'Oportunidad',
     operationalCosts: 2550000000,
     operationalCostsPct: 3.0,
+    riskLevel: 'high',
+    riskDescription: 'Riesgo alto por exposición al ciclo de commodities. Mitigado por contratos a largo plazo.',
+    dividendFrequency: 'quarterly',
+    minInvestmentPeriod: 36,
+    tags: 'minería,litio,cobre,Antofagasta',
+    amenities: JSON.stringify(['Campamento 200 personas', 'Talleres mecánicos', 'Planta tratamiento de aguas']),
     images: [
       { url: 'https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?w=800&h=600&fit=crop', alt: 'Operación minera', sortOrder: 0, isCover: true },
-      { url: 'https://images.unsplash.com/photo-1578496479531-32e296d5c6e8?w=800&h=600&fit=crop', alt: 'Maquinaria pesada', sortOrder: 1, isCover: false },
-      { url: 'https://images.unsplash.com/photo-1599894019799-8cf418a8fc4d?w=800&h=600&fit=crop', alt: 'Campamento', sortOrder: 2, isCover: false },
+      { url: 'https://images.unsplash.com/photo-1578496479531-32e296d5c6e8?w=800&h=600&fit=crop', alt: 'Maquinaria', sortOrder: 1, isCover: false },
     ],
     documents: [
       { title: 'Escritura SpA', documentType: 'escritura_spa', fileUrl: '#' },
       { title: 'Informe de Tasación 2024', documentType: 'tasacion', fileUrl: '#' },
-      { title: 'Estudio de Títulos', documentType: 'estudio_titulos', fileUrl: '#' },
-      { title: 'Contrato de Arriendo', documentType: 'contrato_admin', fileUrl: '#' },
     ],
     cashFlowProjections: [
       { period: 'Año 1', periodType: 'yearly', grossIncome: 762000000, operationalCost: 22860000, netIncome: 739140000, appreciation: 722500000, totalReturn: 1461640000, cumulativeReturn: 1461640000 },
       { period: 'Año 2', periodType: 'yearly', grossIncome: 787380000, operationalCost: 23621400, netIncome: 763758600, appreciation: 783912500, totalReturn: 1547671100, cumulativeReturn: 3009311100 },
-      { period: 'Año 3', periodType: 'yearly', grossIncome: 813435600, operationalCost: 24403068, netIncome: 789032532, appreciation: 850544062, totalReturn: 1639576594, cumulativeReturn: 4648887694 },
-      { period: 'Año 4', periodType: 'yearly', grossIncome: 840185028, operationalCost: 25205551, netIncome: 814979477, appreciation: 922840308, totalReturn: 1737819785, cumulativeReturn: 6386707479 },
-      { period: 'Año 5', periodType: 'yearly', grossIncome: 867653419, operationalCost: 26029603, netIncome: 841623816, appreciation: 1001381774, totalReturn: 1843005590, cumulativeReturn: 8229713069 },
     ],
   },
   {
@@ -411,41 +306,431 @@ Chile posee las **mayores reservas de litio del mundo** (41%) y es el segundo pr
     units: 6,
     constructionYear: 2023,
     landUse: 'Logístico / Last Mile',
-    shortDescription: 'Hub de fulfillment para e-commerce en Maipú. Contrato con operador logístico líder de la región.',
-    fullDescription: `## Bodega E-Commerce Maipú Hub
-
-Hub logístico diseñado específicamente para operaciones de e-commerce y fulfillment, ubicado en la comuna de Maipú con acceso directo a las principales rutas de distribución.`,
-    highlights: JSON.stringify([
-      'Operador logístico líder regional',
-      'Diseñado para e-commerce',
-      'Entrada desde $120.000',
-    ]),
+    shortDescription: 'Hub de fulfillment para e-commerce en Maipú. Contrato con operador logístico líder.',
+    fullDescription: `## Bodega E-Commerce Maipú Hub\n\nHub logístico diseñado específicamente para operaciones de e-commerce y fulfillment.`,
+    highlights: JSON.stringify(['Operador logístico líder regional', 'Diseñado para e-commerce', 'Entrada desde $120.000']),
     badge: 'En Arriendo',
     operationalCosts: 360000000,
     operationalCostsPct: 3.0,
+    riskLevel: 'low',
+    riskDescription: 'Bajo riesgo. Contrato con operador líder de e-commerce en Latinoamérica.',
+    dividendFrequency: 'monthly',
+    minInvestmentPeriod: 12,
+    tags: 'e-commerce,logística,Maipú,fulfillment',
+    amenities: JSON.stringify(['Andenes de carga', 'Sistema de inventario', 'CCTV 24/7']),
     images: [
-      { url: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&h=600&fit=crop', alt: 'Bodega logística', sortOrder: 0, isCover: true },
-      { url: 'https://images.unsplash.com/photo-1553413077-190dd305871c?w=800&h=600&fit=crop', alt: 'Interior bodega', sortOrder: 1, isCover: false },
+      { url: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&h=600&fit=crop', alt: 'Bodega', sortOrder: 0, isCover: true },
+      { url: 'https://images.unsplash.com/photo-1553413077-190dd305871c?w=800&h=600&fit=crop', alt: 'Interior', sortOrder: 1, isCover: false },
     ],
     documents: [
       { title: 'Escritura SpA', documentType: 'escritura_spa', fileUrl: '#' },
       { title: 'Informe de Tasación', documentType: 'tasacion', fileUrl: '#' },
-      { title: 'Estudio de Títulos', documentType: 'estudio_titulos', fileUrl: '#' },
     ],
     cashFlowProjections: [
       { period: 'Año 1', periodType: 'yearly', grossIncome: 93600000, operationalCost: 2808000, netIncome: 90792000, appreciation: 60000000, totalReturn: 150792000, cumulativeReturn: 150792000 },
       { period: 'Año 2', periodType: 'yearly', grossIncome: 96408000, operationalCost: 2892240, netIncome: 93515760, appreciation: 63000000, totalReturn: 156515760, cumulativeReturn: 307307760 },
-      { period: 'Año 3', periodType: 'yearly', grossIncome: 99300240, operationalCost: 2979007, netIncome: 96321233, appreciation: 66150000, totalReturn: 162471233, cumulativeReturn: 469778993 },
-      { period: 'Año 4', periodType: 'yearly', grossIncome: 102279247, operationalCost: 3068377, netIncome: 99210870, appreciation: 69457500, totalReturn: 168668370, cumulativeReturn: 638447363 },
-      { period: 'Año 5', periodType: 'yearly', grossIncome: 105347625, operationalCost: 3160429, netIncome: 102187196, appreciation: 72930375, totalReturn: 175117571, cumulativeReturn: 813564934 },
     ],
+  },
+]
+
+// ─── Site Settings Seed ──────────────────────────────────────────────────────
+const SITE_SETTINGS = [
+  // Hero
+  { key: 'hero_badge', value: 'Plataforma de inversión fraccionaria', type: 'text', group: 'hero', label: 'Badge del Hero' },
+  { key: 'hero_title', value: 'Invierte en activos inmobiliarios desde {price}', type: 'text', group: 'hero', label: 'Título del Hero' },
+  { key: 'hero_highlight', value: '$120.000', type: 'text', group: 'hero', label: 'Precio destacado' },
+  { key: 'hero_subtitle', value: 'Accede a propiedades inmobiliarias, data centers y activos de infraestructura con inversión fraccionaria y liquidez inmediata.', type: 'text', group: 'hero', label: 'Subtítulo del Hero' },
+  { key: 'hero_cta_primary', value: 'Explorar Activos', type: 'text', group: 'hero', label: 'Botón CTA Primario' },
+  { key: 'hero_cta_secondary', value: 'Cómo Funciona', type: 'text', group: 'hero', label: 'Botón CTA Secundario' },
+  // Stats
+  { key: 'stat_1_value', value: '$2.100M+', type: 'text', group: 'stats', label: 'Stat 1 - Valor' },
+  { key: 'stat_1_label', value: 'Activos gestionados', type: 'text', group: 'stats', label: 'Stat 1 - Etiqueta' },
+  { key: 'stat_2_value', value: '340+', type: 'text', group: 'stats', label: 'Stat 2 - Valor' },
+  { key: 'stat_2_label', value: 'Inversores activos', type: 'text', group: 'stats', label: 'Stat 2 - Etiqueta' },
+  { key: 'stat_3_value', value: '12.8%', type: 'text', group: 'stats', label: 'Stat 3 - Valor' },
+  { key: 'stat_3_label', value: 'Retorno anual promedio', type: 'text', group: 'stats', label: 'Stat 3 - Etiqueta' },
+  { key: 'stat_4_value', value: '3%', type: 'text', group: 'stats', label: 'Stat 4 - Valor' },
+  { key: 'stat_4_label', value: 'Costos operativos', type: 'text', group: 'stats', label: 'Stat 4 - Etiqueta' },
+  // CTA
+  { key: 'cta_title', value: 'Comienza a invertir hoy', type: 'text', group: 'cta', label: 'Título CTA' },
+  { key: 'cta_subtitle', value: 'Únete a más de 340 inversores diversificando su portafolio con activos inmobiliarios premium.', type: 'text', group: 'cta', label: 'Subtítulo CTA' },
+  { key: 'cta_button', value: 'Comenzar', type: 'text', group: 'cta', label: 'Botón CTA' },
+  // Footer
+  { key: 'footer_company', value: 'GSP Inversiones SpA', type: 'text', group: 'footer', label: 'Nombre empresa' },
+  { key: 'footer_address', value: 'Av. Apoquindo 3000, Las Condes, Santiago, Chile', type: 'text', group: 'footer', label: 'Dirección' },
+  { key: 'footer_email', value: 'contacto@gsp.cl', type: 'text', group: 'footer', label: 'Email contacto' },
+  { key: 'footer_phone', value: '+56 2 2345 6789', type: 'text', group: 'footer', label: 'Teléfono' },
+  // SEO
+  { key: 'seo_title', value: 'GSP — Inversión Fraccionaria en Activos Inmobiliarios', type: 'text', group: 'seo', label: 'Meta Title' },
+  { key: 'seo_description', value: 'Invierte en propiedades inmobiliarias, data centers y activos de infraestructura desde $120.000. Rendimientos de hasta 22% anual con liquidez inmediata.', type: 'text', group: 'seo', label: 'Meta Description' },
+  // Platform
+  { key: 'platform_fee_pct', value: '3.0', type: 'number', group: 'platform', label: 'Comisión plataforma (%)', description: 'Comisión total cobrada por GSP' },
+  { key: 'liquidity_processing_days', value: '3', type: 'number', group: 'platform', label: 'Días procesamiento liquidez' },
+  { key: 'min_investment_default', value: '120000', type: 'number', group: 'platform', label: 'Inversión mínima por defecto (CLP)' },
+]
+
+// ─── FAQ Seed ─────────────────────────────────────────────────────────────────
+const FAQS = [
+  { question: '¿Qué es GSP?', answer: 'GSP es una plataforma chilena de inversión fraccionaria que te permite invertir en activos inmobiliarios y de infraestructura desde $120.000. Nos diferenciamos por tener los costos operativos más bajos del mercado (3%) y un fondo de liquidez propio para que puedas salir cuando lo necesites.', category: 'inversion', sortOrder: 1 },
+  { question: '¿Cómo funciona la inversión fraccionaria?', answer: 'GSP adquiere activos inmobiliarios y de infraestructura (data centers, parques solares, bodegas logísticas) y los divide en fracciones. Cada fracción representa una parte proporcional del activo. Al invertir, recibes dividendos mensuales según la renta generada y participas de la apreciación del activo.', category: 'inversion', sortOrder: 2 },
+  { question: '¿Cuál es la inversión mínima?', answer: 'Puedes comenzar a invertir desde $120.000 CLP (aprox. $120 USD). No hay montos máximos de inversión. Cada activo tiene su propio precio por fracción y puedes adquirir múltiples fracciones del mismo o diferentes activos.', category: 'inversion', sortOrder: 3 },
+  { question: '¿Qué es la Salida Express?', answer: 'La Salida Express es nuestro fondo de liquidez propio que te permite vender tus fracciones a valor contable en solo 48 horas. A diferencia de otras plataformas donde tu dinero queda atrapado por años, en GSP tienes liquidez inmediata sin penalizaciones ni comisiones adicionales.', category: 'liquidez', sortOrder: 1 },
+  { question: '¿Cuánto tiempo toma recuperar mi inversión?', answer: 'Puedes solicitar la Salida Express en cualquier momento y recibir el dinero en 48 horas hábiles. Alternativamente, puedes mantener tu inversión a largo plazo y recibir dividendos mensuales + plusvalía al momento de la venta del activo.', category: 'liquidez', sortOrder: 2 },
+  { question: '¿Es seguro invertir en GSP?', answer: 'Sí. GSP opera bajo supervisión de la CMF (Comisión para el Mercado Financiero) de Chile. Todos los activos tienen escrituras registradas, estados financieros auditados trimestralmente, y los fondos de los inversores están custodiados por entidades reguladas. Además, contamos con certificación de seguridad de la información.', category: 'seguridad', sortOrder: 1 },
+  { question: '¿Cómo se protegen mis datos?', answer: 'Utilizamos encriptación de extremo a extremo (E2E) y contamos con certificación SOC 2. Tus datos personales y financieros están protegidos con los más altos estándares de seguridad de la industria.', category: 'seguridad', sortOrder: 2 },
+  { question: '¿Qué documentos necesito para registrarme?', answer: 'Solo necesitas tu cédula de identidad o pasaporte, RUT, y una cuenta bancaria chilena. El proceso de verificación KYC toma menos de 5 minutos y se aprueba generalmente en 24 horas hábiles.', category: 'cuentas', sortOrder: 1 },
+  { question: '¿Puedo tener más de una inversión activa?', answer: '¡Por supuesto! Puedes diversificar tu portafolio invirtiendo en múltiples activos simultáneamente. Te recomendamos diversificar entre diferentes tipos de activos (inmuebles, data centers, energía solar, logística) para optimizar el riesgo-retorno de tu inversión.', category: 'cuentas', sortOrder: 2 },
+  { question: '¿Cómo se calculan los dividendos?', answer: 'Los dividendos se calculan mensualmente según la renta neta del activo (ingresos por arriendo menos costos operativos). Tu dividendo es proporcional a la cantidad de fracciones que posees. Los dividendos se depositan directamente en tu cuenta bancaria registrada durante los primeros 5 días hábiles de cada mes.', category: 'inversion', sortOrder: 4 },
+  { question: '¿Qué tipos de activos puedo encontrar?', answer: 'GSP ofrece 5 clases de activos: Inmuebles residenciales y comerciales, Micro Data Centers, Logística de última milla, Energía Solar (parques solares) y Minería (derechos mineros y apoyo logístico). Cada activo es previamente evaluado por nuestro equipo de análisis.', category: 'inversion', sortOrder: 5 },
+  { question: '¿Existen costos ocultos?', answer: 'No. GSP cobra una comisión total del 3% que incluye administración, gestión de activos, auditoría, tecnología y custodia. Todos los costos están transparentados en la plataforma. No cobramos comisiones de entrada ni salida adicionales.', category: 'tributacion', sortOrder: 1 },
+]
+
+// ─── Blog Posts Seed ─────────────────────────────────────────────────────────
+const BLOG_POSTS = [
+  {
+    title: 'Guía completa: Cómo diversificar tu portafolio con activos alternativos en 2025',
+    slug: 'guia-diversificacion-activos-alternativos-2025',
+    excerpt: 'Aprende las mejores estrategias para diversificar tus inversiones más allá de la bolsa, con rendimientos reales de hasta 22% anual.',
+    content: `## ¿Por qué diversificar con activos alternativos?
+
+La diversificación es la regla de oro de la inversión. Cuando el mercado bursátil es volátil, los activos alternativos como bienes raíces e infraestructura ofrecen un refugio estable con rendimientos consistentes.
+
+### El caso chileno
+
+En Chile, la inversión inmobiliaria ha entregado un **retorno promedio de 8-10% anual** en los últimos 10 años, superando consistentemente a los depósitos a plazo y fondos mutuos conservadores.
+
+### Tipos de activos alternativos
+
+1. **Inmuebles residenciales**: Estabilidad y plusvalía en ubicaciones premium
+2. **Data Centers**: Crecimiento del 25% anual por demanda de nube local
+3. **Logística de última milla**: Beneficiados por el boom del e-commerce
+4. **Energía solar**: Retornos garantizados por contratos PPA estatales
+5. **Minería**: Exposición al litio y cobre, minerales críticos globales
+
+### Cómo empezar con GSP
+
+Solo necesitas $120.000 CLP para comenzar. Nuestra plataforma te permite:
+
+- Seleccionar activos evaluados por expertos
+- Invertir fracciones de propiedades completas
+- Recibir dividendos mensuales automáticos
+- Contar con liquidez inmediata a través de la Salida Express`,
+    category: 'educacion',
+    tags: 'diversificación,inversión,educación financiera,activos alternativos',
+    status: 'published',
+    publishedAt: new Date('2025-01-15'),
+    featured: true,
+    readingTime: 8,
+    seoTitle: 'Diversificación con Activos Alternativos 2025 | GSP',
+    seoDescription: 'Guía completa para diversificar tu portafolio con activos alternativos en Chile. Rendimientos de hasta 22% anual.',
+  },
+  {
+    title: 'Data Centers en Chile: La oportunidad de inversión que pocos conocen',
+    slug: 'data-centers-chile-oportunidad-inversion',
+    excerpt: 'La demanda de centros de datos en Chile crece un 25% anual. Descubre por qué es una de las mejores inversiones alternativas.',
+    content: `## El boom de los data centers en Chile
+
+Chile se ha consolidado como el hub tecnológico de América Latina. La regulación de soberanía de datos y el crecimiento exponencial de la nube están generando una demanda insatisfecha de infraestructura de data centers.
+
+### Números clave
+
+- **Crecimiento anual**: 25% en demanda de centros de datos
+- **Inversión prevista**: USD $5.000 millones para 2027
+- **Uptime requerido**: 99.99% para aplicaciones críticas
+
+### ¿Por qué invertir ahora?
+
+1. Regulación de soberanía de datos obliga a las empresas a tener servidores locales
+2. Los contratos de arriendo son a largo plazo (5-10 años)
+3. Los yields superan el 13% anual neto
+4. La apreciación del activo es consistente por la escasez de oferta
+
+### Caso de éxito: Micro Data Center Valparaíso
+
+Nuestro primer micro data center ofrece un **retorno total del 21% anual** con un contrato de 7 años con CloudSur SpA. Las fracciones están disponibles desde $185.000.`,
+    category: 'mercado',
+    tags: 'data center,tecnología,inversión,nube,Chile',
+    status: 'published',
+    publishedAt: new Date('2025-02-10'),
+    featured: false,
+    readingTime: 6,
+  },
+  {
+    title: 'Salida Express: La revolución de la liquidez en la inversión inmobiliaria',
+    slug: 'salida-express-liquidez-inversion-inmobiliaria',
+    excerpt: 'Conoce cómo el fondo de liquidez de GSP te permite salir de tu inversión en 48 horas, sin comisiones ni penalizaciones.',
+    content: `## El problema de la liquidez
+
+Uno de los mayores desafíos de la inversión inmobiliaria tradicional es la **falta de liquidez**. Tu dinero queda atrapado por meses o años hasta que logras vender la propiedad.
+
+### La solución GSP: Salida Express
+
+Hemos creado un fondo de liquidez propio de $850 millones que te permite:
+
+- Vender tus fracciones en **48 horas**
+- Recibir el dinero a **valor contable**
+- Sin comisiones ni penalizaciones
+- Sin necesidad de esperar a un comprador
+
+### ¿Cómo funciona?
+
+1. Solicitas la venta de tus fracciones desde la plataforma
+2. Nuestro sistema evalúa la solicitud automáticamente
+3. El fondo de liquidez compra tus fracciones al valor contable actual
+4. Recibes el dinero en tu cuenta bancaria en 48 horas
+
+### Fondos del fondo
+
+- Reserva actual: $850 millones CLP
+- Contribución mensual: $25 millones
+- Reabastecimiento automático activado`,
+    category: 'gsp_updates',
+    tags: 'liquidez,salida express,fondo,GSP,novedades',
+    status: 'published',
+    publishedAt: new Date('2025-03-05'),
+    featured: true,
+    readingTime: 5,
+  },
+]
+
+// ─── Testimonials Seed ────────────────────────────────────────────────────────
+const TESTIMONIALS = [
+  {
+    name: 'Carolina Muñoz',
+    role: 'Ingeniera Comercial',
+    quote: 'Llevaba años queriendo invertir en bienes raíces pero no tenía el capital suficiente. Con GSP pude diversificar en 4 activos diferentes desde mi primera inversión. Los dividendos mensuales son una grata sorpresa.',
+    rating: 5,
+    investmentAmount: 2500000,
+    assetName: 'Centro Logístico Santiago Norte',
+    isFeatured: true,
+    isVerified: true,
+    sortOrder: 1,
+    status: 'approved',
+  },
+  {
+    name: 'Roberto Fuentes',
+    role: 'Emprendedor',
+    quote: 'Lo que más me gustó fue la transparencia. Puedo ver exactamente cuánto genera cada activo, los contratos de arriendo, y los estados financieros. Nada de cajas negras.',
+    rating: 5,
+    investmentAmount: 5000000,
+    assetName: 'Micro Data Center Valparaíso',
+    isFeatured: true,
+    isVerified: true,
+    sortOrder: 2,
+    status: 'approved',
+  },
+  {
+    name: 'Matías Sánchez',
+    role: 'Profesor Universitario',
+    quote: 'Como académico de finanzas, valoro mucho la estructura de costos. Pasar de 15% a 3% hace una diferencia enorme en el retorno real del inversor. Eso es innovación real.',
+    rating: 5,
+    investmentAmount: 1000000,
+    isFeatured: false,
+    isVerified: true,
+    sortOrder: 3,
+    status: 'approved',
+  },
+  {
+    name: 'Daniela Sepúlveda',
+    role: 'Diseñadora UX',
+    quote: 'La experiencia de usar la plataforma es increíble. En 10 minutos ya tenía mi cuenta verificada y mi primera inversión hecha. La Salida Express me da tranquilidad de saber que puedo salir cuando necesite.',
+    rating: 4,
+    investmentAmount: 850000,
+    assetName: 'Residencial Providencia Sky',
+    isFeatured: true,
+    isVerified: true,
+    sortOrder: 4,
+    status: 'approved',
+  },
+  {
+    name: 'Felipe Araya',
+    role: 'Arquitecto',
+    quote: 'Invertí en el parque solar y ha superado mis expectativas. Los dividendos trimestrales son puntuales y el rendimiento supera lo que ofrecen los fondos mutuos de renta fija.',
+    rating: 5,
+    investmentAmount: 3200000,
+    assetName: 'Parque Solar Atacama III',
+    isFeatured: false,
+    isVerified: true,
+    sortOrder: 5,
+    status: 'approved',
+  },
+]
+
+// ─── Team Members Seed ────────────────────────────────────────────────────────
+const TEAM_MEMBERS = [
+  { name: 'Alejandro Vera', role: 'CEO & Co-founder', bio: '15 años de experiencia en finanzas corporativas. Ex-socio de McKinsey Chile.', photoUrl: '', linkedinUrl: '#', sortOrder: 1, isActive: true },
+  { name: 'Valentina Rojas', role: 'COO & Co-founder', bio: 'MBA de MIT. Especialista en operaciones y tecnología financiera.', photoUrl: '', linkedinUrl: '#', sortOrder: 2, isActive: true },
+  { name: 'Diego Mendoza', role: 'CTO', bio: 'Ex-ingeniero senior de MercadoLibre. Expert en infraestructura cloud y fintech.', photoUrl: '', linkedinUrl: '#', sortOrder: 3, isActive: true },
+  { name: 'Francisca Lagos', role: 'Head de Inversiones', bio: '12 años en gestión de activos inmobiliarios. Ex-Banco de Chile.', photoUrl: '', linkedinUrl: '#', sortOrder: 4, isActive: true },
+  { name: 'Tomás Bravo', role: 'Head de Legal & Compliance', bio: 'Abogado especialista en regulación financiera de la CMF.', photoUrl: '', linkedinUrl: '#', sortOrder: 5, isActive: true },
+]
+
+// ─── Legal Documents Seed ─────────────────────────────────────────────────────
+const LEGAL_DOCUMENTS = [
+  {
+    title: 'Términos y Condiciones',
+    slug: 'terminos-y-condiciones',
+    content: `# Términos y Condiciones de GSP Inversiones SpA
+
+## 1. Información General
+
+GSP Inversiones SpA ("GSP", "nosotros", "nuestro") opera una plataforma de inversión fraccionaria en activos inmobiliarios y de infraestructura, supervisada por la Comisión para el Mercado Financiero (CMF) de Chile.
+
+## 2. Requisitos para invertir
+
+- Ser mayor de 18 años
+- Residir en Chile
+- Contar con RUT vigente
+- Completar exitosamente el proceso de verificación KYC
+- Disponer de cuenta bancaria chilena
+
+## 3. Mecanismo de inversión
+
+GSP adquiere activos y los fracciona. Cada fracción representa una parte proporcional de la propiedad del activo. Los inversores pueden adquirir fracciones a través de la plataforma.
+
+## 4. Dividendos
+
+Los dividendos se calculan mensualmente según la renta neta del activo y se distribuyen proporcionalmente a los inversores dentro de los primeros 5 días hábiles del mes siguiente.
+
+## 5. Salida Express
+
+Los inversores pueden solicitar la venta de sus fracciones a través del fondo de liquidez. El procesamiento toma hasta 48 horas hábiles.
+
+## 6. Riesgos
+
+La inversión en activos inmobiliarios y de infraestructura conlleva riesgos, incluyendo pero no limitado a: riesgo de mercado, riesgo de vacancia, riesgo regulatorio, y riesgo de liquidez del fondo.
+
+## 7. Modificaciones
+
+GSP se reserva el derecho de modificar estos términos. Los cambios serán notificados con al menos 30 días de anticipación.`,
+    version: '2.0',
+    effectiveDate: new Date('2025-01-01'),
+    type: 'terms',
+    isRequired: true,
+    isActive: true,
+  },
+  {
+    title: 'Política de Privacidad',
+    slug: 'politica-privacidad',
+    content: `# Política de Privacidad de GSP
+
+## 1. Datos que recopilamos
+
+- Datos de identificación: nombre, RUT, fecha de nacimiento
+- Datos de contacto: email, teléfono, dirección
+- Datos financieros: información bancaria, historial de inversiones
+- Datos de verificación: documentos KYC
+
+## 2. Finalidad del tratamiento
+
+- Verificación de identidad (KYC)
+- Gestión de inversiones
+- Cumplimiento regulatorio
+- Comunicaciones de servicio
+
+## 3. Seguridad
+
+Utilizamos encriptación AES-256, certificación SOC 2 y protocolos de seguridad de la información conforme a la Ley 19.628 de Protección de Datos Personales.
+
+## 4. Derechos del titular
+
+Puedes acceder, rectificar, cancelar u oponerte al tratamiento de tus datos personales contactándonos a privacidad@gsp.cl.`,
+    version: '1.5',
+    effectiveDate: new Date('2025-01-01'),
+    type: 'privacy',
+    isRequired: true,
+    isActive: true,
+  },
+  {
+    title: 'Descargo de Riesgos de Inversión',
+    slug: 'descargo-riesgos-inversion',
+    content: `# Descargo de Riesgos de Inversión
+
+## Información importante
+
+Toda inversión conlleva riesgo. El valor de las inversiones puede fluctuar y no se garantiza el retorno del capital invertido.
+
+## Riesgos específicos
+
+1. **Riesgo de mercado**: El valor de los activos puede disminuir
+2. **Riesgo de vacancia**: Los activos pueden quedar desocupados temporalmente
+3. **Riesgo regulatorio**: Cambios en la regulación pueden afectar los rendimientos
+4. **Riesgo de liquidez**: El fondo de liquidez puede no tener disponibilidad inmediata
+5. **Riesgo de crédito**: Riesgo de incumplimiento de los arrendatarios
+
+## Recomendación
+
+GSP recomienda diversificar entre múltiples activos y no invertir más del 10% de su patrimonio neto en inversiones alternativas.`,
+    version: '1.0',
+    effectiveDate: new Date('2025-01-01'),
+    type: 'risk_disclosure',
+    isRequired: true,
+    isActive: true,
+  },
+]
+
+// ─── Promotions Seed ──────────────────────────────────────────────────────────
+const PROMOTIONS = [
+  {
+    name: 'Bienvenida GSP',
+    code: 'BIENVENIDA2025',
+    type: 'bonus_yield',
+    value: 1.0,
+    minInvestment: 500000,
+    validFrom: new Date('2025-01-01'),
+    validTo: new Date('2025-12-31'),
+    maxUses: 500,
+    description: '1% adicional de rendimiento en tu primera inversión. Mínimo $500.000.',
+    isActive: true,
+  },
+  {
+    name: 'Referidos GSP',
+    code: 'REFIEREAMIGO',
+    type: 'cashback',
+    value: 50000,
+    validFrom: new Date('2025-01-01'),
+    description: '$50.000 de cashback por cada amigo que invierta. Tu amigo también recibe $25.000.',
+    isActive: true,
+  },
+]
+
+// ─── Email Templates Seed ─────────────────────────────────────────────────────
+const EMAIL_TEMPLATES = [
+  {
+    name: 'welcome_email',
+    subject: '¡Bienvenido/a a GSP! Tu cuenta ha sido creada',
+    bodyHtml: '<h1>¡Bienvenido/a a GSP!</h1><p>Tu cuenta ha sido creada exitosamente. Completa tu verificación KYC para comenzar a invertir.</p>',
+    bodyText: '¡Bienvenido/a a GSP! Tu cuenta ha sido creada exitosamente. Completa tu verificación KYC para comenzar a invertir.',
+    variables: JSON.stringify(['{{user_name}}', '{{verification_url}}']),
+    category: 'transactional',
+    isActive: true,
+  },
+  {
+    name: 'dividend_payment',
+    subject: '¡Tienes un nuevo dividendo de GSP!',
+    bodyHtml: '<h1>Nuevo dividendo</h1><p>Has recibido un dividendo de <strong>{{amount}}</strong> por tu inversión en {{asset_name}}.</p>',
+    bodyText: 'Has recibido un dividendo de {{amount}} por tu inversión en {{asset_name}}.',
+    variables: JSON.stringify(['{{user_name}}', '{{amount}}', '{{asset_name}}', '{{period}}']),
+    category: 'transactional',
+    isActive: true,
+  },
+  {
+    name: 'kyc_approved',
+    subject: '¡Tu verificación ha sido aprobada!',
+    bodyHtml: '<h1>¡Verificación aprobada!</h1><p>Tu verificación KYC ha sido aprobada. Ya puedes comenzar a invertir en activos.</p>',
+    bodyText: 'Tu verificación KYC ha sido aprobada. Ya puedes comenzar a invertir en activos.',
+    variables: JSON.stringify(['{{user_name}}']),
+    category: 'transactional',
+    isActive: true,
   },
 ]
 
 export async function seedDatabase() {
   // Check if already seeded
   const existingAssets = await db.asset.count()
-  if (existingAssets > 0) {
+  const existingSettings = await db.siteSetting.count()
+
+  if (existingAssets > 0 && existingSettings > 0) {
     return { message: 'Database already seeded', count: existingAssets }
   }
 
@@ -465,6 +750,12 @@ export async function seedDatabase() {
       balance: 5200000,
       totalInvested: 18250000,
       totalEarnings: 1685000,
+      referralCode: 'MARIA10',
+      newsletterOptIn: true,
+      termsAcceptedAt: new Date('2024-01-10'),
+      termsVersion: '2.0',
+      riskProfile: 'moderate',
+      lastLoginAt: new Date('2025-03-15'),
     },
   })
 
@@ -483,7 +774,6 @@ export async function seedDatabase() {
   // Create assets with nested data
   for (const asset of DEMO_ASSETS) {
     const { images, documents, cashFlowProjections, ...assetData } = asset
-
     await db.asset.create({
       data: {
         ...assetData,
@@ -535,10 +825,13 @@ export async function seedDatabase() {
         amount: investment.totalAmount,
         status: 'completed',
         description: `Inversión en ${asset.name} - ${qty} fracciones`,
+        referenceId: `TXN-${Date.now()}-${i}`,
+        feeAmount: investment.totalAmount * 0.03,
+        netAmount: investment.totalAmount,
+        processedBy: 'system',
       },
     })
 
-    // Create sample dividend payments
     for (let m = 0; m < 6; m++) {
       const monthlyDiv = (asset.monthlyRent || 0) / asset.totalFractions * qty * 0.9
       await db.dividendPayment.create({
@@ -565,6 +858,25 @@ export async function seedDatabase() {
       { userId, type: 'system', title: 'Nuevo activo disponible', message: 'Parque Solar Atacama III ya está disponible para inversión.', read: false },
       { userId, type: 'transaction', title: 'Inversión completada', message: 'Tu inversión en Micro Data Center Valparaíso ha sido procesada exitosamente.', read: true },
     ],
+  })
+
+  // Seed CMS data
+  await db.siteSetting.createMany({ data: SITE_SETTINGS })
+  await db.fAQ.createMany({ data: FAQS })
+  await db.blogPost.createMany({ data: BLOG_POSTS })
+  await db.testimonial.createMany({ data: TESTIMONIALS })
+  await db.teamMember.createMany({ data: TEAM_MEMBERS })
+  await db.legalDocument.createMany({ data: LEGAL_DOCUMENTS })
+  await db.promotion.createMany({ data: PROMOTIONS })
+  await db.emailTemplate.createMany({ data: EMAIL_TEMPLATES })
+
+  // Audit log
+  await db.auditLog.create({
+    data: {
+      action: 'system.seed',
+      entity: 'system',
+      details: 'Base de datos inicializada con datos de demostración',
+    },
   })
 
   return { message: 'Database seeded successfully', count: DEMO_ASSETS.length }

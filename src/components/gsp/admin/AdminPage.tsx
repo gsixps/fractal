@@ -24,7 +24,24 @@ import {
   ChevronLeft,
   ChevronRight,
   AlertTriangle,
+  Settings,
+  FileText,
+  HelpCircle,
+  Quote,
+  Scale,
+  Tag,
+  UsersRound,
+  Mail,
+  Star,
 } from 'lucide-react'
+import { SettingsView } from './sections/SettingsView'
+import { BlogView } from './sections/BlogView'
+import { FAQView } from './sections/FAQView'
+import { TestimonialsView } from './sections/TestimonialsView'
+import { LegalView } from './sections/LegalView'
+import { PromotionsView } from './sections/PromotionsView'
+import { TeamView } from './sections/TeamView'
+import { EmailTemplatesView } from './sections/EmailTemplatesView'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -327,12 +344,22 @@ function CardSkeleton() {
 }
 
 // ─── Sidebar Navigation ─────────────────────────────────────────────────────
-const navItems = [
+const navItems: Array<{ id: string; label: string; icon: React.ElementType | null; isSeparator?: boolean }> = [
   { id: 'overview', label: 'Panel General', icon: LayoutDashboard },
   { id: 'assets', label: 'Activos', icon: Building2 },
   { id: 'users', label: 'Usuarios', icon: Users },
   { id: 'investments', label: 'Inversiones', icon: Wallet },
   { id: 'liquidity', label: 'Liquidez', icon: Droplets },
+  { id: '_sep_cms', label: '', icon: null, isSeparator: true },
+  { id: 'settings', label: 'Contenido', icon: Settings },
+  { id: 'blog', label: 'Blog', icon: FileText },
+  { id: 'faq', label: 'FAQ', icon: HelpCircle },
+  { id: 'testimonials', label: 'Testimonios', icon: Quote },
+  { id: '_sep_cms2', label: '', icon: null, isSeparator: true },
+  { id: 'legal', label: 'Legal', icon: Scale },
+  { id: 'promotions', label: 'Promociones', icon: Tag },
+  { id: 'team', label: 'Equipo', icon: UsersRound },
+  { id: 'email-templates', label: 'Emails', icon: Mail },
 ]
 
 function SidebarNav({
@@ -345,7 +372,8 @@ function SidebarNav({
   return (
     <nav className="flex flex-col gap-1 p-3">
       {navItems.map((item) => {
-        const Icon = item.icon
+        if (item.isSeparator) return <Separator key={item.id} className="my-2" />
+        const Icon = item.icon!
         const isActive = activeTab === item.id
         return (
           <button
@@ -1796,6 +1824,14 @@ export default function AdminPage() {
       case 'users': return <UsuariosView />
       case 'investments': return <InversionesView />
       case 'liquidity': return <LiquidezView />
+      case 'settings': return <SettingsView />
+      case 'blog': return <BlogView />
+      case 'faq': return <FAQView />
+      case 'testimonials': return <TestimonialsView />
+      case 'legal': return <LegalView />
+      case 'promotions': return <PromotionsView />
+      case 'team': return <TeamView />
+      case 'email-templates': return <EmailTemplatesView />
       default: return <PanelGeneralView />
     }
   }

@@ -26,12 +26,25 @@ model User {
   totalInvested     Float     @default(0)
   totalEarnings     Float     @default(0)
 
+  // New CMS fields
+  preferredLanguage String    @default("es")
+  newsletterOptIn  Boolean   @default(false)
+  termsAcceptedAt  DateTime?
+  termsVersion     String?
+  riskProfile      String?
+  referralCode     String?   @unique
+  referredBy       String?
+  isActive         Boolean   @default(true)
+  lastLoginAt      DateTime?
+  notes            String?
+
   investments       Investment[]
   transactions      Transaction[]
   dividendPayments  DividendPayment[]
   kycDocuments      KYCDocument[]
   notifications     Notification[]
   liquidityRequests LiquidityRequest[]
+  blogPosts         BlogPost[]
 
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
@@ -98,6 +111,20 @@ model Asset {
 
   operationalCosts      Float?
   operationalCostsPct   Float?
+
+  // New CMS fields
+  riskLevel             String              @default("medium")
+  riskDescription       String?
+  videoUrl              String?
+  virtualTourUrl        String?
+  minInvestmentPeriod   Int?
+  dividendFrequency     String              @default("monthly")
+  featuredOrder         Int?
+  seoTitle              String?
+  seoDescription        String?
+  publishedAt           DateTime?
+  tags                  String?
+  amenities             String?
 
   images                AssetImage[]
   documents             AssetDocument[]
@@ -189,6 +216,13 @@ model Transaction {
   description        String?
   metadata           String?
 
+  // New CMS fields
+  referenceId        String?
+  feeAmount          Float?
+  netAmount          Float?
+  receiptUrl         String?
+  processedBy        String?
+
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
 }
@@ -268,6 +302,164 @@ model Notification {
   message   String
   read      Boolean  @default(false)
   metadata  String?
+
+  createdAt DateTime @default(now())
+}
+
+// ==================== CMS: SITE SETTINGS ====================
+
+model SiteSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String   @default("")
+  type        String   @default("text")
+  group       String   @default("general")
+  label       String
+  description String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ==================== CMS: BLOG ====================
+
+model BlogPost {
+  id            String    @id @default(cuid())
+  title         String
+  slug          String    @unique
+  excerpt       String
+  content       String
+  coverImage    String?
+  category      String    @default("educacion")
+  tags          String    @default("")
+  authorId      String?
+  author        User?     @relation(fields: [authorId], references: [id])
+  status        String    @default("draft")
+  publishedAt   DateTime?
+  featured      Boolean   @default(false)
+  readingTime   Int?
+  views         Int       @default(0)
+  seoTitle      String?
+  seoDescription String?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+// ==================== CMS: FAQ ====================
+
+model FAQ {
+  id          String   @id @default(cuid())
+  question    String
+  answer      String
+  category    String   @default("inversion")
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ==================== CMS: TESTIMONIALS ====================
+
+model Testimonial {
+  id                String   @id @default(cuid())
+  name              String
+  role              String?
+  avatarUrl         String?
+  quote             String
+  rating            Int      @default(5)
+  investmentAmount  Float?
+  assetName         String?
+  isFeatured        Boolean  @default(false)
+  isVerified        Boolean  @default(true)
+  sortOrder         Int      @default(0)
+  status            String   @default("pending")
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+// ==================== CMS: LEGAL DOCUMENTS ====================
+
+model LegalDocument {
+  id            String   @id @default(cuid())
+  title         String
+  slug          String   @unique
+  content       String
+  version       String   @default("1.0")
+  effectiveDate DateTime
+  type          String   @default("terms")
+  isRequired    Boolean  @default(false)
+  isActive      Boolean  @default(true)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ==================== CMS: TEAM MEMBERS ====================
+
+model TeamMember {
+  id          String   @id @default(cuid())
+  name        String
+  role        String
+  bio         String   @default("")
+  photoUrl    String?
+  linkedinUrl String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ==================== CMS: EMAIL TEMPLATES ====================
+
+model EmailTemplate {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  subject     String
+  bodyHtml    String
+  bodyText    String   @default("")
+  variables   String   @default("[]")
+  category    String   @default("transactional")
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ==================== CMS: PROMOTIONS ====================
+
+model Promotion {
+  id            String   @id @default(cuid())
+  name          String
+  code          String   @unique
+  type          String   @default("bonus_yield")
+  value         Float    @default(0)
+  minInvestment Float?
+  validFrom     DateTime
+  validTo       DateTime?
+  maxUses       Int?
+  usedCount     Int      @default(0)
+  assetTypes    String?
+  description   String?
+  isActive      Boolean  @default(true)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ==================== CMS: AUDIT LOG ====================
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String   @default("system")
+  action    String
+  entity    String
+  entityId  String?
+  details   String?
+  ipAddress String?
 
   createdAt DateTime @default(now())
 }

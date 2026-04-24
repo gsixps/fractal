@@ -1,11 +1,28 @@
 import type { BadgeVariants } from '@/components/ui/badge'
 
 /**
+ * Format a number as US dollars (USD).
+ * Uses comma as thousands separator and 2 decimal places.
+ *
+ * @example formatUSD(15000) → "$15,000.00"
+ * @example formatUSD(0) → "$0.00"
+ */
+export function formatUSD(amount: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount)
+}
+
+/**
  * Format a number as Chilean pesos (CLP).
  * Uses dot as thousands separator and no decimal places.
  *
  * @example formatCLP(15000000) → "$15.000.000"
  * @example formatCLP(0) → "$0"
+ * @deprecated Use formatUSD or useCurrency() hook instead.
  */
 export function formatCLP(amount: number): string {
   const rounded = Math.round(amount)
@@ -13,6 +30,42 @@ export function formatCLP(amount: number): string {
     .toString()
     .replace(/\B(?=(\d{3})+(?!\d))/g, '.')
   return `$${formatted}`
+}
+
+/**
+ * Format a number in a locale-aware currency string.
+ * Defaults to USD with 2 decimal places.
+ *
+ * @example formatCurrency(15000, 'USD') → "$15,000.00"
+ * @example formatCurrency(15000000, 'CLP') → "$15.000.000"
+ * @example formatCurrency(100, 'EUR') → "€100.00"
+ */
+export function formatCurrency(
+  amount: number,
+  currencyCode: string = 'USD'
+): string {
+  const localeMap: Record<string, string> = {
+    USD: 'en-US',
+    EUR: 'de-DE',
+    CLP: 'es-CL',
+    MXN: 'es-MX',
+    COP: 'es-CO',
+    ARS: 'es-AR',
+    PEN: 'es-PE',
+    BRL: 'pt-BR',
+    VES: 'es-VE',
+  }
+  const decimalsMap: Record<string, number> = {
+    CLP: 0, COP: 0, ARS: 0,
+    USD: 2, EUR: 2, MXN: 2, PEN: 2, BRL: 2, VES: 2,
+  }
+
+  return new Intl.NumberFormat(localeMap[currencyCode] || 'en-US', {
+    style: 'currency',
+    currency: currencyCode,
+    minimumFractionDigits: decimalsMap[currencyCode] ?? 2,
+    maximumFractionDigits: decimalsMap[currencyCode] ?? 2,
+  }).format(amount)
 }
 
 /**
@@ -156,10 +209,10 @@ export function getStatusLabel(status: string): string {
 
 /**
  * Format a large number into a compact readable format.
- * Uses the CLP base currency format.
+ * Uses USD as the base currency.
  *
  * @example formatCompact(15000000) → "$15M"
- * @example formatCompact(2500000) → "$2,5M"
+ * @example formatCompact(2500000) → "$2.5M"
  * @example formatCompact(500000) → "$500K"
  */
 export function formatCompact(amount: number): string {
@@ -175,5 +228,5 @@ export function formatCompact(amount: number): string {
     const value = (amount / 1_000).toFixed(0)
     return `$${value}K`
   }
-  return formatCLP(amount)
+  return formatUSD(amount)
 }

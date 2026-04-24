@@ -129,7 +129,7 @@ export function Navbar() {
             <span className="text-sm font-bold text-white tracking-tight">G</span>
           </div>
           <span className="text-xl font-bold tracking-tight gsp-gradient-text">
-            GSP
+            GALAXY
           </span>
         </button>
 
@@ -357,10 +357,10 @@ export function Navbar() {
                   <div className="flex size-7 items-center justify-center rounded-md gsp-gradient">
                     <span className="text-xs font-bold text-white">G</span>
                   </div>
-                  <span className="gsp-gradient-text text-lg font-bold">GSP</span>
+                  <span className="gsp-gradient-text text-lg font-bold">GALAXY</span>
                 </SheetTitle>
                 <SheetDescription className="text-left text-muted-foreground">
-                  Global Solidarity Partners
+                  GALAXY LLC — Fractional Real Estate Investment
                 </SheetDescription>
               </SheetHeader>
 

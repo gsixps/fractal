@@ -255,7 +255,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [adminTab, setAdminTab] = useState('overview')
   const [theme, setThemeState] = useState<'light' | 'dark'>('light')
   const [language, setLanguageState] = useState<'es' | 'en'>('es')
-  const [currency, setCurrencyState] = useState<string>('CLP')
+  const [currency, setCurrencyState] = useState<string>('USD')
 
   const [user, setUser] = useState<AppState['user']>(null)
   const [assets, setAssets] = useState<Asset[]>([])

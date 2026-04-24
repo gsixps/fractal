@@ -416,7 +416,7 @@ function LiquiditySection() {
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-semibold text-primary flex items-center gap-2 text-sm">
-                        <TrendingUp className="size-4" /> GSP
+                        <TrendingUp className="size-4" /> GALAXY
                       </span>
                       <span className="font-bold text-primary text-lg">3%</span>
                     </div>
@@ -472,7 +472,7 @@ function TransparencySection() {
           <Card className="border-border/40 overflow-hidden shadow-[0_4px_24px_oklch(0.45_0.155_162/0.06)]">
             <div className="grid grid-cols-3 gsp-gradient text-white">
               <div className="px-5 py-3.5 font-semibold text-sm">{t('common.all')}</div>
-              <div className="px-5 py-3.5 font-semibold text-sm text-center">GSP</div>
+              <div className="px-5 py-3.5 font-semibold text-sm text-center">GALAXY</div>
               <div className="px-5 py-3.5 font-semibold text-sm text-center">{t('marketplace.title')}</div>
             </div>
             {rows.map((row, i) => (

@@ -9,12 +9,13 @@ import { Input } from '@/components/ui/input'
 import { useAppStore } from '@/lib/store'
 import {
   Search, Building2, FlaskConical, Truck, Sun, Pickaxe,
-  ArrowUpDown, MapPin, SlidersHorizontal,
+  ArrowUpDown, MapPin, SlidersHorizontal, Globe,
 } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from '@/components/ui/sheet'
+import { Separator } from '@/components/ui/separator'
 
 const TYPES = [
   { key: 'all', label: 'Todos', icon: <Search className="size-3.5" /> },
@@ -24,6 +25,21 @@ const TYPES = [
   { key: 'solar_energy', label: 'Solar', icon: <Sun className="size-3.5" /> },
   { key: 'mining', label: 'Minería', icon: <Pickaxe className="size-3.5" /> },
 ] as const
+
+const COUNTRIES = [
+  { key: 'all', label: 'Todos', flag: <Globe className="size-3.5" /> },
+  { key: 'Chile', label: 'Chile', flag: '🇨🇱' },
+  { key: 'Colombia', label: 'Colombia', flag: '🇨🇴' },
+  { key: 'Venezuela', label: 'Venezuela', flag: '🇻🇪' },
+  { key: 'USA', label: 'USA', flag: '🇺🇸' },
+] as const
+
+const COUNTRY_FLAGS: Record<string, string> = {
+  Chile: '🇨🇱',
+  Colombia: '🇨🇴',
+  Venezuela: '🇻🇪',
+  USA: '🇺🇸',
+}
 
 const SORTS = [
   { key: 'yield', label: 'Mayor rendimiento' },
@@ -53,6 +69,7 @@ export default function MarketplacePage() {
   const fetchAssets = useAppStore((s) => s.fetchAssets)
   const assetsLoading = useAppStore((s) => s.assetsLoading)
   const [typeFilter, setTypeFilter] = useState('all')
+  const [countryFilter, setCountryFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState('yield')
 
@@ -61,6 +78,7 @@ export default function MarketplacePage() {
   const sorted = useMemo(() => {
     let arr = storeAssets.filter(a => a.status === 'active')
     if (typeFilter !== 'all') arr = arr.filter(a => a.type === typeFilter)
+    if (countryFilter !== 'all') arr = arr.filter(a => a.country === countryFilter)
     if (search) {
       const q = search.toLowerCase()
       arr = arr.filter(a => a.name.toLowerCase().includes(q) || a.city.toLowerCase().includes(q))
@@ -72,7 +90,7 @@ export default function MarketplacePage() {
       case 'funded': return [...arr].sort((a, b) => b.fundedPercentage - a.fundedPercentage)
       default: return arr
     }
-  }, [storeAssets, typeFilter, search, sortBy])
+  }, [storeAssets, typeFilter, countryFilter, search, sortBy])
 
   return (
     <div className="min-h-screen bg-background">
@@ -110,6 +128,17 @@ export default function MarketplacePage() {
                   ))}
                 </div>
                 <div className="flex flex-wrap gap-2 mt-4">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">País</span>
+                  {COUNTRIES.map(c => (
+                    <Button key={c.key} variant={countryFilter === c.key ? 'default' : 'outline'}
+                      size="sm" onClick={() => setCountryFilter(c.key)}
+                      className={countryFilter === c.key ? 'bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 cursor-pointer' : 'gap-1.5 border-border/50 cursor-pointer'}>
+                      {c.flag} {c.label}
+                    </Button>
+                  ))}
+                </div>
+                <div className="flex flex-wrap gap-2 mt-4">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ordenar</span>
                   {SORTS.map(s => (
                     <Button key={s.key} variant={sortBy === s.key ? 'default' : 'outline'} size="sm"
                       onClick={() => setSortBy(s.key)}
@@ -134,6 +163,19 @@ export default function MarketplacePage() {
                     : 'gap-1.5 text-muted-foreground border-border/50 hover:text-foreground cursor-pointer'
                 }>
                 {t.icon} {t.label}
+              </Button>
+            ))}
+            <Separator orientation="vertical" className="mx-2 h-5" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mr-1">País</span>
+            {COUNTRIES.map(c => (
+              <Button key={c.key} variant={countryFilter === c.key ? 'default' : 'outline'} size="sm"
+                onClick={() => setCountryFilter(c.key)}
+                className={
+                  countryFilter === c.key
+                    ? 'bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shadow-sm cursor-pointer'
+                    : 'gap-1.5 text-muted-foreground border-border/50 hover:text-foreground cursor-pointer'
+                }>
+                {c.flag} {c.label}
               </Button>
             ))}
             <div className="ml-auto flex items-center gap-1.5">
@@ -225,6 +267,7 @@ export default function MarketplacePage() {
                   <div>
                     <h3 className="font-semibold text-base leading-snug line-clamp-1">{asset.name}</h3>
                     <div className="flex items-center gap-1.5 mt-1 text-sm text-muted-foreground">
+                      <span>{COUNTRY_FLAGS[asset.country] || ''}</span>
                       <MapPin className="size-3.5 text-emerald-500" /> {asset.city}, {asset.region}
                     </div>
                   </div>

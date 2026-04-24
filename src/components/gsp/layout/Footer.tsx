@@ -57,11 +57,11 @@ export function Footer() {
                 <span className="text-sm font-bold text-emerald-400">G</span>
               </div>
               <span className="text-xl font-bold tracking-tight text-white">
-                GSP
+                GALAXY
               </span>
             </div>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/60">
-              Global Solidarity Partners — {t('footer.company')}
+              GALAXY LLC — {t('footer.company')}
             </p>
             {/* Social Links */}
             <div className="mt-5 flex items-center gap-3">
@@ -127,15 +127,26 @@ export function Footer() {
             </h3>
             <ul className="mt-4 space-y-3">
               {[
-                { icon: Mail, text: 'contacto@gsp-inversiones.cl' },
-                { icon: Phone, text: '+56 2 2345 6789' },
-                { icon: MapPin, text: 'Santiago, Chile' },
+                { icon: Mail, text: 'contact@galaxyllc.com' },
+                { icon: Phone, text: '+1 (505) 000-0000' },
+                { icon: MapPin, text: 'Miami, FL, USA' },
               ].map((item) => (
                 <li key={item.text} className="flex items-start gap-2.5">
                   <item.icon className="mt-0.5 size-4 shrink-0 text-emerald-500/60" />
                   <span className="text-sm text-white/60">{item.text}</span>
                 </li>
               ))}
+              <li className="mt-3">
+                <span className="text-xs font-semibold uppercase tracking-wider text-white/30">Offices</span>
+                <ul className="mt-2 space-y-2">
+                  {['Santiago de Chile', 'Bogotá', 'Margarita', 'Miami'].map((office) => (
+                    <li key={office} className="flex items-start gap-2">
+                      <MapPin className="mt-0.5 size-3 shrink-0 text-emerald-500/40" />
+                      <span className="text-xs text-white/50">{office}</span>
+                    </li>
+                  ))}
+                </ul>
+              </li>
             </ul>
           </div>
         </div>
@@ -145,7 +156,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
           <p className="text-center text-xs text-white/40 sm:text-left">
-            &copy; {new Date().getFullYear()} Global Solidarity Partners. {t('footer.rights')}.
+            &copy; {new Date().getFullYear()} GALAXY LLC. {t('footer.rights')}.
           </p>
           <div className="flex flex-col items-center gap-2 sm:items-center">
             {/* Controls Row */}
@@ -195,18 +206,19 @@ export function Footer() {
                 onChange={(e) => setCurrency(e.target.value)}
                 className="h-7 rounded-md border border-white/10 bg-white/5 px-2 text-[11px] font-medium text-white/60 text-center focus:outline-none focus:ring-1 focus:ring-emerald-500/50"
               >
-                <option value="CLP">🇨🇱 CLP</option>
                 <option value="USD">🇺🇸 USD</option>
                 <option value="EUR">🇪🇺 EUR</option>
+                <option value="CLP">🇨🇱 CLP</option>
                 <option value="MXN">🇲🇽 MXN</option>
                 <option value="COP">🇨🇴 COP</option>
                 <option value="ARS">🇦🇷 ARS</option>
                 <option value="PEN">🇵🇪 PEN</option>
                 <option value="BRL">🇧🇷 BRL</option>
+                <option value="VES">🇻🇪 VES</option>
               </select>
             </div>
             <p className="text-center text-xs text-white/40 sm:text-right">
-              {t('home.trust.badge1')} CMF {t('footer.about').toLowerCase()}
+              GALAXY LLC — Registered in USA
             </p>
             <p className="text-center text-[11px] leading-relaxed text-white/25 sm:text-right">
               {t('footer.riskWarning')}

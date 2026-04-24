@@ -19,9 +19,9 @@ const dmSerif = DM_Serif_Display({
 });
 
 export const metadata: Metadata = {
-  title: "GSP — Inversión Inmobiliaria Fraccionada",
+  title: "GALAXY — Fractional Real Estate Investment",
   description:
-    "Invierte en activos inmobiliarios desde $120.000. Liquidez inmediata con Salida Express. Costos operativos del 3% vs 15% del mercado.",
+    "Invest in premium real estate assets from just $1. Immediate liquidity, verified returns, and global operations across Chile, Colombia, and Venezuela. Powered by GALAXY LLC.",
   icons: {
     icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
   },

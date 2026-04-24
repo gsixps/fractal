@@ -150,10 +150,10 @@ export function LoginPage() {
             <span className="text-2xl font-bold text-white tracking-tight">G</span>
           </div>
           <h1 className="gsp-serif text-3xl font-bold tracking-tight">
-            <span className="gsp-gradient-text">GSP</span>
+            <span className="gsp-gradient-text">GALAXY</span>
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Inversión Inmobiliaria Fraccionada
+            Fractional Real Estate Investment
           </p>
         </div>
 
@@ -317,7 +317,7 @@ export function LoginPage() {
               </div>
               <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                 <Building2 className="size-3" />
-                <span>Regulado por CMF</span>
+                <span>GALAXY LLC — Registered in USA</span>
               </div>
             </div>
           </CardFooter>
@@ -325,7 +325,7 @@ export function LoginPage() {
 
         {/* Footer */}
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          © {new Date().getFullYear()} GSP — Global Solidarity Partners. Todos los derechos reservados.
+          © {new Date().getFullYear()} GALAXY LLC. All rights reserved.
         </p>
       </div>
     </div>

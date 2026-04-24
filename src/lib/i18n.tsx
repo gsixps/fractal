@@ -69,9 +69,9 @@ const translations: LocaleMap = {
       'Únete a miles de inversores que ya están generando rendimientos con activos inmobiliarios fraccionados.',
     'home.cta.button': 'Crear Cuenta',
     'home.cta.login': 'Ya tengo cuenta',
-    'home.whyGsp': 'Por qué GSP',
+    'home.whyGsp': 'Por qué GALAXY',
     'home.whyGsp.subtitle':
-      'La plataforma líder en inversión inmobiliaria fraccionada de Latinoamérica.',
+      'La plataforma líder en inversión inmobiliaria fraccionada.',
     'home.whyGsp.verified': 'Activos verificados',
     'home.whyGsp.verifiedDesc':
       'Cada propiedad es auditada por firmas de terceros antes de ser listada.',
@@ -499,9 +499,9 @@ const translations: LocaleMap = {
       'Join thousands of investors already earning returns with fractional real estate assets.',
     'home.cta.button': 'Create Account',
     'home.cta.login': 'I already have an account',
-    'home.whyGsp': 'Why GSP',
+    'home.whyGsp': 'Why GALAXY',
     'home.whyGsp.subtitle':
-      'The leading fractional real estate investment platform in Latin America.',
+      'The leading fractional real estate investment platform.',
     'home.whyGsp.verified': 'Verified assets',
     'home.whyGsp.verifiedDesc':
       'Every property is audited by third-party firms before being listed.',

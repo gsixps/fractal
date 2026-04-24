@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import {
   ArrowLeft, Building2, Calculator, CheckCircle2, Download, FileText,
   MapPin, Percent, TrendingUp, ArrowUpRight, Zap, BarChart3, Info,
-  Landmark, Shield, Clock, AlertTriangle,
+  Landmark, Shield, Clock, AlertTriangle, LogIn, ShieldCheck, Lock,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/lib/store'
@@ -111,7 +111,9 @@ function StatusBadge({ status }: { status: string }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function AssetDetailPage() {
-  const { selectedAssetId, selectedAsset, selectedAssetLoading, fetchAssetById, navigate } = useAppStore()
+  const { selectedAssetId, selectedAsset, selectedAssetLoading, fetchAssetById, navigate, user } = useAppStore()
+  const isKycVerified = user !== null && user.kycStatus === 'verified'
+  const isUserLoggedIn = user !== null
   const [quantity, setQuantity] = useState(1)
 
   useEffect(() => {
@@ -277,28 +279,64 @@ export default function AssetDetailPage() {
           </section>
         )}
 
-        {/* 6. Documents */}
+        {/* 6. Documents (KYC Gated) */}
         {asset.documents.length > 0 && (
           <section>
             <Card className="border-border/40">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg"><FileText className="h-5 w-5 text-primary" /> Documentos del Activo</CardTitle>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <FileText className="h-5 w-5 text-primary" /> Documentos del Activo
+                  {!isKycVerified && (
+                    <Lock className="h-4 w-4 text-amber-500" />
+                  )}
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {asset.documents.map((doc) => (
-                    <div key={doc.id} className="flex items-start gap-3 rounded-xl border border-border/40 p-4 transition-all duration-200 hover:border-primary/25 hover:shadow-sm cursor-pointer">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/8 text-primary"><FileText className="h-4 w-4" /></div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{doc.title}</p>
-                        <div className="mt-1 flex items-center gap-2">
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-medium border-border/40">{doc.documentType}</Badge>
-                          <span className="inline-flex items-center gap-1 text-xs text-primary"><Download className="h-3 w-3" /> Descargar</span>
+                {!isUserLoggedIn ? (
+                  /* Not logged in */
+                  <div className="flex flex-col items-center gap-4 py-8 text-center">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/8">
+                      <LogIn className="h-7 w-7 text-primary" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">Inicia sesión para ver los documentos de este activo</p>
+                      <p className="text-xs text-muted-foreground font-light">Accede a tu cuenta para descargar documentos legales, informes técnicos y más.</p>
+                    </div>
+                    <Button onClick={() => navigate('login')} className="mt-1 bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer">
+                      <LogIn className="mr-2 h-4 w-4" /> Iniciar Sesión
+                    </Button>
+                  </div>
+                ) : !isKycVerified ? (
+                  /* Logged in but KYC not verified */
+                  <div className="flex flex-col items-center gap-4 py-8 text-center">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-50 dark:bg-amber-950/40">
+                      <ShieldCheck className="h-7 w-7 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">Completa tu verificación KYC para acceder a los documentos</p>
+                      <p className="text-xs text-muted-foreground font-light">Los documentos están disponibles solo para usuarios con verificación completada.</p>
+                    </div>
+                    <Button onClick={() => navigate('kyc')} className="mt-1 bg-amber-600 hover:bg-amber-700 text-white cursor-pointer">
+                      <ShieldCheck className="mr-2 h-4 w-4" /> Ir a Verificación KYC
+                    </Button>
+                  </div>
+                ) : (
+                  /* KYC verified — show documents */
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {asset.documents.map((doc) => (
+                      <div key={doc.id} className="flex items-start gap-3 rounded-xl border border-border/40 p-4 transition-all duration-200 hover:border-primary/25 hover:shadow-sm cursor-pointer">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/8 text-primary"><FileText className="h-4 w-4" /></div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{doc.title}</p>
+                          <div className="mt-1 flex items-center gap-2">
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-medium border-border/40">{doc.documentType}</Badge>
+                            <span className="inline-flex items-center gap-1 text-xs text-primary"><Download className="h-3 w-3" /> Descargar</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </section>

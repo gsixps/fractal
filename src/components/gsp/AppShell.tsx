@@ -11,6 +11,7 @@ import { ChangePasswordDialog } from '@/components/gsp/auth/ChangePasswordDialog
 import { Loader2, LogIn } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/lib/i18n-utils'
+import { useAnalytics } from '@/hooks/use-analytics'
 
 const HomePage = lazy(() => import('@/components/gsp/home/HomePage'))
 const MarketplacePage = lazy(() => import('@/components/gsp/marketplace/MarketplacePage'))
@@ -37,6 +38,9 @@ export default function AppShell() {
   const { data: session, status } = useSession()
   const t = useT()
   const [showChangePassword, setShowChangePassword] = useState(false)
+
+  // Analytics tracking
+  useAnalytics()
 
   // Sync NextAuth session with app store
   useEffect(() => {

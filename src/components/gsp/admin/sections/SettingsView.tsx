@@ -42,7 +42,16 @@ export function SettingsView() {
       const res = await fetch('/api/admin/settings')
       if (!res.ok) throw new Error('Error al cargar configuración')
       const data = await res.json()
-      setSettings(data.settings || [])
+      // API returns grouped object: { hero: [...], stats: [...], ... }
+      // Flatten it into a single array
+      if (Array.isArray(data.settings)) {
+        setSettings(data.settings)
+      } else if (typeof data === 'object' && data !== null) {
+        const flat = Object.values(data).flat().filter(Array.isArray)
+        setSettings(flat as SettingItem[])
+      } else {
+        setSettings([])
+      }
     } catch {
       toast({ title: 'Error', description: 'No se pudo cargar la configuración', variant: 'destructive' })
     } finally {

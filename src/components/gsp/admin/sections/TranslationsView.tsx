@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { Pencil, Trash2, Loader2, Search, Languages, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { Pencil, Trash2, Loader2, Search, Languages, ChevronLeft, ChevronRight, X, AlertTriangle } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -296,10 +296,35 @@ export function TranslationsView() {
                   </TableBody>
                 </Table>
               </div>
-              {uniqueKeys.length === 0 && (
+              {uniqueKeys.length === 0 && !loading && (
                 <div className="flex flex-col items-center justify-center py-12">
                   <Languages className="mb-3 size-10 text-muted-foreground/40" />
                   <p className="text-sm font-medium text-muted-foreground">No se encontraron traducciones</p>
+                  {allTranslations.length === 0 && (
+                    <div className="mt-4 flex flex-col items-center gap-2">
+                      <AlertTriangle className="size-5 text-amber-500" />
+                      <p className="text-sm text-amber-600 dark:text-amber-400">La tabla de traducciones está vacía</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-2 cursor-pointer"
+                        onClick={async () => {
+                          try {
+                            const res = await fetch('/api/seed?force=true', { method: 'POST' })
+                            if (res.ok) {
+                              toast({ title: 'Traducciones cargadas', description: 'Las traducciones se han sembrado correctamente' })
+                              fetchTranslations()
+                            }
+                          } catch {
+                            toast({ title: 'Error', description: 'No se pudieron sembrar las traducciones', variant: 'destructive' })
+                          }
+                        }}
+                      >
+                        <Loader2 className="mr-2 size-3" />
+                        Cargar traducciones desde código fuente
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
             </>

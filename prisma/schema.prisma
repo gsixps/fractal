@@ -509,6 +509,24 @@ model Translation {
   updatedAt   DateTime @updatedAt
 }
 
+// ==================== ANALYTICS: PAGE VISITS ====================
+
+model PageVisit {
+  id          String   @id @default(cuid())
+  page        String
+  path        String
+  referrer    String?
+  userAgent   String?
+  country     String?
+  sessionId   String?
+  userId      String?
+
+  createdAt   DateTime @default(now())
+
+  @@index([page, createdAt])
+  @@index([createdAt])
+}
+
 // ==================== CMS: CURRENCIES ====================
 
 model Currency {

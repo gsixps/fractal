@@ -48,6 +48,7 @@ import { EmailTemplatesView } from './sections/EmailTemplatesView'
 import { AssetTypesView } from './sections/AssetTypesView'
 import { TranslationsView } from './sections/TranslationsView'
 import { CurrenciesView } from './sections/CurrenciesView'
+import { AnalyticsView } from './sections/AnalyticsView'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -357,6 +358,7 @@ const navItems: Array<{ id: string; label: string; icon: React.ElementType | nul
   { id: 'users', label: 'Usuarios', icon: Users },
   { id: 'investments', label: 'Inversiones', icon: Wallet },
   { id: 'liquidity', label: 'Liquidez', icon: Droplets },
+  { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   { id: '_sep_cms', label: '', icon: null, isSeparator: true },
   { id: 'settings', label: 'Contenido', icon: Settings },
   { id: 'blog', label: 'Blog', icon: FileText },
@@ -1834,6 +1836,7 @@ export default function AdminPage() {
       case 'users': return <UsuariosView />
       case 'investments': return <InversionesView />
       case 'liquidity': return <LiquidezView />
+      case 'analytics': return <AnalyticsView />
       case 'settings': return <SettingsView />
       case 'blog': return <BlogView />
       case 'faq': return <FAQView />

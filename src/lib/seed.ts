@@ -1,6 +1,20 @@
 import { db } from '@/lib/db'
+import { translationsData } from '@/lib/i18n-data'
 
 const ASSET_TYPES = ['real_estate', 'micro_datacenter', 'last_mile_logistics', 'solar_energy', 'mining'] as const
+
+// ─── Currency Seed Data ──────────────────────────────────────────────────
+const CURRENCIES = [
+  { code: 'USD', name: 'Dólar Estadounidense', symbol: 'US$', flag: '🇺🇸', sortOrder: 1, isActive: true },
+  { code: 'EUR', name: 'Euro', symbol: '€', flag: '🇪🇺', sortOrder: 2, isActive: true },
+  { code: 'CLP', name: 'Peso Chileno', symbol: '$', flag: '🇨🇱', sortOrder: 3, isActive: true },
+  { code: 'MXN', name: 'Peso Mexicano', symbol: 'MX$', flag: '🇲🇽', sortOrder: 4, isActive: true },
+  { code: 'COP', name: 'Peso Colombiano', symbol: 'COL$', flag: '🇨🇴', sortOrder: 5, isActive: true },
+  { code: 'ARS', name: 'Peso Argentino', symbol: 'AR$', flag: '🇦🇷', sortOrder: 6, isActive: true },
+  { code: 'PEN', name: 'Sol Peruano', symbol: 'S/', flag: '🇵🇪', sortOrder: 7, isActive: true },
+  { code: 'BRL', name: 'Real Brasileño', symbol: 'R$', flag: '🇧🇷', sortOrder: 8, isActive: true },
+  { code: 'VES', name: 'Bolívar Venezolano', symbol: 'Bs.', flag: '🇻🇪', sortOrder: 9, isActive: true },
+]
 
 const DEMO_ASSETS = [
   {
@@ -934,13 +948,54 @@ const EMAIL_TEMPLATES = [
   },
 ]
 
-export async function seedDatabase() {
-  // Check if already seeded
+export async function seedDatabase(options?: { force?: boolean }) {
+  const force = options?.force === true
+
+  // Check if already seeded (skip only if not forced)
   const existingAssets = await db.asset.count()
   const existingSettings = await db.siteSetting.count()
 
-  if (existingAssets > 0 && existingSettings > 0) {
+  if (!force && existingAssets > 0 && existingSettings > 0) {
     return { message: 'Database already seeded', count: existingAssets }
+  }
+
+  // Seed translations (always upsert-safe)
+  let translationCount = 0
+  for (const [locale, map] of Object.entries(translationsData)) {
+    for (const [key, value] of Object.entries(map)) {
+      await db.translation.upsert({
+        where: { key_locale: { key, locale } },
+        update: { value },
+        create: { key, locale, value },
+      })
+      translationCount++
+    }
+  }
+
+  // Seed currencies (always upsert-safe)
+  let currencyCount = 0
+  for (const currency of CURRENCIES) {
+    await db.currency.upsert({
+      where: { code: currency.code },
+      update: {
+        name: currency.name,
+        symbol: currency.symbol,
+        flag: currency.flag,
+        sortOrder: currency.sortOrder,
+        isActive: currency.isActive,
+      },
+      create: currency,
+    })
+    currencyCount++
+  }
+
+  // If forced but data already exists, return early after translations/currencies
+  if (force && existingAssets > 0 && existingSettings > 0) {
+    return {
+      message: 'Translations and currencies re-seeded (force mode)',
+      translations: translationCount,
+      currencies: currencyCount,
+    }
   }
 
   // Create demo user
@@ -1088,5 +1143,5 @@ export async function seedDatabase() {
     },
   })
 
-  return { message: 'Database seeded successfully', count: DEMO_ASSETS.length }
+  return { message: 'Database seeded successfully', count: DEMO_ASSETS.length, translations: translationCount, currencies: currencyCount }
 }

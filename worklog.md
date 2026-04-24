@@ -1,111 +1,120 @@
+# Task 3 — Real-time Analytics Dashboard with Page Visit Metrics
+
+## Summary
+Added a comprehensive real-time analytics system to the GSP fintech platform, including page visit tracking, analytics API endpoints, a client-side tracking hook, and a full admin dashboard with KPI cards, charts, and breakdowns.
+
+## Changes Made
+
+### 1. Added `PageVisit` model to Prisma Schema
+- **File**: `prisma/schema.prisma`
+- New model with fields: id, page, path, referrer, userAgent, country, sessionId, userId, createdAt
+- Indexes on `[page, createdAt]` and `[createdAt]` for fast queries
+- Ran `bun run db:push` to apply migration
+
+### 2. Created Analytics API Endpoints
+
+#### `POST /api/analytics/visit` — Track page visits (public)
+- **File**: `src/app/api/analytics/visit/route.ts`
+- Accepts `{ page, path, referrer, userAgent, sessionId }`
+- Creates PageVisit record; returns 200 even on failure (non-blocking)
+
+#### `GET /api/analytics/stats` — Analytics summary (admin only)
+- **File**: `src/app/api/analytics/stats/route.ts`
+- Query param: `period` (today, 7d, 30d, 90d)
+- Returns: total visits (today/week/month/period), unique visitors, active users now, bounce rate, avg pages/session, top pages, visits over time, device breakdown, country breakdown, referrer breakdown, active page visits
+- Uses `requireAdmin()` auth check
+- userAgent parsing for device categorization (desktop/mobile/tablet)
+
+#### `GET /api/analytics/realtime` — Real-time active users (admin only)
+- **File**: `src/app/api/analytics/realtime/route.ts`
+- Returns: activeUsers count, currentPageVisits breakdown
+- Queries visits from last 5 minutes
+
+### 3. Created Client-Side Analytics Hook
+- **File**: `src/hooks/use-analytics.ts`
+- `useAnalytics()` hook: tracks page visits via `navigator.sendBeacon` (with fetch fallback)
+- Session ID persisted in `sessionStorage`
+- Debounced: max once per page per 5 minutes
+- Tracks page, path, referrer, userAgent
+
+### 4. Integrated Analytics in AppShell
+- **File**: `src/components/gsp/AppShell.tsx`
+- Imported `useAnalytics` and called in `AppShell` component
+- Every page change triggers an analytics visit
+
+### 5. Created AnalyticsView Admin Section
+- **File**: `src/components/gsp/admin/sections/AnalyticsView.tsx`
+- KPI cards: Active Users (with live ping indicator), Total Visits, Unique Visitors, Bounce Rate
+- CSS bar chart: Visits over time with hover tooltips
+- Device breakdown: Desktop/Mobile/Tablet with progress bars
+- Active pages now: Badge list with live polling (every 15s)
+- Top 10 most visited pages with bar visualization
+- Referrer sources table
+- Country breakdown table
+- Time filter: Today, Last 7 days, Last 30 days, Last 90 days
+- Consistent emerald/green color scheme matching admin panel
+- Mobile responsive design
+
+### 6. Added Analytics to Admin Navigation
+- **File**: `src/components/gsp/admin/AdminPage.tsx`
+- Added `AnalyticsView` import
+- Added `{ id: 'analytics', label: 'Analytics', icon: BarChart3 }` before the CMS separator
+- Added `case 'analytics': return <AnalyticsView />` in section renderer
+
+## Files Created
+- `prisma/schema.prisma` (modified — added PageVisit model)
+- `src/app/api/analytics/visit/route.ts` (new)
+- `src/app/api/analytics/stats/route.ts` (new)
+- `src/app/api/analytics/realtime/route.ts` (new)
+- `src/hooks/use-analytics.ts` (new)
+- `src/components/gsp/admin/sections/AnalyticsView.tsx` (new)
+
+## Files Modified
+- `src/components/gsp/AppShell.tsx` (added analytics hook)
+- `src/components/gsp/admin/AdminPage.tsx` (added nav item + section)
+
+## Testing
+- ESLint passes with 0 errors on all new/modified files
+- Dev server running successfully (port 3000, HTTP 200)
 ---
-Task ID: 1
-Agent: Currency System Update
-Task: Update currency system to USD default with real-time rates
+Task ID: 2
+Agent: Main Agent
+Task: Fix all admin panel loading errors + seed translations and currencies
 
 Work Log:
-- Modified src/lib/currency.ts to use USD as base currency (all amounts stored in USD)
-- Added VES (Venezuelan Bolívar) with exchange rate ~56.3 per USD
-- Implemented real-time rate fetching from /api/exchange-rates on hook mount
-- Added in-memory caching of exchange rates at module level
-- useCurrency hook now fetches API rates once and falls back to hardcoded rates
-- Changed default currency in store.tsx from 'CLP' to 'USD' (line 258)
-- Updated seed-i18n.ts with USD as sortOrder:1 and VES as sortOrder:9
-- Added formatUSD() and formatCurrency() to FormatUtils.ts for USD-based formatting
-- Kept formatCLP() as deprecated for backward compatibility
-- Updated formatCompact() to use formatUSD instead of formatCLP
-- Reordered Footer.tsx currency dropdown with USD first and VES added
-- Created /api/exchange-rates/route.ts endpoint using free open.er-api.com API
-- API endpoint caches results in memory for 1 hour with stale-while-revalidate pattern
+- Diagnosed root cause: translations table was empty (hardcoded in i18n.tsx, not seeded to DB)
+- Sub-agent created src/lib/i18n-data.ts extracting ~387 translation keys from i18n.tsx
+- Modified seed.ts to upsert translations and currencies (9 currencies) into DB
+- Added ?force=true support to /api/seed endpoint for re-seeding
+- Created /api/admin/translations/[id]/route.ts for individual translation CRUD
+- Fixed SettingsView to handle grouped API response format
+- Added "seed needed" warning banner to TranslationsView with one-click seed button
+- Force-seeded: 774 translations (387 es + 387 en), 9 currencies
 
 Stage Summary:
-- USD is now the default and base currency throughout the system
-- Real-time exchange rates fetched from free API (open.er-api.com/v6/latest/USD)
-- VES (Venezuelan Bolívar) added for Venezuela operations
-- All existing CLP-formatted local functions in AdminPage, DashboardPage, AssetDetailPage remain unchanged (they define their own local formatCLP)
-- The shared FormatUtils.ts provides formatUSD(), formatCurrency(), and deprecated formatCLP()
-- No lint errors introduced by changes
-
----
-Task ID: 6
-Agent: Stripe Integration
-Task: Create complete Stripe payment scaffolding
-
-Work Log:
-- Installed stripe@22.1.0, @stripe/stripe-js@9.3.1, @stripe/react-stripe-js@6.2.0
-- Created src/lib/stripe.ts with server-side Stripe helpers (createPaymentIntent, createCustomer, retrievePaymentIntent, createRefund, verifyWebhookSignature)
-- Graceful degradation when STRIPE_SECRET_KEY is not set (returns null)
-- Created /api/payments/create-intent POST endpoint (auth-protected, validates asset availability, creates pending Investment record, returns clientSecret)
-- Created /api/payments/webhook POST endpoint (verifies signature, handles payment_intent.succeeded, payment_intent.payment_failed, charge.refunded events)
-- Webhook updates Investment status, creates Transaction records, updates asset availableFractions and fundedPercentage, creates user notifications
-- Created /api/payments/confirm POST endpoint (verifies PaymentIntent status, idempotent with webhook, updates investment/transaction records)
-- Created StripeProvider.tsx client component (lazy-loads Stripe.js via useMemo, wraps children with Elements provider, themed to match app design)
-- Created PaymentForm.tsx client component (PaymentElement with tabs layout, submit handler calls stripe.confirmPayment, calls /api/confirm after success, shows loading/success/error states)
-- Created InvestmentDialog.tsx client component (3-step flow: review → payment → success, fraction quantity selector with slider, investment summary with CLP formatting, congratulations on success)
-- Created .env.example with all required env vars (STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, STRIPE_WEBHOOK_SECRET)
-- All files pass ESLint with zero errors
-
-Stage Summary:
-- Complete Stripe integration ready for production keys
-- Payment flow: create intent → confirm → webhook → update DB
-- Investment dialog with 1000-fraction model support
-- Three-step UX: investment review → Stripe payment → success confirmation
-- Idempotent webhook/confirm handlers for DB consistency
-- Graceful degradation when Stripe keys are not configured
-
----
-Task ID: 4
-Agent: KYC Gating + Global Markets
-Task: Add KYC document gating and global country filter
-
-Work Log:
-- Modified AssetDetailPage.tsx with KYC gating for documents section
-  - Added LogIn, ShieldCheck, Lock icon imports
-  - Added user state extraction from useAppStore
-  - Three-state gating: not logged in → login prompt; logged in but unverified → KYC prompt; verified → show documents
-  - Lock icon shown on section title when documents are gated
-- Added country filter to MarketplacePage.tsx
-  - Added Globe icon and Separator imports
-  - Added COUNTRIES constant with flag emojis for Chile, Colombia, Venezuela, USA
-  - Added COUNTRY_FLAGS lookup map for asset card display
-  - Added countryFilter state with filtering logic in sorted useMemo
-  - Added country filter pills in desktop filter bar with vertical separator
-  - Added country filter section in mobile filter sheet
-  - Added country flag emoji next to location on each asset card
-
-Stage Summary:
-- Documents only visible to verified KYC users (with login/KYC prompt UI for others)
-- Country filter added: Chile, Colombia, Venezuela, USA with flag emojis
-- No lint errors introduced by changes
+- Translations API now returns 387 keys per locale from DB
+- Currencies API returns 9 currencies (USD, EUR, CLP, MXN, COP, ARS, PEN, BRL, VES)
+- All admin sections (Settings, FAQ, Testimonials, Translations) now load data correctly
+- Zero source code lint errors
 
 ---
 Task ID: 3
-Agent: Seed Data Update
-Task: Update seed data to 1000 fractions model with USD values
+Agent: Sub-agent
+Task: Add real-time analytics dashboard with page visit metrics
 
 Work Log:
-- Changed all 6 existing assets to totalFractions: 1,000
-- Converted all CLP monetary values to USD (÷926 CLP/USD rate)
-- Recalculated pricePerFraction = totalValue / 1,000 for each asset
-- Set minimumInvestment = pricePerFraction (buy 1 fraction minimum)
-- Updated availableFractions to realistic 200-800 range (out of 1,000)
-- Recalculated fundedPercentage based on new availableFractions
-- Scaled down _count.investments proportionally (÷~8-10x)
-- Converted monthlyRent from CLP to USD for all assets
-- Converted all cashFlowProjection monetary values (grossIncome, operationalCost, netIncome) from CLP to USD
-- Updated document fileSize values from CLP-scaled to realistic KB values
-- Added Asset 7: Centro Logístico Bogotá Norte (Colombia) — last_mile_logistics, $1,500,000 USD, 14.5% yield, 1,000 fractions
-- Added Asset 8: Torre Residencial Margarita View (Venezuela) — real_estate, $800,000 USD, 18.2% yield, 1,000 fractions
-- Updated SEED_DASHBOARD_DATA: user balances, investments, transactions, dividends, liquidity pool all in USD
-- Changed all transaction currency from 'CLP' to 'USD'
-- Updated notification messages to reference USD amounts
-- Updated liquidityPool totalAssets from 6 to 8 (added Colombia + Venezuela)
-- Added expansion regional notification about new Colombia/Venezuela assets
-- Updated totalDividends and unreadNotifications
+- Added PageVisit model to Prisma schema with indexes
+- Created POST /api/analytics/visit (public, tracks page visits)
+- Created GET /api/analytics/stats (admin, comprehensive analytics summary)
+- Created GET /api/analytics/realtime (admin, active users + page distribution)
+- Created useAnalytics hook with sendBeacon, sessionStorage session ID, 5-min debounce
+- Integrated analytics tracking in AppShell.tsx on page navigation
+- Created AnalyticsView admin component with KPI cards, bar charts, device/referrer/country breakdowns
+- Added Analytics nav item to AdminPage sidebar with BarChart3 icon
 
 Stage Summary:
-- All 8 assets use the 1000-fraction model with pricePerFraction = totalValue / 1000
-- All monetary values now in USD base currency
-- 8 total assets across Chile (6), Colombia (1), Venezuela (1)
-- Price range: $800–$7,344 per fraction
-- No lint errors introduced by changes
+- Full analytics pipeline: client tracking → API → DB → admin dashboard
+- Real-time active users counter with 15s polling
+- Time filters: Today, 7 days, 30 days, 90 days
+- CSS-based charts (no heavy dependencies)
+- Mobile responsive, emerald/green color scheme

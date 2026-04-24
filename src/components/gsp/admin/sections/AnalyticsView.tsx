@@ -55,12 +55,12 @@ interface RealtimeData {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatNumber(n: number): string {
-  return new Intl.NumberFormat('es-CL').format(n)
+  return new Intl.NumberFormat('en-US').format(n)
 }
 
 function getDayLabel(dateStr: string): string {
   const d = new Date(dateStr + 'T12:00:00')
-  return d.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' })
+  return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
 }
 
 const PAGE_LABELS: Record<string, string> = {
@@ -107,21 +107,28 @@ export function AnalyticsView() {
 
   useEffect(() => { fetchStats() }, [fetchStats])
 
-  // Poll realtime every 15 seconds
+  // Auto-refresh every 30 seconds
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
-        const res = await fetch('/api/analytics/realtime')
-        if (res.ok) {
-          const data = await res.json()
-          setRealtime(data)
+        const [statsRes, realtimeRes] = await Promise.all([
+          fetch(`/api/analytics/stats?period=${period}`),
+          fetch('/api/analytics/realtime'),
+        ])
+        if (statsRes.ok) {
+          const statsData = await statsRes.json()
+          setStats(statsData)
+        }
+        if (realtimeRes.ok) {
+          const realtimeData = await realtimeRes.json()
+          setRealtime(realtimeData)
         }
       } catch {
         // Silent fail
       }
-    }, 15000)
+    }, 30000)
     return () => clearInterval(interval)
-  }, [])
+  }, [period])
 
   // ─── Loading ──────────────────────────────────────────────────────────────
   if (loading && !stats) {
@@ -536,7 +543,7 @@ export function AnalyticsView() {
       {/* Footer Summary */}
       <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
         <Clock className="size-3" />
-        <span>Datos actualizados cada 15 segundos · Los datos se muestran en tiempo real</span>
+        <span>Datos actualizados cada 30 segundos · Los datos se muestran en tiempo real</span>
       </div>
     </div>
   )

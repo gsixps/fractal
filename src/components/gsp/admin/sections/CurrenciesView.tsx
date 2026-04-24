@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { Plus, Pencil, Trash2, Loader2, Coins } from 'lucide-react'
+import { Plus, Pencil, Trash2, Loader2, Coins, Star } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -40,7 +40,7 @@ interface CurrencyFormState {
 }
 
 const emptyForm: CurrencyFormState = {
-  code: '', name: '', symbol: '', flag: '🇨🇱', sortOrder: '0', isActive: true,
+  code: '', name: '', symbol: '', flag: '🇺🇸', sortOrder: '0', isActive: true,
 }
 
 const commonFlags: Record<string, string> = {
@@ -55,6 +55,7 @@ const commonFlags: Record<string, string> = {
   PEN: '🇵🇪',
   JPY: '🇯🇵',
   CNY: '🇨🇳',
+  VES: '🇻🇪',
 }
 
 export function CurrenciesView() {
@@ -71,15 +72,18 @@ export function CurrenciesView() {
 
   const [togglingId, setTogglingId] = useState<string | null>(null)
 
+  // Default currency (UI only, stored as a setting)
+  const [defaultCurrencyCode, setDefaultCurrencyCode] = useState<string>('USD')
+
   const { toast } = useToast()
 
   const fetchItems = useCallback(async () => {
     try {
       setLoading(true)
-      const res = await fetch('/api/currencies')
+      const res = await fetch('/api/admin/currencies')
       if (!res.ok) throw new Error('Error al cargar monedas')
       const data = await res.json()
-      setItems(data.currencies || data || [])
+      setItems(Array.isArray(data) ? data : data.currencies || [])
     } catch {
       toast({ title: 'Error', description: 'No se pudieron cargar las monedas', variant: 'destructive' })
     } finally {
@@ -98,12 +102,12 @@ export function CurrenciesView() {
   const openEdit = (item: CurrencyItem) => {
     setEditing(item)
     setForm({
-      code: item.code,
-      name: item.name,
-      symbol: item.symbol,
-      flag: item.flag,
-      sortOrder: item.sortOrder.toString(),
-      isActive: item.isActive,
+      code: item.code ?? '',
+      name: item.name ?? '',
+      symbol: item.symbol ?? '',
+      flag: item.flag ?? '',
+      sortOrder: String(item.sortOrder ?? 0),
+      isActive: item.isActive ?? true,
     })
     setFormOpen(true)
   }
@@ -134,13 +138,13 @@ export function CurrenciesView() {
       }
       let res: Response
       if (editing) {
-        res = await fetch(`/api/currencies/${editing.id}`, {
+        res = await fetch(`/api/admin/currencies/${editing.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         })
       } else {
-        res = await fetch('/api/currencies', {
+        res = await fetch('/api/admin/currencies', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
@@ -167,7 +171,7 @@ export function CurrenciesView() {
     if (!deleteTarget) return
     try {
       setDeleting(true)
-      const res = await fetch(`/api/currencies/${deleteTarget.id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/admin/currencies/${deleteTarget.id}`, { method: 'DELETE' })
       if (!res.ok) {
         const err = await res.json()
         throw new Error(err.error || 'Error al eliminar')
@@ -185,7 +189,7 @@ export function CurrenciesView() {
   const handleToggleActive = async (item: CurrencyItem) => {
     try {
       setTogglingId(item.id)
-      const res = await fetch(`/api/currencies/${item.id}`, {
+      const res = await fetch(`/api/admin/currencies/${item.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isActive: !item.isActive }),
@@ -206,6 +210,26 @@ export function CurrenciesView() {
     }
   }
 
+  const handleSetDefault = async (item: CurrencyItem) => {
+    try {
+      setDefaultCurrencyCode(item.code)
+      // Save to site settings (UI-only approach: persist via settings API)
+      await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          settings: [{ key: 'default_currency', value: item.code }],
+        }),
+      })
+      toast({
+        title: 'Moneda por defecto',
+        description: `${item.flag} ${item.code} (${item.name}) establecida como moneda principal`,
+      })
+    } catch {
+      toast({ title: 'Error', description: 'No se pudo cambiar la moneda por defecto', variant: 'destructive' })
+    }
+  }
+
   const sortedItems = React.useMemo(
     () => [...items].sort((a, b) => a.sortOrder - b.sortOrder),
     [items],
@@ -216,11 +240,23 @@ export function CurrenciesView() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="gsp-serif text-2xl font-normal tracking-tight">Monedas</h2>
-          <p className="text-muted-foreground">Gestiona las monedas disponibles en la plataforma</p>
+          <p className="text-muted-foreground">Gestiona las monedas disponibles en la plataforma 3GSP</p>
         </div>
         <Button className="bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer" onClick={openCreate}>
           <Plus className="mr-2 size-4" /> Nueva Moneda
         </Button>
+      </div>
+
+      {/* Default Currency Banner */}
+      <div className="flex items-center gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3">
+        <Star className="size-5 shrink-0 text-primary" />
+        <div className="flex-1">
+          <p className="text-sm font-medium">Moneda por Defecto</p>
+          <p className="text-xs text-muted-foreground">La moneda principal se usará en toda la plataforma 3GSP</p>
+        </div>
+        <Badge variant="outline" className="border-primary/30 bg-primary/10 text-primary font-semibold">
+          {commonFlags[defaultCurrencyCode] || '💱'} {defaultCurrencyCode}
+        </Badge>
       </div>
 
       <Card>
@@ -237,6 +273,7 @@ export function CurrenciesView() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-[60px]">Defecto</TableHead>
                       <TableHead>Bandera</TableHead>
                       <TableHead>Código</TableHead>
                       <TableHead className="hidden sm:table-cell">Nombre</TableHead>
@@ -250,17 +287,28 @@ export function CurrenciesView() {
                     {sortedItems.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell>
-                          <span className="text-xl leading-none">{item.flag}</span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={`size-8 cursor-pointer ${defaultCurrencyCode === item.code ? 'text-amber-500' : 'text-muted-foreground/30 hover:text-amber-400'}`}
+                            title={defaultCurrencyCode === item.code ? 'Moneda por defecto' : 'Establecer como defecto'}
+                            onClick={() => handleSetDefault(item)}
+                          >
+                            <Star className={`size-4 ${defaultCurrencyCode === item.code ? 'fill-amber-500' : ''}`} />
+                          </Button>
                         </TableCell>
                         <TableCell>
-                          <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono font-semibold">{item.code}</code>
+                          <span className="text-xl leading-none">{item.flag ?? ''}</span>
                         </TableCell>
-                        <TableCell className="hidden sm:table-cell font-medium">{item.name}</TableCell>
-                        <TableCell className="text-sm">{item.symbol}</TableCell>
-                        <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{item.sortOrder}</TableCell>
+                        <TableCell>
+                          <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono font-semibold">{item.code ?? ''}</code>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell font-medium">{item.name ?? ''}</TableCell>
+                        <TableCell className="text-sm">{item.symbol ?? ''}</TableCell>
+                        <TableCell className="hidden md:table-cell text-sm text-muted-foreground">{item.sortOrder ?? 0}</TableCell>
                         <TableCell>
                           <Switch
-                            checked={item.isActive}
+                            checked={item.isActive ?? false}
                             onCheckedChange={() => handleToggleActive(item)}
                             disabled={togglingId === item.id}
                             className="cursor-pointer"
@@ -312,9 +360,9 @@ export function CurrenciesView() {
                 <Label htmlFor="cur-code">Código *</Label>
                 <Input
                   id="cur-code"
-                  value={form.code}
+                  value={form.code ?? ''}
                   onChange={(e) => handleCodeChange(e.target.value)}
-                  placeholder="CLP"
+                  placeholder="USD"
                   maxLength={3}
                   className="uppercase font-mono"
                 />
@@ -323,7 +371,7 @@ export function CurrenciesView() {
                 <Label htmlFor="cur-symbol">Símbolo</Label>
                 <Input
                   id="cur-symbol"
-                  value={form.symbol}
+                  value={form.symbol ?? ''}
                   onChange={(e) => setForm({ ...form, symbol: e.target.value })}
                   placeholder="$"
                 />
@@ -333,9 +381,9 @@ export function CurrenciesView() {
               <Label htmlFor="cur-name">Nombre *</Label>
               <Input
                 id="cur-name"
-                value={form.name}
+                value={form.name ?? ''}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="Peso Chileno"
+                placeholder="Dólar Estadounidense"
               />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -344,12 +392,12 @@ export function CurrenciesView() {
                 <div className="flex items-center gap-2">
                   <Input
                     id="cur-flag"
-                    value={form.flag}
+                    value={form.flag ?? ''}
                     onChange={(e) => setForm({ ...form, flag: e.target.value })}
-                    placeholder="🇨🇱"
+                    placeholder="🇺🇸"
                     className="text-xl text-center"
                   />
-                  <span className="text-2xl shrink-0">{form.flag || ''}</span>
+                  <span className="text-2xl shrink-0">{form.flag ?? ''}</span>
                 </div>
               </div>
               <div className="space-y-2">
@@ -357,14 +405,14 @@ export function CurrenciesView() {
                 <Input
                   id="cur-order"
                   type="number"
-                  value={form.sortOrder}
+                  value={form.sortOrder ?? ''}
                   onChange={(e) => setForm({ ...form, sortOrder: e.target.value })}
                 />
               </div>
             </div>
             <div className="flex items-center gap-2">
               <Switch
-                checked={form.isActive}
+                checked={form.isActive ?? false}
                 onCheckedChange={(v) => setForm({ ...form, isActive: v })}
                 id="cur-active"
                 className="cursor-pointer"
@@ -392,7 +440,7 @@ export function CurrenciesView() {
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar moneda?</AlertDialogTitle>
             <AlertDialogDescription>
-              Se eliminará <strong>{deleteTarget?.flag} {deleteTarget?.code}</strong> - {deleteTarget?.name}. Esta acción no se puede deshacer.
+              Se eliminará <strong>{deleteTarget?.flag ?? ''} {deleteTarget?.code ?? ''}</strong> - {deleteTarget?.name ?? ''}. Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

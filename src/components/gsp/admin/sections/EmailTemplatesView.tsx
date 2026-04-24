@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { Plus, Pencil, Trash2, Loader2, Mail, Send } from 'lucide-react'
+import { Plus, Pencil, Trash2, Loader2, Mail, Send, Sparkles } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -36,12 +36,13 @@ interface EmailTemplateFormState {
   subject: string
   bodyHtml: string
   bodyText: string
+  variables: string
   category: string
   isActive: boolean
 }
 
 const emptyForm: EmailTemplateFormState = {
-  name: '', subject: '', bodyHtml: '', bodyText: '', category: 'transactional', isActive: true,
+  name: '', subject: '', bodyHtml: '', bodyText: '', variables: '', category: 'transactional', isActive: true,
 }
 
 const categoryLabels: Record<string, string> = {
@@ -67,7 +68,6 @@ export function EmailTemplatesView() {
   const [testTarget, setTestTarget] = useState<EmailTemplate | null>(null)
   const [testEmail, setTestEmail] = useState('')
   const [sending, setSending] = useState(false)
-  const [testResult, setTestResult] = useState<{ success: boolean; renderedHtml: string; renderedText: string; subject: string } | null>(null)
 
   const { toast } = useToast()
 
@@ -96,8 +96,9 @@ export function EmailTemplatesView() {
   const openEdit = (item: EmailTemplate) => {
     setEditing(item)
     setForm({
-      name: item.name, subject: item.subject, bodyHtml: item.bodyHtml,
-      bodyText: item.bodyText, category: item.category, isActive: item.isActive,
+      name: item.name ?? '', subject: item.subject ?? '', bodyHtml: item.bodyHtml ?? '',
+      bodyText: item.bodyText ?? '', variables: item.variables ?? '',
+      category: item.category ?? 'transactional', isActive: item.isActive ?? true,
     })
     setFormOpen(true)
   }
@@ -111,7 +112,8 @@ export function EmailTemplatesView() {
       setSubmitting(true)
       const body = {
         name: form.name, subject: form.subject, bodyHtml: form.bodyHtml,
-        bodyText: form.bodyText, category: form.category, isActive: form.isActive,
+        bodyText: form.bodyText, variables: form.variables,
+        category: form.category, isActive: form.isActive,
       }
       let res: Response
       if (editing) {
@@ -153,7 +155,6 @@ export function EmailTemplatesView() {
   const openTestDialog = (item: EmailTemplate) => {
     setTestTarget(item)
     setTestEmail('')
-    setTestResult(null)
   }
 
   const handleSendTest = async () => {
@@ -168,20 +169,20 @@ export function EmailTemplatesView() {
     }
     try {
       setSending(true)
-      setTestResult(null)
-      const res = await fetch('/api/emails/test', {
+      const res = await fetch('/api/emails/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           to: testEmail,
+          subject: testTarget.subject,
           templateName: testTarget.name,
-          variables: { user_name: 'Usuario Test', amount: '$250.000', asset_name: 'Activo Demo', period: 'Marzo 2025' },
+          variables: {},
         }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Error al enviar')
-      setTestResult({ success: true, renderedHtml: data.renderedHtml, renderedText: data.renderedText, subject: data.subject })
       toast({ title: 'Email de prueba enviado', description: `Email enviado a ${testEmail}` })
+      setTestTarget(null)
     } catch (err) {
       toast({ title: 'Error', description: err instanceof Error ? err.message : 'Error desconocido', variant: 'destructive' })
     } finally {
@@ -223,10 +224,10 @@ export function EmailTemplatesView() {
                   <TableBody>
                     {items.map((item) => (
                       <TableRow key={item.id} className="cursor-pointer" onClick={() => openEdit(item)}>
-                        <TableCell className="font-medium">{item.name}</TableCell>
-                        <TableCell className="hidden sm:table-cell text-muted-foreground text-sm max-w-[250px] truncate">{item.subject}</TableCell>
+                        <TableCell className="font-medium">{item.name ?? ''}</TableCell>
+                        <TableCell className="hidden sm:table-cell text-muted-foreground text-sm max-w-[250px] truncate">{item.subject ?? ''}</TableCell>
                         <TableCell className="hidden md:table-cell">
-                          <Badge variant="secondary">{categoryLabels[item.category] || item.category}</Badge>
+                          <Badge variant="secondary">{categoryLabels[item.category] ?? item.category}</Badge>
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className={item.isActive
@@ -269,35 +270,42 @@ export function EmailTemplatesView() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="et-name">Nombre *</Label>
-                <Input id="et-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                <Input id="et-name" value={form.name ?? ''} onChange={(e) => setForm({ ...form, name: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="et-subject">Asunto *</Label>
-                <Input id="et-subject" value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} />
+                <Input id="et-subject" value={form.subject ?? ''} onChange={(e) => setForm({ ...form, subject: e.target.value })} />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="et-cat">Categoría</Label>
-              <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {Object.entries(categoryLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            {editing && editing.variables && (
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Variables Disponibles</Label>
-                <Input value={editing.variables} readOnly className="bg-muted font-mono text-xs" />
+                <Label htmlFor="et-cat">Categoría</Label>
+                <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(categoryLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="et-vars">Variables (separadas por coma)</Label>
+                <Input id="et-vars" value={form.variables ?? ''} onChange={(e) => setForm({ ...form, variables: e.target.value })} placeholder="user_name, amount, date" className="font-mono text-sm" />
+              </div>
+            </div>
+            {(form.variables ?? '').split(',').filter(v => v.trim()).length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {(form.variables ?? '').split(',').filter(v => v.trim()).map((v) => (
+                  <Badge key={v.trim()} variant="secondary" className="font-mono text-xs">{`{{${v.trim()}}}`}</Badge>
+                ))}
               </div>
             )}
             <div className="space-y-2">
               <Label htmlFor="et-html">Cuerpo HTML</Label>
-              <Textarea id="et-html" value={form.bodyHtml} onChange={(e) => setForm({ ...form, bodyHtml: e.target.value })} rows={8} className="font-mono text-sm" />
+              <Textarea id="et-html" value={form.bodyHtml ?? ''} onChange={(e) => setForm({ ...form, bodyHtml: e.target.value })} rows={8} className="font-mono text-sm" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="et-text">Cuerpo Texto Plano</Label>
-              <Textarea id="et-text" value={form.bodyText} onChange={(e) => setForm({ ...form, bodyText: e.target.value })} rows={6} className="font-mono text-sm" />
+              <Textarea id="et-text" value={form.bodyText ?? ''} onChange={(e) => setForm({ ...form, bodyText: e.target.value })} rows={6} className="font-mono text-sm" />
             </div>
             <div className="flex items-center gap-2">
               <Switch checked={form.isActive} onCheckedChange={(v) => setForm({ ...form, isActive: v })} id="et-active" />
@@ -315,10 +323,13 @@ export function EmailTemplatesView() {
       </Dialog>
 
       {/* Send Test Email Dialog */}
-      <Dialog open={!!testTarget} onOpenChange={(open) => { if (!open) { setTestTarget(null); setTestResult(null) } }}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <Dialog open={!!testTarget} onOpenChange={(open) => { if (!open) { setTestTarget(null) } }}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Enviar Email de Prueba</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="size-5 text-primary" />
+              Enviar Email de Prueba
+            </DialogTitle>
             <DialogDescription>
               Envía un correo de prueba para la plantilla: <span className="font-semibold">{testTarget?.name}</span>
             </DialogDescription>
@@ -334,27 +345,13 @@ export function EmailTemplatesView() {
                 onChange={(e) => setTestEmail(e.target.value)}
               />
             </div>
-            {testResult && (
-              <div className="space-y-4 rounded-lg border p-4 bg-muted/30">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Asunto:</p>
-                  <p className="text-sm text-muted-foreground">{testResult.subject}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">HTML generado:</p>
-                  <div className="rounded-md border bg-white p-3 max-h-48 overflow-y-auto custom-scrollbar">
-                    <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: testResult.renderedHtml }} />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Texto plano:</p>
-                  <pre className="rounded-md border bg-muted p-3 text-xs whitespace-pre-wrap max-h-32 overflow-y-auto custom-scrollbar">{testResult.renderedText}</pre>
-                </div>
-              </div>
-            )}
+            <div className="rounded-lg border bg-muted/30 p-3 text-sm space-y-1">
+              <p className="text-muted-foreground">Asunto: <span className="font-medium text-foreground">{testTarget?.subject ?? ''}</span></p>
+              <p className="text-muted-foreground">Plantilla: <span className="font-medium text-foreground">{testTarget?.name ?? ''}</span></p>
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setTestTarget(null); setTestResult(null) }}>Cerrar</Button>
+            <Button variant="outline" onClick={() => { setTestTarget(null) }}>Cerrar</Button>
             <Button className="bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer" onClick={handleSendTest} disabled={sending || !testEmail.trim()}>
               {sending && <Loader2 className="mr-2 size-4 animate-spin" />}
               <Send className="mr-2 size-4" />

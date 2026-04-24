@@ -3,9 +3,9 @@
 import { motion, useInView } from 'framer-motion'
 import { useRef, useState, useMemo, useEffect } from 'react'
 import {
-  ArrowRight, Building2, CheckCircle2, Clock, DollarSign,
-  FlaskConical, HandCoins, Layers, Lock, Mail, Pickaxe,
-  Search, Shield, ShieldCheck, Sun, Truck, UserCheck, Wallet,
+  ArrowRight, Building2, CalendarDays, CheckCircle2, Clock, DollarSign,
+  FlaskConical, Grid3x3, Layers, Lock, Mail, Pickaxe,
+  Shield, ShieldCheck, Sun, Truck,
   Zap, TrendingUp, ChevronRight, BadgePercent, Landmark, Eye,
   FileCheck2, MapPin,
 } from 'lucide-react'
@@ -74,6 +74,10 @@ function HeroSection() {
             </Badge>
           </motion.div>
 
+          <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary/60 mt-3 mb-1">
+            by GALAXY LLC
+          </p>
+
           {/* Impeccable: serif heading for trust/premium feel */}
           <motion.h1 custom={1} variants={fadeUp} initial="hidden" animate="visible"
             className="gsp-serif text-4xl sm:text-5xl lg:text-[3.5rem] font-normal tracking-tight leading-[1.15]">
@@ -117,46 +121,92 @@ function HeroSection() {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   HOW IT WORKS — Numbered steps with connecting line
+   HOW IT WORKS — 4-Step Investment Process (dark section)
    ══════════════════════════════════════════════════════════════════ */
 function HowItWorksSection() {
-  const t = useT()
-  const { format } = useCurrency()
-  const steps = useMemo(() => [
-    { step: 1, icon: <UserCheck className="size-6" />, title: t('kyc.title'), description: t('kyc.subtitle').split('.')[0] + '.' },
-    { step: 2, icon: <Search className="size-6" />, title: t('marketplace.title'), description: t('marketplace.subtitle').split('.')[0] + '.' },
-    { step: 3, icon: <HandCoins className="size-6" />, title: `${t('marketplace.invest')} ${t('marketplace.minInvestment')}`, description: t('home.whyGsp.verifiedDesc') },
-    { step: 4, icon: <Wallet className="size-6" />, title: t('dashboard.dividends'), description: t('home.whyGsp.transparencyDesc') },
-  ], [t])
+  const steps = [
+    {
+      step: 1,
+      icon: <Grid3x3 className="size-7" />,
+      title: 'Reserva tus fracciones',
+      description: 'Juntamos los aportes de cientos de personas en cada proyecto.',
+    },
+    {
+      step: 2,
+      icon: <CheckCircle2 className="size-7" />,
+      title: 'Tu inversión se activa',
+      description: 'Completado el financiamiento del proyecto, tienes derecho a tu proporción de sus ganancias.',
+    },
+    {
+      step: 3,
+      icon: <CalendarDays className="size-7" />,
+      title: 'Gana por arriendos',
+      description: 'Podrás recibir ingresos periódicos durante la operación del proyecto.',
+    },
+    {
+      step: 4,
+      icon: <TrendingUp className="size-7" />,
+      title: 'Crece tu inversión',
+      description: 'Participas de la plusvalía del proyecto y la variación de su moneda local.',
+    },
+  ]
+
   return (
-    <AnimatedSection className="gsp-section bg-secondary/40">
+    <AnimatedSection className="gsp-section bg-emerald-950 text-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div custom={0} variants={fadeUp} className="text-center mb-14">
-          <Badge variant="outline" className="mb-4 border-primary/20 bg-primary/5 text-primary font-medium"><Layers className="size-3.5 mr-1" /> {t('common.all')}</Badge>
-          <h2 className="gsp-serif text-3xl sm:text-4xl font-normal tracking-tight">{t('asset.howItWorks')}</h2>
-          <p className="mt-3 text-muted-foreground max-w-xl mx-auto text-lg font-light">
-            {t('home.whyGsp.subtitle')}
+        {/* Section header */}
+        <motion.div custom={0} variants={fadeUp} className="text-center mb-16">
+          <span className="inline-flex items-center gap-1.5 mb-4 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-[0.15em] uppercase bg-emerald-800/60 text-emerald-300 border border-emerald-700/40">
+            <Layers className="size-3.5" /> Proceso de Inversión
+          </span>
+          <h2 className="gsp-serif text-3xl sm:text-4xl font-normal tracking-tight text-white">¿Cómo funciona?</h2>
+          <p className="mt-3 text-emerald-200/60 max-w-xl mx-auto text-lg font-light">
+            Así empiezas tu inversión inmobiliaria
           </p>
         </motion.div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {steps.map((item, i) => (
-            <motion.div key={item.step} custom={i + 1} variants={fadeUp}>
-              <Card className="h-full gsp-card-hover border-border/50 bg-card/80 backdrop-blur-sm group">
-                <CardContent className="p-6 flex flex-col items-start gap-4">
-                  <div className="flex items-center gap-3 w-full">
-                    <div className="flex items-center justify-center size-11 rounded-xl bg-primary/10 text-primary transition-colors duration-200 group-hover:bg-primary group-hover:text-primary-foreground shrink-0">
-                      {item.icon}
-                    </div>
-                    <span className="text-5xl font-bold text-muted-foreground/30 leading-none tabular-nums">{item.step}</span>
+
+        {/* Steps grid with connecting line */}
+        <div className="relative">
+          {/* Connecting horizontal line — desktop only, behind icon circles */}
+          <div className="hidden lg:block absolute top-12 left-[15%] right-[15%] z-0">
+            <div className="h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" />
+          </div>
+
+          {/* Connecting vertical lines — mobile/sm only, between step pairs */}
+          <div className="sm:hidden absolute left-1/2 -translate-x-1/2 top-[7rem] bottom-[6rem] z-0">
+            <div className="w-px h-full bg-gradient-to-b from-transparent via-emerald-400/30 to-transparent" />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 sm:gap-8 lg:gap-6 relative z-10">
+            {steps.map((item, i) => (
+              <motion.div key={item.step} custom={i + 1} variants={fadeUp} className="relative text-center group">
+                {/* Icon circle — sits on the connecting line */}
+                <div className="relative z-10 mx-auto w-24 h-24 rounded-2xl bg-emerald-900/60 border border-emerald-700/30 flex items-center justify-center mb-5 backdrop-blur-sm transition-all duration-300 ease-out group-hover:bg-emerald-800/70 group-hover:border-emerald-500/40 group-hover:scale-105">
+                  <div className="text-emerald-400 transition-colors duration-300 group-hover:text-emerald-300">
+                    {item.icon}
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-lg leading-snug">{item.title}</h3>
-                    <p className="mt-2 text-muted-foreground text-sm leading-relaxed font-light">{item.description}</p>
+                </div>
+
+                {/* Step number label */}
+                <span className="inline-block text-xs font-bold tracking-[0.2em] text-emerald-400/50 uppercase mb-2.5">
+                  Paso {item.step}
+                </span>
+
+                {/* Title */}
+                <h3 className="text-lg font-semibold text-white mb-2 leading-snug">{item.title}</h3>
+
+                {/* Description */}
+                <p className="text-sm text-emerald-100/50 leading-relaxed font-light max-w-xs mx-auto">{item.description}</p>
+
+                {/* Connecting arrow — desktop only, between steps */}
+                {i < steps.length - 1 && (
+                  <div className="hidden lg:block absolute top-12 -right-3 z-20 text-emerald-400/30">
+                    <ChevronRight className="size-6" />
                   </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+                )}
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
     </AnimatedSection>
@@ -578,6 +628,20 @@ function TrustSection() {
    PAGE
    ══════════════════════════════════════════════════════════════════ */
 export default function HomePage() {
+  /* ── Analytics: track page visit on mount ── */
+  useEffect(() => {
+    fetch('/api/analytics/visit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        page: 'Home',
+        path: '/',
+        referrer: document.referrer,
+        userAgent: navigator.userAgent,
+      }),
+    }).catch(() => {})
+  }, [])
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <main className="flex-1">

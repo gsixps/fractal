@@ -54,14 +54,14 @@ interface InvestmentDialogProps {
 
 // ─── Formatters ─────────────────────────────────────────────────────────────
 
-const clpFormatter = new Intl.NumberFormat('es-CL', {
+const usdFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
-  currency: 'CLP',
+  currency: 'USD',
   minimumFractionDigits: 0,
   maximumFractionDigits: 0,
 })
-function formatCLP(value: number): string {
-  return clpFormatter.format(value)
+function formatUSD(value: number): string {
+  return usdFormatter.format(value)
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -233,8 +233,8 @@ export function InvestmentDialog({
                 className="py-2"
               />
               <div className="flex justify-between text-xs text-muted-foreground font-light">
-                <span>1 fracción ({formatCLP(asset.pricePerFraction)})</span>
-                <span>{maxFractions} fracciones ({formatCLP(maxFractions * asset.pricePerFraction)})</span>
+                <span>1 fracción ({formatUSD(asset.pricePerFraction)})</span>
+                <span>{maxFractions} fracciones ({formatUSD(maxFractions * asset.pricePerFraction)})</span>
               </div>
             </div>
 
@@ -243,7 +243,7 @@ export function InvestmentDialog({
               <CardContent className="space-y-3 p-4">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground font-light">Precio por fracción</span>
-                  <span className="font-medium">{formatCLP(asset.pricePerFraction)}</span>
+                  <span className="font-medium">{formatUSD(asset.pricePerFraction)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground font-light">Cantidad</span>
@@ -252,7 +252,7 @@ export function InvestmentDialog({
                 <Separator />
                 <div className="flex items-center justify-between">
                   <span className="font-semibold">Total a invertir</span>
-                  <span className="text-xl font-bold text-primary">{formatCLP(totalAmount)}</span>
+                  <span className="text-xl font-bold text-primary">{formatUSD(totalAmount)}</span>
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between text-sm">
@@ -261,7 +261,7 @@ export function InvestmentDialog({
                     Yield anual ({asset.annualYield}%)
                   </span>
                   <span className="font-medium text-emerald-600 dark:text-emerald-400">
-                    {formatCLP(annualDividend)}
+                    {formatUSD(annualDividend)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
@@ -270,7 +270,7 @@ export function InvestmentDialog({
                     Dividendo mensual est.
                   </span>
                   <span className="font-medium text-primary">
-                    {formatCLP(monthlyDividend)}
+                    {formatUSD(monthlyDividend)}
                   </span>
                 </div>
               </CardContent>
@@ -310,7 +310,7 @@ export function InvestmentDialog({
                     Creando pago…
                   </>
                 ) : (
-                  `Pagar ${formatCLP(totalAmount)}`
+                  `Pagar ${formatUSD(totalAmount)}`
                 )}
               </Button>
             </div>
@@ -323,13 +323,13 @@ export function InvestmentDialog({
             <DialogHeader>
               <DialogTitle className="text-lg">Método de Pago</DialogTitle>
               <DialogDescription>
-                Completa el pago de <span className="font-semibold text-foreground">{formatCLP(totalAmount)}</span> para tu inversión en {asset.name}.
+                Completa el pago de <span className="font-semibold text-foreground">{formatUSD(totalAmount)}</span> para tu inversión en {asset.name}.
               </DialogDescription>
             </DialogHeader>
 
             <StripeProvider clientSecret={clientSecret}>
               <PaymentForm
-                submitLabel={`Pagar ${formatCLP(totalAmount)}`}
+                submitLabel={`Pagar ${formatUSD(totalAmount)}`}
                 onSuccess={handlePaymentSuccess}
                 onError={handlePaymentError}
               />
@@ -384,13 +384,13 @@ export function InvestmentDialog({
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground font-light">Monto invertido</span>
-                    <span className="font-bold text-primary">{formatCLP(totalAmount)}</span>
+                    <span className="font-bold text-primary">{formatUSD(totalAmount)}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground font-light">Dividendo mensual est.</span>
                     <span className="font-medium text-emerald-600 dark:text-emerald-400">
-                      +{formatCLP(monthlyDividend)}
+                      +{formatUSD(monthlyDividend)}
                     </span>
                   </div>
                 </CardContent>

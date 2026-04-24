@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { requireAdmin } from '@/lib/api-auth'
 
 function generateSlug(title: string): string {
   return title
@@ -12,6 +13,9 @@ function generateSlug(title: string): string {
 
 // GET /api/admin/blog - List blog posts with filters and pagination
 export async function GET(request: Request) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
@@ -62,6 +66,9 @@ export async function GET(request: Request) {
 
 // POST /api/admin/blog - Create new blog post
 export async function POST(request: Request) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const body = await request.json()
     const { title, slug, excerpt, content, coverImage, category, tags, authorId, status, featured, readingTime, seoTitle, seoDescription } = body

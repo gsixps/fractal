@@ -90,8 +90,8 @@ export function FAQView() {
   const openEdit = (item: FAQItem) => {
     setEditing(item)
     setForm({
-      question: item.question, answer: item.answer, category: item.category,
-      sortOrder: item.sortOrder.toString(), isActive: item.isActive,
+      question: item.question ?? '', answer: item.answer ?? '', category: item.category ?? 'general',
+      sortOrder: item.sortOrder != null ? String(item.sortOrder) : '0', isActive: item.isActive ?? true,
     })
     setFormOpen(true)
   }
@@ -244,11 +244,11 @@ export function FAQView() {
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="f-question">Pregunta *</Label>
-              <Input id="f-question" value={form.question} onChange={(e) => setForm({ ...form, question: e.target.value })} />
+              <Input id="f-question" value={form.question ?? ''} onChange={(e) => setForm({ ...form, question: e.target.value })} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="f-answer">Respuesta *</Label>
-              <Textarea id="f-answer" value={form.answer} onChange={(e) => setForm({ ...form, answer: e.target.value })} rows={4} />
+              <Textarea id="f-answer" value={form.answer ?? ''} onChange={(e) => setForm({ ...form, answer: e.target.value })} rows={4} />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
@@ -262,7 +262,7 @@ export function FAQView() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="f-order">Orden</Label>
-                <Input id="f-order" type="number" value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: e.target.value })} />
+                <Input id="f-order" type="number" value={form.sortOrder ?? ''} onChange={(e) => setForm({ ...form, sortOrder: e.target.value })} />
               </div>
             </div>
             <div className="flex items-center gap-2">

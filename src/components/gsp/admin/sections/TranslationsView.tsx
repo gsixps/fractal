@@ -101,7 +101,7 @@ export function TranslationsView() {
 
   const openEdit = (item: TranslationRow) => {
     setEditing(item)
-    setEditValue(item.value)
+    setEditValue(item.value ?? '')
     setEditOpen(true)
   }
 
@@ -152,7 +152,7 @@ export function TranslationsView() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="gsp-serif text-2xl font-normal tracking-tight">Traducciones</h2>
-          <p className="text-muted-foreground">Gestiona las traducciones de la plataforma</p>
+          <p className="text-muted-foreground">Gestiona las traducciones de la plataforma 3GSP</p>
         </div>
         <Button variant="outline" size="sm" onClick={fetchTranslations}>
           <Loader2 className={`mr-2 size-3 ${loading ? 'animate-spin' : 'hidden'}`} />
@@ -230,14 +230,14 @@ export function TranslationsView() {
                           </TableCell>
                           <TableCell className="max-w-[250px]">
                             {esItem ? (
-                              <span className="text-sm">{esItem.value.length > 80 ? esItem.value.slice(0, 80) + '...' : esItem.value}</span>
+                              <span className="text-sm">{(esItem.value ?? '').length > 80 ? (esItem.value ?? '').slice(0, 80) + '...' : (esItem.value ?? '')}</span>
                             ) : (
                               <span className="text-xs text-muted-foreground italic">Sin traducción</span>
                             )}
                           </TableCell>
                           <TableCell className="max-w-[250px]">
                             {enItem ? (
-                              <span className="text-sm">{enItem.value.length > 80 ? enItem.value.slice(0, 80) + '...' : enItem.value}</span>
+                              <span className="text-sm">{(enItem.value ?? '').length > 80 ? (enItem.value ?? '').slice(0, 80) + '...' : (enItem.value ?? '')}</span>
                             ) : (
                               <span className="text-xs text-muted-foreground italic">Sin traducción</span>
                             )}

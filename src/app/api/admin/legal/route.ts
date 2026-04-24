@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { requireAdmin } from '@/lib/api-auth'
 
 function generateSlug(title: string): string {
   return title
@@ -12,6 +13,9 @@ function generateSlug(title: string): string {
 
 // GET /api/admin/legal - List all legal documents
 export async function GET() {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const documents = await db.legalDocument.findMany({
       orderBy: { type: 'asc' },
@@ -26,6 +30,9 @@ export async function GET() {
 
 // POST /api/admin/legal - Create new legal document
 export async function POST(request: Request) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const body = await request.json()
     const { title, slug, content, version, effectiveDate, type, isRequired, isActive } = body

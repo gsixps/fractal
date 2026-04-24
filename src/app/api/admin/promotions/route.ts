@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { requireAdmin } from '@/lib/api-auth'
 
 // GET /api/admin/promotions - List all promotions
 export async function GET(request: Request) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
@@ -25,6 +29,9 @@ export async function GET(request: Request) {
 
 // POST /api/admin/promotions - Create new promotion
 export async function POST(request: Request) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const body = await request.json()
     const { name, code, type, value, minInvestment, validFrom, validTo, maxUses, assetTypes, description, isActive } = body

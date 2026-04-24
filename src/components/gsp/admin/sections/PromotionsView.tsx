@@ -101,12 +101,15 @@ export function PromotionsView() {
   const openEdit = (item: Promotion) => {
     setEditing(item)
     setForm({
-      name: item.name, code: item.code, type: item.type, value: item.value.toString(),
-      minInvestment: item.minInvestment.toString(), description: item.description,
+      name: item.name ?? '', code: item.code ?? '', type: item.type ?? 'bonus_yield',
+      value: item.value != null ? String(item.value) : '',
+      minInvestment: item.minInvestment != null ? String(item.minInvestment) : '',
+      description: item.description ?? '',
       validFrom: item.validFrom ? item.validFrom.split('T')[0] : '',
       validTo: item.validTo ? item.validTo.split('T')[0] : '',
-      maxUses: item.maxUses.toString(), assetTypes: item.assetTypes,
-      isActive: item.isActive,
+      maxUses: item.maxUses != null ? String(item.maxUses) : '',
+      assetTypes: item.assetTypes ?? '',
+      isActive: item.isActive ?? true,
     })
     setFormOpen(true)
   }
@@ -169,7 +172,7 @@ export function PromotionsView() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="gsp-serif text-2xl font-normal tracking-tight">Promociones</h2>
-          <p className="text-muted-foreground">Gestiona las promociones y códigos de la plataforma</p>
+          <p className="text-muted-foreground">Gestiona las promociones y códigos de la plataforma 3GSP</p>
         </div>
         <Button className="bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer" onClick={openCreate}>
           <Plus className="mr-2 size-4" /> Nueva Promoción
@@ -210,9 +213,9 @@ export function PromotionsView() {
                         </TableCell>
                         <TableCell className="hidden md:table-cell text-sm">{item.value}%</TableCell>
                         <TableCell className="hidden lg:table-cell text-xs text-muted-foreground">
-                          {item.validFrom ? new Date(item.validFrom).toLocaleDateString('es-CL') : '—'}
+                          {item.validFrom ? new Date(item.validFrom).toLocaleDateString('en-US') : '—'}
                           {' → '}
-                          {item.validTo ? new Date(item.validTo).toLocaleDateString('es-CL') : '—'}
+                          {item.validTo ? new Date(item.validTo).toLocaleDateString('en-US') : '—'}
                         </TableCell>
                         <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
                           {item.usedCount}/{item.maxUses || '∞'}
@@ -257,11 +260,11 @@ export function PromotionsView() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="p-name">Nombre *</Label>
-                <Input id="p-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                <Input id="p-name" value={form.name ?? ''} onChange={(e) => setForm({ ...form, name: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="p-code">Código *</Label>
-                <Input id="p-code" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} className="font-mono" />
+                <Input id="p-code" value={form.code ?? ''} onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })} className="font-mono" />
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -276,36 +279,36 @@ export function PromotionsView() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="p-value">Valor (%)</Label>
-                <Input id="p-value" type="number" step="0.01" value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })} />
+                <Input id="p-value" type="number" step="0.01" value={form.value ?? ''} onChange={(e) => setForm({ ...form, value: e.target.value })} />
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="p-min">Inversión Mínima (CLP)</Label>
-                <Input id="p-min" type="number" value={form.minInvestment} onChange={(e) => setForm({ ...form, minInvestment: e.target.value })} />
+                <Label htmlFor="p-min">Inversión Mínima (USD)</Label>
+                <Input id="p-min" type="number" value={form.minInvestment ?? ''} onChange={(e) => setForm({ ...form, minInvestment: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="p-max">Máximo de Usos</Label>
-                <Input id="p-max" type="number" value={form.maxUses} onChange={(e) => setForm({ ...form, maxUses: e.target.value })} />
+                <Input id="p-max" type="number" value={form.maxUses ?? ''} onChange={(e) => setForm({ ...form, maxUses: e.target.value })} />
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="p-from">Válido Desde</Label>
-                <Input id="p-from" type="date" value={form.validFrom} onChange={(e) => setForm({ ...form, validFrom: e.target.value })} />
+                <Input id="p-from" type="date" value={form.validFrom ?? ''} onChange={(e) => setForm({ ...form, validFrom: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="p-to">Válido Hasta</Label>
-                <Input id="p-to" type="date" value={form.validTo} onChange={(e) => setForm({ ...form, validTo: e.target.value })} />
+                <Input id="p-to" type="date" value={form.validTo ?? ''} onChange={(e) => setForm({ ...form, validTo: e.target.value })} />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="p-asset-types">Tipos de Activo (separados por coma)</Label>
-              <Input id="p-asset-types" value={form.assetTypes} onChange={(e) => setForm({ ...form, assetTypes: e.target.value })} placeholder="real_estate, solar_energy" />
+              <Input id="p-asset-types" value={form.assetTypes ?? ''} onChange={(e) => setForm({ ...form, assetTypes: e.target.value })} placeholder="real_estate, solar_energy" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="p-desc">Descripción</Label>
-              <Textarea id="p-desc" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} />
+              <Textarea id="p-desc" value={form.description ?? ''} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} />
             </div>
             <div className="flex items-center gap-2">
               <Switch checked={form.isActive} onCheckedChange={(v) => setForm({ ...form, isActive: v })} id="p-active" />

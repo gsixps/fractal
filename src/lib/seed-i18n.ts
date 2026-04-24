@@ -1,5 +1,7 @@
 import { db } from '@/lib/db'
 
+let seeded = false
+
 const CURRENCIES = [
   { code: 'USD', name: 'Dólar Estadounidense', symbol: 'US$', flag: '🇺🇸', sortOrder: 1 },
   { code: 'EUR', name: 'Euro', symbol: '€', flag: '🇪🇺', sortOrder: 2 },
@@ -13,6 +15,9 @@ const CURRENCIES = [
 ]
 
 export async function seedCurrencies() {
+  if (seeded) return
+  seeded = true
+
   try {
     for (const currency of CURRENCIES) {
       await db.currency.upsert({

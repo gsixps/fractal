@@ -57,7 +57,7 @@ export function Footer() {
                 <span className="text-sm font-bold text-emerald-400">G</span>
               </div>
               <span className="text-xl font-bold tracking-tight text-white">
-                GALAXY
+                3GSP
               </span>
             </div>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/60">

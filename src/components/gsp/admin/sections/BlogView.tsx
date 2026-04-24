@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
-import { Plus, Pencil, Trash2, Search, Loader2, FileText } from 'lucide-react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { Plus, Pencil, Trash2, Search, Loader2, FileText, Sparkles, Upload } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -93,9 +93,12 @@ export function BlogView() {
   const [editing, setEditing] = useState<BlogPost | null>(null)
   const [form, setForm] = useState<BlogFormState>(emptyForm)
   const [submitting, setSubmitting] = useState(false)
+  const [generating, setGenerating] = useState(false)
 
   const [deleteTarget, setDeleteTarget] = useState<BlogPost | null>(null)
   const [deleting, setDeleting] = useState(false)
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { toast } = useToast()
 
@@ -128,12 +131,65 @@ export function BlogView() {
   const openEdit = (post: BlogPost) => {
     setEditing(post)
     setForm({
-      title: post.title, slug: post.slug, category: post.category, tags: post.tags,
-      excerpt: post.excerpt, content: post.content, coverImageUrl: post.coverImageUrl,
-      status: post.status, featured: post.featured, readingTime: post.readingTime.toString(),
-      seoTitle: post.seoTitle, seoDescription: post.seoDescription,
+      title: post.title ?? '', slug: post.slug ?? '', category: post.category ?? 'educacion', tags: post.tags ?? '',
+      excerpt: post.excerpt ?? '', content: post.content ?? '', coverImageUrl: post.coverImageUrl ?? '',
+      status: post.status ?? 'draft', featured: post.featured ?? false,
+      readingTime: post.readingTime != null ? String(post.readingTime) : '5',
+      seoTitle: post.seoTitle ?? '', seoDescription: post.seoDescription ?? '',
     })
     setFormOpen(true)
+  }
+
+  const handleImageUpload = async (file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    try {
+      const res = await fetch('/api/upload', { method: 'POST', body: formData })
+      if (res.ok) {
+        const data = await res.json()
+        setForm(prev => ({ ...prev, coverImageUrl: data.url }))
+        toast({ title: 'Imagen subida', description: 'La imagen se ha cargado correctamente' })
+      } else {
+        toast({ title: 'Error', description: 'No se pudo subir la imagen', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Error al subir la imagen', variant: 'destructive' })
+    }
+  }
+
+  const handleAIGenerate = async () => {
+    if (!form.title.trim()) {
+      toast({ title: 'Error', description: 'El título es necesario para generar con IA', variant: 'destructive' })
+      return
+    }
+    try {
+      setGenerating(true)
+      const res = await fetch('/api/admin/blog/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: form.title,
+          category: form.category,
+          tags: form.tags,
+          excerpt: form.excerpt,
+          locale: 'es',
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Error al generar contenido')
+      setForm(prev => ({
+        ...prev,
+        content: data.content ?? prev.content,
+        seoTitle: data.seoTitle ?? prev.seoTitle,
+        seoDescription: data.seoDescription ?? prev.seoDescription,
+        readingTime: data.readingTime != null ? String(data.readingTime) : prev.readingTime,
+      }))
+      toast({ title: 'Contenido generado', description: 'El contenido ha sido generado por IA exitosamente' })
+    } catch (err) {
+      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Error al generar con IA', variant: 'destructive' })
+    } finally {
+      setGenerating(false)
+    }
   }
 
   const handleSubmit = async () => {
@@ -253,21 +309,21 @@ export function BlogView() {
                     {posts.map((post) => (
                       <TableRow key={post.id}>
                         <TableCell>
-                          <div className="font-medium">{post.title}</div>
+                          <div className="font-medium">{post.title ?? ''}</div>
                           {post.featured && <Badge variant="outline" className="mt-1 text-xs text-primary border-primary/30">Destacado</Badge>}
                         </TableCell>
                         <TableCell className="hidden sm:table-cell">
-                          <Badge variant="secondary">{categoryLabels[post.category] || post.category}</Badge>
+                          <Badge variant="secondary">{categoryLabels[post.category] ?? post.category}</Badge>
                         </TableCell>
                         <TableCell className="hidden md:table-cell">
-                          <Badge variant="outline" className={statusConfig[post.status] || ''}>
-                            {statusLabels[post.status] || post.status}
+                          <Badge variant="outline" className={statusConfig[post.status] ?? ''}>
+                            {statusLabels[post.status] ?? post.status}
                           </Badge>
                         </TableCell>
                         <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">
-                          {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('es-CL') : '—'}
+                          {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('en-US') : '—'}
                         </TableCell>
-                        <TableCell className="hidden lg:table-cell text-sm">{post.views}</TableCell>
+                        <TableCell className="hidden lg:table-cell text-sm">{post.views ?? 0}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
                             <Button variant="ghost" size="icon" className="size-8 cursor-pointer" onClick={() => openEdit(post)}><Pencil className="size-4" /></Button>
@@ -300,11 +356,11 @@ export function BlogView() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="b-title">Título *</Label>
-                <Input id="b-title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value, slug: editing ? form.slug : generateSlug(e.target.value) })} />
+                <Input id="b-title" value={form.title ?? ''} onChange={(e) => setForm({ ...form, title: e.target.value, slug: editing ? form.slug : generateSlug(e.target.value) })} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="b-slug">Slug</Label>
-                <Input id="b-slug" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
+                <Input id="b-slug" value={form.slug ?? ''} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
@@ -330,24 +386,58 @@ export function BlogView() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="b-time">Tiempo de Lectura (min)</Label>
-                <Input id="b-time" type="number" value={form.readingTime} onChange={(e) => setForm({ ...form, readingTime: e.target.value })} />
+                <Input id="b-time" type="number" value={form.readingTime ?? ''} onChange={(e) => setForm({ ...form, readingTime: e.target.value })} />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="b-tags">Etiquetas (separadas por coma)</Label>
-              <Input id="b-tags" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} />
+              <Input id="b-tags" value={form.tags ?? ''} onChange={(e) => setForm({ ...form, tags: e.target.value })} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="b-cover">URL Imagen de Portada</Label>
-              <Input id="b-cover" value={form.coverImageUrl} onChange={(e) => setForm({ ...form, coverImageUrl: e.target.value })} />
+              <div className="flex gap-2">
+                <Input id="b-cover" value={form.coverImageUrl ?? ''} onChange={(e) => setForm({ ...form, coverImageUrl: e.target.value })} className="flex-1" />
+                <Button type="button" variant="outline" size="icon" className="shrink-0 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                  <Upload className="size-4" />
+                </Button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) handleImageUpload(file)
+                    e.target.value = ''
+                  }}
+                />
+              </div>
+              {form.coverImageUrl && (
+                <div className="mt-2">
+                  <img src={form.coverImageUrl} alt="Preview" className="h-24 w-auto rounded-md border object-cover" />
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="b-excerpt">Extracto</Label>
-              <Textarea id="b-excerpt" value={form.excerpt} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} rows={3} />
+              <Textarea id="b-excerpt" value={form.excerpt ?? ''} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} rows={3} />
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="gap-2 cursor-pointer border-primary/30 text-primary hover:bg-primary/10"
+                onClick={handleAIGenerate}
+                disabled={generating}
+              >
+                {generating ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+                {generating ? 'Generando...' : 'Generar con IA'}
+              </Button>
+              <span className="text-xs text-muted-foreground">Genera contenido, SEO y tiempo de lectura basado en el título y extracto</span>
             </div>
             <div className="space-y-2">
               <Label htmlFor="b-content">Contenido</Label>
-              <Textarea id="b-content" value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} rows={8} />
+              <Textarea id="b-content" value={form.content ?? ''} onChange={(e) => setForm({ ...form, content: e.target.value })} rows={8} />
             </div>
             <div className="flex items-center gap-2">
               <Switch checked={form.featured} onCheckedChange={(v) => setForm({ ...form, featured: v })} id="b-featured" />
@@ -356,11 +446,11 @@ export function BlogView() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="b-seotitle">SEO Título</Label>
-                <Input id="b-seotitle" value={form.seoTitle} onChange={(e) => setForm({ ...form, seoTitle: e.target.value })} />
+                <Input id="b-seotitle" value={form.seoTitle ?? ''} onChange={(e) => setForm({ ...form, seoTitle: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="b-seodesc">SEO Descripción</Label>
-                <Textarea id="b-seodesc" value={form.seoDescription} onChange={(e) => setForm({ ...form, seoDescription: e.target.value })} rows={2} />
+                <Textarea id="b-seodesc" value={form.seoDescription ?? ''} onChange={(e) => setForm({ ...form, seoDescription: e.target.value })} rows={2} />
               </div>
             </div>
           </div>

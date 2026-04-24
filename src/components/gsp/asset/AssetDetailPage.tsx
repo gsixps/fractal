@@ -19,13 +19,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const clpFormatter = new Intl.NumberFormat('es-CL', {
-  style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0,
+const usdFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0,
 })
-function formatCLP(value: number): string { return clpFormatter.format(value) }
-function formatCLPShort(value: number): string {
-  if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1).replace('.', ',')}MM`
-  return `$${(value / 1_000_000).toFixed(1).replace('.', ',')}M`
+function formatUSD(value: number): string { return usdFormatter.format(value) }
+function formatUSDShort(value: number): string {
+  if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)}B`
+  return `$${(value / 1_000_000).toFixed(1)}M`
 }
 function parseHighlights(jsonString: string): string[] {
   try { const p = JSON.parse(jsonString); return Array.isArray(p) ? p : [] }
@@ -183,7 +183,7 @@ export default function AssetDetailPage() {
           </div>
 
           <div className="mt-4 flex flex-wrap gap-4 text-sm">
-            <span className="font-semibold">{formatCLP(asset.pricePerFraction)} <span className="text-muted-foreground font-light">/ fracción</span></span>
+            <span className="font-semibold">{formatUSD(asset.pricePerFraction)} <span className="text-muted-foreground font-light">/ fraction</span></span>
             <span className="font-semibold text-primary">{asset.annualYield}% <span className="text-muted-foreground font-light">yield anual</span></span>
             <span className="font-semibold">{asset.fundedPercentage}% <span className="text-muted-foreground font-light">financiado</span></span>
           </div>
@@ -192,10 +192,10 @@ export default function AssetDetailPage() {
         {/* 2. Key Metrics */}
         <section>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-            <MetricCard icon={<TrendingUp className="h-5 w-5" />} label="Precio por Fracción" value={formatCLP(asset.pricePerFraction)} sublabel={`${asset.totalFractions.toLocaleString('es-CL')} fracciones totales`} colorClass="bg-primary/8 text-primary" valueColorClass="text-primary" />
+            <MetricCard icon={<TrendingUp className="h-5 w-5" />} label="Precio por Fracción" value={formatUSD(asset.pricePerFraction)} sublabel={`${asset.totalFractions.toLocaleString('en-US')} total fractions`} colorClass="bg-primary/8 text-primary" valueColorClass="text-primary" />
             <MetricCard icon={<Percent className="h-5 w-5" />} label="Yield Anual" value={`${asset.annualYield}%`} sublabel="Dividendo anual estimado" colorClass="bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-400" valueColorClass="text-teal-600 dark:text-teal-400" />
             <MetricCard icon={<ArrowUpRight className="h-5 w-5" />} label="Retorno Total Proy." value={`${asset.totalProjectedReturn}%`} sublabel="Plusvalía + yield" colorClass="bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400" valueColorClass="text-amber-600 dark:text-amber-400" />
-            <MetricCard icon={<Zap className="h-5 w-5" />} label="Financiamiento" value={`${asset.fundedPercentage}%`} sublabel={`${asset.availableFractions.toLocaleString('es-CL')} disponibles`} colorClass="bg-primary/8 text-primary" valueColorClass="text-primary" />
+            <MetricCard icon={<Zap className="h-5 w-5" />} label="Financiamiento" value={`${asset.fundedPercentage}%`} sublabel={`${asset.availableFractions.toLocaleString('en-US')} available`} colorClass="bg-primary/8 text-primary" valueColorClass="text-primary" />
           </div>
           <div className="mt-3">
             <div className="gsp-progress-bar" style={{ height: '8px' }}>
@@ -261,9 +261,9 @@ export default function AssetDetailPage() {
                       {asset.cashFlowProjections.map((cf) => (
                         <TableRow key={cf.id} className="border-border/20">
                           <TableCell className="font-medium text-sm">{cf.period}</TableCell>
-                          <TableCell className="text-right text-sm">{formatCLPShort(cf.grossIncome)}</TableCell>
-                          <TableCell className="text-right text-sm text-destructive">-{formatCLPShort(cf.operationalCost)}</TableCell>
-                          <TableCell className="text-right text-sm font-medium text-primary">{formatCLPShort(cf.netIncome)}</TableCell>
+                          <TableCell className="text-right text-sm">{formatUSDShort(cf.grossIncome)}</TableCell>
+                          <TableCell className="text-right text-sm text-destructive">-{formatUSDShort(cf.operationalCost)}</TableCell>
+                          <TableCell className="text-right text-sm font-medium text-primary">{formatUSDShort(cf.netIncome)}</TableCell>
                           <TableCell className="text-right text-sm hidden sm:table-cell text-amber-600 dark:text-amber-400">{cf.appreciation != null ? `${cf.appreciation.toFixed(1)}%` : '—'}</TableCell>
                           <TableCell className="text-right text-sm font-semibold">{cf.totalReturn != null ? `${cf.totalReturn.toFixed(1)}%` : '—'}</TableCell>
                         </TableRow>
@@ -272,7 +272,7 @@ export default function AssetDetailPage() {
                   </Table>
                 </div>
                 <p className="mt-3 text-xs text-muted-foreground text-center font-light">
-                  * Las proyecciones son estimaciones. Los valores están expresados en millones de pesos chilenos.
+                  * Projections are estimates. Values are expressed in USD.
                 </p>
               </CardContent>
             </Card>
@@ -361,8 +361,8 @@ export default function AssetDetailPage() {
                   <div className="gsp-progress-bar-fill" style={{ width: `${asset.fundedPercentage}%` }} />
                 </div>
                 <div className="flex items-center justify-between text-xs text-muted-foreground font-light">
-                  <span>{formatCLPShort((asset.totalFractions - asset.availableFractions) * asset.pricePerFraction)} recaudado</span>
-                  <span>{formatCLPShort(asset.totalValue)} total</span>
+                  <span>{formatUSDShort((asset.totalFractions - asset.availableFractions) * asset.pricePerFraction)} raised</span>
+                  <span>{formatUSDShort(asset.totalValue)} total</span>
                 </div>
               </div>
 
@@ -382,20 +382,20 @@ export default function AssetDetailPage() {
               <div className="space-y-3 rounded-xl bg-primary/5 border border-primary/10 p-5">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-primary">Inversión total:</span>
-                  <span className="text-lg font-bold text-foreground">{formatCLP(totalInvestment)}</span>
+                  <span className="text-lg font-bold text-foreground">{formatUSD(totalInvestment)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-primary">Dividendo anual estimado ({asset.annualYield}%):</span>
-                  <span className="text-lg font-bold text-foreground">{formatCLP(annualDividend)}</span>
+                  <span className="text-sm text-primary">Estimated annual dividend ({asset.annualYield}%):</span>
+                  <span className="text-lg font-bold text-foreground">{formatUSD(annualDividend)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-primary">Dividendo mensual estimado:</span>
-                  <span className="text-sm font-medium text-primary">{formatCLP(annualDividend / 12)}</span>
+                  <span className="text-sm text-primary">Estimated monthly dividend:</span>
+                  <span className="text-sm font-medium text-primary">{formatUSD(annualDividend / 12)}</span>
                 </div>
               </div>
 
               <Button size="lg" className="w-full h-12 text-base font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-200 cursor-pointer">
-                Invertir Ahora — {formatCLP(totalInvestment)}
+                Invertir Ahora — {formatUSD(totalInvestment)}
               </Button>
 
               <div className="flex flex-wrap items-center justify-center gap-4 pt-1">

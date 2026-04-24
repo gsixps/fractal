@@ -89,21 +89,21 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import { useAppStore } from '@/lib/store'
 
-// ─── CLP Formatter ───────────────────────────────────────────────────────────
-function formatCLP(amount: number): string {
-  return new Intl.NumberFormat('es-CL', {
+// ─── USD Formatter ───────────────────────────────────────────────────────────
+function formatUSD(amount: number): string {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'CLP',
+    currency: 'USD',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount)
 }
 
-function formatShortCLP(amount: number): string {
-  if (amount >= 1_000_000_000) return `$${(amount / 1_000_000_000).toFixed(1)}MM`
-  if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(0)}M`
+function formatShortUSD(amount: number): string {
+  if (amount >= 1_000_000_000) return `$${(amount / 1_000_000_000).toFixed(1)}B`
+  if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`
   if (amount >= 1_000) return `$${(amount / 1_000).toFixed(0)}K`
-  return `$${amount.toLocaleString('es-CL')}`
+  return `$${amount.toFixed(0)}`
 }
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -360,7 +360,7 @@ const navItems: Array<{ id: string; label: string; icon: React.ElementType | nul
   { id: 'liquidity', label: 'Liquidez', icon: Droplets },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   { id: '_sep_cms', label: '', icon: null, isSeparator: true },
-  { id: 'settings', label: 'Contenido', icon: Settings },
+  { id: 'settings', label: 'Configuración', icon: Settings },
   { id: 'blog', label: 'Blog', icon: FileText },
   { id: 'faq', label: 'FAQ', icon: HelpCircle },
   { id: 'testimonials', label: 'Testimonios', icon: Quote },
@@ -468,7 +468,7 @@ function PanelGeneralView() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="gsp-serif text-2xl font-normal tracking-tight">Panel General</h2>
-          <p className="text-muted-foreground">Resumen general de la plataforma GSP</p>
+          <p className="text-muted-foreground">Resumen general de 3GSP by GALAXY LLC</p>
         </div>
         <Button variant="outline" size="sm" onClick={fetchStats}>
           <RefreshCw className="mr-2 size-3" /> Actualizar
@@ -493,14 +493,14 @@ function PanelGeneralView() {
         />
         <KpiCard
           title="Capital Invertido"
-          value={formatShortCLP(stats.investments.totalInvested)}
+          value={formatShortUSD(stats.investments.totalInvested)}
           subtitle={`${stats.investments.total} inversiones`}
           icon={Wallet}
-          trend={{ value: formatShortCLP(stats.investments.recentInvestmentVolume) + ' reciente', positive: true }}
+          trend={{ value: formatShortUSD(stats.investments.recentInvestmentVolume) + ' reciente', positive: true }}
         />
         <KpiCard
           title="Dividendos Pagados"
-          value={formatShortCLP(stats.dividends.totalPaid)}
+          value={formatShortUSD(stats.dividends.totalPaid)}
           subtitle={`${stats.dividends.total} pagos realizados`}
           icon={TrendingUp}
           trend={{ value: `${stats.dividends.total} pagos`, positive: true }}
@@ -620,7 +620,7 @@ function PanelGeneralView() {
             </div>
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">Inversión Promedio</p>
-              <p className="text-3xl font-bold">{formatShortCLP(stats.investments.avgInvestment)}</p>
+              <p className="text-3xl font-bold">{formatShortUSD(stats.investments.avgInvestment)}</p>
               <p className="text-xs text-muted-foreground">por inversión</p>
             </div>
           </div>
@@ -845,7 +845,7 @@ function ActivosView() {
                         <TableCell className="font-medium">{asset.name}</TableCell>
                         <TableCell className="hidden sm:table-cell"><Badge variant="secondary" className="capitalize">{asset.type}</Badge></TableCell>
                         <TableCell className="hidden md:table-cell text-muted-foreground">{asset.city}</TableCell>
-                        <TableCell className="text-right text-sm">{formatCLP(asset.pricePerFraction)}</TableCell>
+                        <TableCell className="text-right text-sm">{formatUSD(asset.pricePerFraction)}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
                             <div className="hidden sm:block w-16"><Progress value={asset.fundedPercentage} className="h-1.5" /></div>
@@ -946,15 +946,15 @@ function ActivosView() {
             <p className="text-sm font-semibold text-muted-foreground">Datos Financieros</p>
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="a-total">Valor Total (CLP)</Label>
+                <Label htmlFor="a-total">Valor Total (USD)</Label>
                 <Input id="a-total" type="number" value={form.totalValue} onChange={(e) => setForm({ ...form, totalValue: e.target.value })} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="a-ppf">Precio por Fracción (CLP)</Label>
+                <Label htmlFor="a-ppf">Precio por Fracción (USD)</Label>
                 <Input id="a-ppf" type="number" value={form.pricePerFraction} onChange={(e) => setForm({ ...form, pricePerFraction: e.target.value })} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="a-min">Inversión Mínima (CLP)</Label>
+                <Label htmlFor="a-min">Inversión Mínima (USD)</Label>
                 <Input id="a-min" type="number" value={form.minimumInvestment} onChange={(e) => setForm({ ...form, minimumInvestment: e.target.value })} />
               </div>
             </div>
@@ -1229,10 +1229,10 @@ function UsuariosView() {
                         <TableCell className="hidden sm:table-cell"><Badge variant="secondary" className="capitalize">{user.role}</Badge></TableCell>
                         <TableCell><StatusBadge status={user.kycStatus} /></TableCell>
                         <TableCell className="text-right font-medium">
-                          {user.totalInvested > 0 ? formatShortCLP(user.totalInvested) : '—'}
+                          {user.totalInvested > 0 ? formatShortUSD(user.totalInvested) : '—'}
                         </TableCell>
                         <TableCell className="hidden sm:table-cell text-right text-muted-foreground">
-                          {formatCLP(user.balance)}
+                          {formatUSD(user.balance)}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
@@ -1324,7 +1324,7 @@ function UsuariosView() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="u-balance">Balance (CLP)</Label>
+              <Label htmlFor="u-balance">Balance (USD)</Label>
               <Input id="u-balance" type="number" value={form.balance} onChange={(e) => setForm({ ...form, balance: e.target.value })} />
             </div>
           </div>
@@ -1473,7 +1473,7 @@ function InversionesView() {
                           <span className="text-sm text-muted-foreground">{inv.asset.name}</span>
                         </TableCell>
                         <TableCell className="text-right font-mono text-sm">{inv.quantity} fracc.</TableCell>
-                        <TableCell className="text-right font-medium">{formatCLP(inv.totalAmount)}</TableCell>
+                        <TableCell className="text-right font-medium">{formatUSD(inv.totalAmount)}</TableCell>
                         <TableCell><StatusBadge status={inv.status} /></TableCell>
                         <TableCell className="hidden md:table-cell text-muted-foreground text-sm">
                           {new Date(inv.createdAt).toLocaleDateString('es-CL')}
@@ -1657,7 +1657,7 @@ function LiquidezView() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Reserva Total</p>
-                <p className="text-xl font-bold">{formatCLP(data.pool.totalReserve)}</p>
+                <p className="text-xl font-bold">{formatUSD(data.pool.totalReserve)}</p>
               </div>
             </div>
           </CardContent>
@@ -1713,11 +1713,11 @@ function LiquidezView() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="liq-reserve">Reserva Total (CLP)</Label>
+              <Label htmlFor="liq-reserve">Reserva Total (USD)</Label>
               <Input id="liq-reserve" type="number" value={totalReserve} onChange={(e) => setTotalReserve(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="liq-monthly">Aporte Mensual (CLP)</Label>
+              <Label htmlFor="liq-monthly">Aporte Mensual (USD)</Label>
               <Input id="liq-monthly" type="number" value={monthlyContribution} onChange={(e) => setMonthlyContribution(e.target.value)} placeholder="0" />
             </div>
             <div className="flex items-center justify-between rounded-lg border p-3">
@@ -1763,15 +1763,15 @@ function LiquidezView() {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Monto Total Solicitado</span>
-                <span className="font-medium">{formatCLP(data.stats.totalRequestedAmount)}</span>
+                <span className="font-medium">{formatUSD(data.stats.totalRequestedAmount)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Monto Total Completado</span>
-                <span className="font-medium">{formatCLP(data.stats.totalCompletedAmount)}</span>
+                <span className="font-medium">{formatUSD(data.stats.totalCompletedAmount)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Fees Recaudados</span>
-                <span className="font-medium text-emerald-600 dark:text-emerald-400">{formatCLP(data.stats.totalFeesCollected)}</span>
+                <span className="font-medium text-emerald-600 dark:text-emerald-400">{formatUSD(data.stats.totalFeesCollected)}</span>
               </div>
             </div>
           </CardContent>
@@ -1807,7 +1807,7 @@ function LiquidezView() {
                     <TableRow key={req.id}>
                       <TableCell className="font-medium">{req.user.name || req.user.email}</TableCell>
                       <TableCell className="hidden sm:table-cell font-mono text-sm">{req.fractionCount}</TableCell>
-                      <TableCell className="text-right font-medium">{formatCLP(req.totalAmount)}</TableCell>
+                      <TableCell className="text-right font-medium">{formatUSD(req.totalAmount)}</TableCell>
                       <TableCell><StatusBadge status={req.status} /></TableCell>
                       <TableCell className="hidden md:table-cell text-muted-foreground text-sm">
                         {new Date(req.createdAt).toLocaleDateString('es-CL')}
@@ -1859,8 +1859,8 @@ export default function AdminPage() {
         <aside className="hidden lg:block w-64 shrink-0 border-r bg-card">
           <div className="sticky top-0 h-screen overflow-y-auto">
             <div className="p-4">
-              <h1 className="gsp-serif text-2xl font-normal text-primary">GSP Admin</h1>
-              <p className="text-xs text-muted-foreground">Superadmin Panel</p>
+              <h1 className="gsp-serif text-2xl font-normal text-primary">3GSP Admin</h1>
+              <p className="text-xs text-muted-foreground">3GSP by GALAXY LLC</p>
             </div>
             <Separator />
             <SidebarNav activeTab={adminTab} setActiveTab={setAdminTab} />
@@ -1879,14 +1879,14 @@ export default function AdminPage() {
               </SheetTrigger>
               <SheetContent side="left" className="w-64 p-0">
                 <SheetHeader className="p-4">
-                  <SheetTitle className="text-left text-lg font-bold text-emerald-700 dark:text-emerald-400">GSP Admin</SheetTitle>
+                  <SheetTitle className="text-left text-lg font-bold text-emerald-700 dark:text-emerald-400">3GSP Admin</SheetTitle>
                 </SheetHeader>
                 <Separator />
                 <SidebarNav activeTab={adminTab} setActiveTab={(tab) => { setAdminTab(tab) }} />
               </SheetContent>
             </Sheet>
             <div>
-              <h1 className="text-sm font-bold">GSP Admin</h1>
+              <h1 className="text-sm font-bold">3GSP Admin</h1>
               <p className="text-xs text-muted-foreground">{navItems.find((n) => n.id === adminTab)?.label || 'Panel'}</p>
             </div>
           </header>

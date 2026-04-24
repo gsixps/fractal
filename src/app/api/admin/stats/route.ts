@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requireAdmin } from '@/lib/api-auth';
 
 // GET /api/admin/stats — Aggregate statistics
 export async function GET() {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     // Run all aggregation queries in parallel
     const [

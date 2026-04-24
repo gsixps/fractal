@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { requireAdmin } from '@/lib/api-auth'
 
 // GET /api/admin/email-templates - List all email templates
 export async function GET() {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const templates = await db.emailTemplate.findMany({
       orderBy: { name: 'asc' },
@@ -17,6 +21,9 @@ export async function GET() {
 
 // POST /api/admin/email-templates - Create new email template
 export async function POST(request: Request) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const body = await request.json()
     const { name, subject, bodyHtml, bodyText, variables, category, isActive } = body

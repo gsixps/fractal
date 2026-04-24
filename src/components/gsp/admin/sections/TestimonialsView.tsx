@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { Plus, Pencil, Trash2, Loader2, Quote, Star, CheckCircle2, XCircle } from 'lucide-react'
+import { Plus, Pencil, Trash2, Loader2, Quote, Star, CheckCircle2, XCircle, Upload } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -108,13 +108,28 @@ export function TestimonialsView() {
     setFormOpen(true)
   }
 
+  const handleImageUpload = async (file: File) => {
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch('/api/upload', { method: 'POST', body: formData })
+      if (res.ok) {
+        const data = await res.json()
+        setForm({ ...form, avatarUrl: data.url })
+      }
+    } catch {
+      toast({ title: 'Error', description: 'No se pudo subir la imagen', variant: 'destructive' })
+    }
+  }
+
   const openEdit = (item: Testimonial) => {
     setEditing(item)
     setForm({
-      name: item.name || '', role: item.role || '', avatarUrl: item.avatarUrl || '', quote: item.quote || '',
-      rating: item.rating.toString(), investmentAmount: (item.investmentAmount ?? 0).toString(),
-      assetName: item.assetName || '', isFeatured: item.isFeatured, isVerified: item.isVerified,
-      status: item.status,
+      name: item.name ?? '', role: item.role ?? '', avatarUrl: item.avatarUrl ?? '', quote: item.quote ?? '',
+      rating: item.rating != null ? String(item.rating) : '5',
+      investmentAmount: item.investmentAmount != null ? String(item.investmentAmount) : '',
+      assetName: item.assetName ?? '', isFeatured: item.isFeatured ?? false, isVerified: item.isVerified ?? false,
+      status: item.status ?? 'pending',
     })
     setFormOpen(true)
   }
@@ -280,20 +295,31 @@ export function TestimonialsView() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="t-name">Nombre *</Label>
-                <Input id="t-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                <Input id="t-name" value={form.name ?? ''} onChange={(e) => setForm({ ...form, name: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="t-role">Rol / Ocupación</Label>
-                <Input id="t-role" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} />
+                <Input id="t-role" value={form.role ?? ''} onChange={(e) => setForm({ ...form, role: e.target.value })} />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="t-avatar">URL Avatar</Label>
-              <Input id="t-avatar" value={form.avatarUrl} onChange={(e) => setForm({ ...form, avatarUrl: e.target.value })} />
+              <div className="flex gap-2">
+                <Input id="t-avatar" className="flex-1" value={form.avatarUrl ?? ''} onChange={(e) => setForm({ ...form, avatarUrl: e.target.value })} />
+                <Button type="button" variant="outline" size="sm" className="shrink-0 cursor-pointer" onClick={() => document.getElementById('upload-input')?.click()}>
+                  <Upload className="size-4 mr-1" />Subir
+                </Button>
+                <input id="upload-input" type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} />
+              </div>
+              {form.avatarUrl && (
+                <div className="mt-1">
+                  <img src={form.avatarUrl} alt="Avatar preview" className="size-12 rounded-full object-cover border" />
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="t-quote">Testimonio *</Label>
-              <Textarea id="t-quote" value={form.quote} onChange={(e) => setForm({ ...form, quote: e.target.value })} rows={4} />
+              <Textarea id="t-quote" value={form.quote ?? ''} onChange={(e) => setForm({ ...form, quote: e.target.value })} rows={4} />
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
@@ -306,12 +332,12 @@ export function TestimonialsView() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="t-amount">Monto Invertido (CLP)</Label>
-                <Input id="t-amount" type="number" value={form.investmentAmount} onChange={(e) => setForm({ ...form, investmentAmount: e.target.value })} />
+                <Label htmlFor="t-amount">Monto Invertido (USD)</Label>
+                <Input id="t-amount" type="number" value={form.investmentAmount ?? ''} onChange={(e) => setForm({ ...form, investmentAmount: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="t-asset">Nombre del Activo</Label>
-                <Input id="t-asset" value={form.assetName} onChange={(e) => setForm({ ...form, assetName: e.target.value })} />
+                <Input id="t-asset" value={form.assetName ?? ''} onChange={(e) => setForm({ ...form, assetName: e.target.value })} />
               </div>
             </div>
             <div className="space-y-2">

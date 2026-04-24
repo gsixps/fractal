@@ -43,20 +43,20 @@ import { Separator } from '@/components/ui/separator'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const clpFormatter = new Intl.NumberFormat('es-CL', {
+const usdFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
-  currency: 'CLP',
+  currency: 'USD',
   minimumFractionDigits: 0,
   maximumFractionDigits: 0,
 })
 
-function formatCLP(value: number): string {
-  return clpFormatter.format(value)
+function formatUSD(value: number): string {
+  return usdFormatter.format(value)
 }
 
 function formatDate(dateStr: string): string {
   try {
-    return new Date(dateStr).toLocaleDateString('es-CL', {
+    return new Date(dateStr).toLocaleDateString('en-US', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -70,7 +70,7 @@ function formatPeriod(start: string, end: string): string {
   try {
     const s = new Date(start)
     const e = new Date(end)
-    return `${s.toLocaleDateString('es-CL', { month: 'short', year: '2-digit' })} - ${e.toLocaleDateString('es-CL', { month: 'short', year: '2-digit' })}`
+    return `${s.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })} - ${e.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })}`
   } catch {
     return `${start} - ${end}`
   }
@@ -186,7 +186,7 @@ function InvestmentCard({
               </div>
               <div>
                 <p className="text-xs text-muted-foreground font-light">Total</p>
-                <p className="font-semibold">{formatCLP(investment.totalAmount)}</p>
+                <p className="font-semibold">{formatUSD(investment.totalAmount)}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground font-light">Fecha</p>
@@ -325,26 +325,26 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-8">
           <StatCard
             title="Saldo Disponible"
-            value={formatCLP(user?.balance || 0)}
+            value={formatUSD(user?.balance || 0)}
             icon={Wallet}
             description="Fondos disponibles para invertir"
           />
           <StatCard
             title="Total Invertido"
-            value={formatCLP(user?.totalInvested || 0)}
+            value={formatUSD(user?.totalInvested || 0)}
             icon={TrendingUp}
             description="Capital invertido acumulado"
           />
           <StatCard
             title="Dividendos Totales"
-            value={formatCLP(data.totalDividends)}
+            value={formatUSD(data.totalDividends)}
             icon={DollarSign}
             valueColorClass="text-primary"
             description="Dividendos recibidos (historial)"
           />
           <StatCard
             title="Valor del Portafolio"
-            value={formatCLP(portfolioValue)}
+            value={formatUSD(portfolioValue)}
             icon={PiggyBank}
             valueColorClass="text-primary"
             description="Invertido + dividendos"
@@ -419,7 +419,7 @@ export default function DashboardPage() {
                         <TableRow key={div.id} className="border-border/20">
                           <TableCell className="text-xs whitespace-nowrap">{formatPeriod(div.periodStart, div.periodEnd)}</TableCell>
                           <TableCell className="text-sm max-w-[120px] truncate" title={div.investment.asset.name}>{div.investment.asset.name}</TableCell>
-                          <TableCell className="text-sm text-right font-medium whitespace-nowrap text-primary">{formatCLP(div.amount)}</TableCell>
+                          <TableCell className="text-sm text-right font-medium whitespace-nowrap text-primary">{formatUSD(div.amount)}</TableCell>
                           <TableCell className="text-center"><DividendStatusBadge status={div.status} /></TableCell>
                         </TableRow>
                       ))}
@@ -464,7 +464,7 @@ export default function DashboardPage() {
                             <TableCell><TransactionTypeBadge type={tx.type} /></TableCell>
                             <TableCell className="text-sm text-right font-medium whitespace-nowrap">
                               <span className={isCredit ? 'text-primary' : ''}>
-                                {isCredit ? '+' : '-'}{formatCLP(tx.amount)}
+                                {isCredit ? '+' : '-'}{formatUSD(tx.amount)}
                               </span>
                             </TableCell>
                             <TableCell className="hidden sm:table-cell text-xs text-muted-foreground max-w-[180px] truncate font-light" title={tx.description}>
@@ -513,7 +513,7 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <div className="rounded-xl bg-white/10 p-4 backdrop-blur-sm">
                     <p className="text-xs text-white/70 font-light">Reserva Total</p>
-                    <p className="text-xl font-bold mt-1">{formatCLP(data.liquidityPool.totalReserve)}</p>
+                    <p className="text-xl font-bold mt-1">{formatUSD(data.liquidityPool.totalReserve)}</p>
                     <p className="text-xs text-white/50 mt-1">{data.liquidityPool.totalAssets} activos respaldados</p>
                   </div>
                   <div className="rounded-xl bg-white/10 p-4 backdrop-blur-sm">
@@ -529,7 +529,7 @@ export default function DashboardPage() {
                     <p className="text-xl font-bold mt-1">{data.liquidityPool.activeRequests}</p>
                     <p className="text-xs text-white/50 mt-1">
                       {data.liquidityPool.monthlyContribution
-                        ? `Aporte mensual: ${formatCLP(data.liquidityPool.monthlyContribution)}`
+                        ? `Aporte mensual: ${formatUSD(data.liquidityPool.monthlyContribution)}`
                         : 'Sin aporte mensual'}
                     </p>
                   </div>
@@ -584,7 +584,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-semibold">Retirar Ganancias</p>
-                  <p className="text-xs text-muted-foreground font-light">Disponible: {formatCLP(user?.totalEarnings || 0)}</p>
+                  <p className="text-xs text-muted-foreground font-light">Disponible: {formatUSD(user?.totalEarnings || 0)}</p>
                 </div>
                 <Button variant="outline" size="sm" className="shrink-0 text-xs border-border/50 cursor-pointer">Ir</Button>
               </CardContent>

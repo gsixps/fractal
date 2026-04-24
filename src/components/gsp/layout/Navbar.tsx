@@ -129,7 +129,7 @@ export function Navbar() {
             <span className="text-sm font-bold text-white tracking-tight">G</span>
           </div>
           <span className="text-xl font-bold tracking-tight gsp-gradient-text">
-            GALAXY
+            3GSP
           </span>
         </button>
 
@@ -225,8 +225,7 @@ export function Navbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {(dbCurrencies.length > 0 ? dbCurrencies : [
-                  { code: 'CLP', name: 'Peso Chileno', flag: '🇨🇱' },
-                  { code: 'USD', name: 'Dólar', flag: '🇺🇸' },
+                  { code: 'USD', name: 'Dólar Estadounidense', flag: '🇺🇸' },
                   { code: 'EUR', name: 'Euro', flag: '🇪🇺' },
                   { code: 'MXN', name: 'Peso Mexicano', flag: '🇲🇽' },
                   { code: 'COP', name: 'Peso Colombiano', flag: '🇨🇴' },
@@ -357,10 +356,10 @@ export function Navbar() {
                   <div className="flex size-7 items-center justify-center rounded-md gsp-gradient">
                     <span className="text-xs font-bold text-white">G</span>
                   </div>
-                  <span className="gsp-gradient-text text-lg font-bold">GALAXY</span>
+                  <span className="gsp-gradient-text text-lg font-bold">3GSP</span>
                 </SheetTitle>
                 <SheetDescription className="text-left text-muted-foreground">
-                  GALAXY LLC — Fractional Real Estate Investment
+                  GALAXY LLC — Inversión Inmobiliaria Fraccionada
                 </SheetDescription>
               </SheetHeader>
 

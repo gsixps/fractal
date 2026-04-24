@@ -60,7 +60,7 @@ const typeIcons: Record<string, React.ReactNode> = {
 }
 
 function formatCurrency(v: number) {
-  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v)
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v)
 }
 
 export default function MarketplacePage() {

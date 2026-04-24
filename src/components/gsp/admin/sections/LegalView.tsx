@@ -36,6 +36,7 @@ interface LegalFormState {
   title: string
   slug: string
   type: string
+  customType: string
   version: string
   effectiveDate: string
   isRequired: boolean
@@ -44,7 +45,7 @@ interface LegalFormState {
 }
 
 const emptyForm: LegalFormState = {
-  title: '', slug: '', type: 'terms', version: '1.0',
+  title: '', slug: '', type: 'terms', customType: '', version: '1.0',
   effectiveDate: new Date().toISOString().split('T')[0],
   isRequired: false, isActive: true, content: '',
 }
@@ -53,7 +54,10 @@ const typeLabels: Record<string, string> = {
   terms: 'Términos y Condiciones',
   privacy: 'Política de Privacidad',
   risk_disclosure: 'Descargo de Riesgo',
-  contract_template: 'Plantilla de Contrato',
+  investment_policy: 'Política de Inversión',
+  cookies: 'Política de Cookies',
+  compliance: 'Cumplimiento Normativo',
+  other: 'Otro (especificar)',
 }
 
 export function LegalView() {
@@ -94,10 +98,13 @@ export function LegalView() {
 
   const openEdit = (item: LegalDoc) => {
     setEditing(item)
+    const isCustomType = item.type && !(item.type in typeLabels) && item.type !== 'other'
     setForm({
-      title: item.title, slug: item.slug, type: item.type, version: item.version,
+      title: item.title ?? '', slug: item.slug ?? '', type: isCustomType ? 'other' : (item.type ?? 'terms'),
+      customType: isCustomType ? item.type : '',
+      version: item.version ?? '1.0',
       effectiveDate: item.effectiveDate ? item.effectiveDate.split('T')[0] : '',
-      isRequired: item.isRequired, isActive: item.isActive, content: item.content,
+      isRequired: item.isRequired ?? false, isActive: item.isActive ?? true, content: item.content ?? '',
     })
     setFormOpen(true)
   }
@@ -107,10 +114,15 @@ export function LegalView() {
       toast({ title: 'Error', description: 'El título es obligatorio', variant: 'destructive' })
       return
     }
+    if (form.type === 'other' && !form.customType.trim()) {
+      toast({ title: 'Error', description: 'Especifica el tipo de documento', variant: 'destructive' })
+      return
+    }
     try {
       setSubmitting(true)
+      const docType = form.type === 'other' ? form.customType.trim() : form.type
       const body = {
-        title: form.title, slug: form.slug, type: form.type, version: form.version,
+        title: form.title, slug: form.slug, type: docType, version: form.version,
         effectiveDate: form.effectiveDate, isRequired: form.isRequired,
         isActive: form.isActive, content: form.content,
       }
@@ -151,6 +163,11 @@ export function LegalView() {
     }
   }
 
+  const getDisplayType = (type: string) => {
+    if (typeLabels[type]) return typeLabels[type]
+    return type
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -186,13 +203,13 @@ export function LegalView() {
                   <TableBody>
                     {items.map((item) => (
                       <TableRow key={item.id}>
-                        <TableCell className="font-medium">{item.title}</TableCell>
+                        <TableCell className="font-medium">{item.title ?? ''}</TableCell>
                         <TableCell className="hidden sm:table-cell">
-                          <Badge variant="secondary">{typeLabels[item.type] || item.type}</Badge>
+                          <Badge variant="secondary">{getDisplayType(item.type ?? '')}</Badge>
                         </TableCell>
-                        <TableCell className="hidden md:table-cell text-sm text-muted-foreground">v{item.version}</TableCell>
+                        <TableCell className="hidden md:table-cell text-sm text-muted-foreground">v{item.version ?? '1.0'}</TableCell>
                         <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
-                          {item.effectiveDate ? new Date(item.effectiveDate).toLocaleDateString('es-CL') : '—'}
+                          {item.effectiveDate ? new Date(item.effectiveDate).toLocaleDateString('en-US') : '—'}
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className={item.isActive
@@ -234,11 +251,11 @@ export function LegalView() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="l-title">Título *</Label>
-                <Input id="l-title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+                <Input id="l-title" value={form.title ?? ''} onChange={(e) => setForm({ ...form, title: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="l-slug">Slug</Label>
-                <Input id="l-slug" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
+                <Input id="l-slug" value={form.slug ?? ''} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
@@ -251,13 +268,24 @@ export function LegalView() {
                   </SelectContent>
                 </Select>
               </div>
+              {form.type === 'other' && (
+                <div className="space-y-2 sm:col-span-1">
+                  <Label htmlFor="l-custom-type">Nombre del Tipo *</Label>
+                  <Input
+                    id="l-custom-type"
+                    placeholder="Ej: Política de Remuneraciones"
+                    value={form.customType ?? ''}
+                    onChange={(e) => setForm({ ...form, customType: e.target.value })}
+                  />
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="l-version">Versión</Label>
-                <Input id="l-version" value={form.version} onChange={(e) => setForm({ ...form, version: e.target.value })} />
+                <Input id="l-version" value={form.version ?? ''} onChange={(e) => setForm({ ...form, version: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="l-date">Fecha de Vigencia</Label>
-                <Input id="l-date" type="date" value={form.effectiveDate} onChange={(e) => setForm({ ...form, effectiveDate: e.target.value })} />
+                <Input id="l-date" type="date" value={form.effectiveDate ?? ''} onChange={(e) => setForm({ ...form, effectiveDate: e.target.value })} />
               </div>
             </div>
             <div className="flex items-center gap-6">
@@ -272,7 +300,7 @@ export function LegalView() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="l-content">Contenido</Label>
-              <Textarea id="l-content" value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} rows={12} className="font-mono text-sm" />
+              <Textarea id="l-content" value={form.content ?? ''} onChange={(e) => setForm({ ...form, content: e.target.value })} rows={12} className="font-mono text-sm" />
             </div>
           </div>
           <DialogFooter>

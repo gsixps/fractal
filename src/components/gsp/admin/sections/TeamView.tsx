@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
-import { Plus, Pencil, Trash2, Loader2, UsersRound } from 'lucide-react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { Plus, Pencil, Trash2, Loader2, UsersRound, Upload } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
@@ -56,6 +56,8 @@ export function TeamView() {
   const [deleteTarget, setDeleteTarget] = useState<TeamMember | null>(null)
   const [deleting, setDeleting] = useState(false)
 
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   const { toast } = useToast()
 
   const fetchMembers = useCallback(async () => {
@@ -83,11 +85,28 @@ export function TeamView() {
   const openEdit = (member: TeamMember) => {
     setEditing(member)
     setForm({
-      name: member.name, role: member.role, bio: member.bio,
-      photoUrl: member.photoUrl, linkedinUrl: member.linkedinUrl,
-      sortOrder: member.sortOrder.toString(), isActive: member.isActive,
+      name: member.name ?? '', role: member.role ?? '', bio: member.bio ?? '',
+      photoUrl: member.photoUrl ?? '', linkedinUrl: member.linkedinUrl ?? '',
+      sortOrder: member.sortOrder != null ? String(member.sortOrder) : '0', isActive: member.isActive ?? true,
     })
     setFormOpen(true)
+  }
+
+  const handleImageUpload = async (file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    try {
+      const res = await fetch('/api/upload', { method: 'POST', body: formData })
+      if (res.ok) {
+        const data = await res.json()
+        setForm(prev => ({ ...prev, photoUrl: data.url }))
+        toast({ title: 'Imagen subida', description: 'La foto se ha cargado correctamente' })
+      } else {
+        toast({ title: 'Error', description: 'No se pudo subir la imagen', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Error', description: 'Error al subir la imagen', variant: 'destructive' })
+    }
   }
 
   const handleSubmit = async () => {
@@ -218,31 +237,52 @@ export function TeamView() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="tm-name">Nombre *</Label>
-                <Input id="tm-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                <Input id="tm-name" value={form.name ?? ''} onChange={(e) => setForm({ ...form, name: e.target.value })} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="tm-role">Rol / Cargo</Label>
-                <Input id="tm-role" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} />
+                <Input id="tm-role" value={form.role ?? ''} onChange={(e) => setForm({ ...form, role: e.target.value })} />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="tm-bio">Biografía</Label>
-              <Textarea id="tm-bio" value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} rows={4} />
+              <Textarea id="tm-bio" value={form.bio ?? ''} onChange={(e) => setForm({ ...form, bio: e.target.value })} rows={4} />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="tm-photo">URL Foto</Label>
-                <Input id="tm-photo" value={form.photoUrl} onChange={(e) => setForm({ ...form, photoUrl: e.target.value })} />
+                <div className="flex gap-2">
+                  <Input id="tm-photo" value={form.photoUrl ?? ''} onChange={(e) => setForm({ ...form, photoUrl: e.target.value })} className="flex-1" />
+                  <Button type="button" variant="outline" size="icon" className="shrink-0 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                    <Upload className="size-4" />
+                  </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) handleImageUpload(file)
+                      e.target.value = ''
+                    }}
+                  />
+                </div>
+                {form.photoUrl && (
+                  <div className="mt-2">
+                    <img src={form.photoUrl} alt="Preview" className="h-20 w-20 rounded-md border object-cover" />
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="tm-linkedin">URL LinkedIn</Label>
-                <Input id="tm-linkedin" value={form.linkedinUrl} onChange={(e) => setForm({ ...form, linkedinUrl: e.target.value })} />
+                <Input id="tm-linkedin" value={form.linkedinUrl ?? ''} onChange={(e) => setForm({ ...form, linkedinUrl: e.target.value })} />
               </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="tm-order">Orden</Label>
-                <Input id="tm-order" type="number" value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: e.target.value })} />
+                <Input id="tm-order" type="number" value={form.sortOrder ?? ''} onChange={(e) => setForm({ ...form, sortOrder: e.target.value })} />
               </div>
               <div className="flex items-center gap-2 pt-6">
                 <Switch checked={form.isActive} onCheckedChange={(v) => setForm({ ...form, isActive: v })} id="tm-active" />

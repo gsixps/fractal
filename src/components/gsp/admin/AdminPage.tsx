@@ -36,6 +36,7 @@ import {
   Layers,
   Languages,
   Coins,
+  Brain,
 } from 'lucide-react'
 import { SettingsView } from './sections/SettingsView'
 import { BlogView } from './sections/BlogView'
@@ -49,6 +50,7 @@ import { AssetTypesView } from './sections/AssetTypesView'
 import { TranslationsView } from './sections/TranslationsView'
 import { CurrenciesView } from './sections/CurrenciesView'
 import { AnalyticsView } from './sections/AnalyticsView'
+import { InvestmentAnalysisView } from './sections/InvestmentAnalysisView'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -359,6 +361,7 @@ const navItems: Array<{ id: string; label: string; icon: React.ElementType | nul
   { id: 'investments', label: 'Inversiones', icon: Wallet },
   { id: 'liquidity', label: 'Liquidez', icon: Droplets },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+  { id: 'investment-analysis', label: 'Análisis IA', icon: Brain },
   { id: '_sep_cms', label: '', icon: null, isSeparator: true },
   { id: 'settings', label: 'Configuración', icon: Settings },
   { id: 'blog', label: 'Blog', icon: FileText },
@@ -1837,6 +1840,7 @@ export default function AdminPage() {
       case 'investments': return <InversionesView />
       case 'liquidity': return <LiquidezView />
       case 'analytics': return <AnalyticsView />
+      case 'investment-analysis': return <InvestmentAnalysisView />
       case 'settings': return <SettingsView />
       case 'blog': return <BlogView />
       case 'faq': return <FAQView />

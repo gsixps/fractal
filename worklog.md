@@ -128,3 +128,60 @@ Stage Summary:
 - Homepage now shows the 4-step investment process from the infographic
 - Premium dark emerald design with timeline connections
 - Analytics tracking active on homepage
+
+---
+Task ID: 2
+Agent: Core Logic Engine Builder
+Task: Create AI-powered investment analysis system (Core Logic Engine)
+
+Work Log:
+- Created /api/admin/investment-analysis/route.ts with POST (generate) and GET (list recent) handlers
+- POST uses z-ai-web-dev-sdk (glm-4-plus) with comprehensive Core Logic Engine system prompt
+- System prompt covers 4 modules: Fraction Structure, Financial Projection, Compliance & Legal, FX Risk
+- Fetches full asset data including images, cashFlowProjections from Prisma
+- In-memory Map stores up to 5 recent analyses per asset
+- Created InvestmentAnalysisView.tsx admin section with:
+  - Asset selector dropdown fetching from /api/admin/assets
+  - Optional investor country and risk profile selectors
+  - Selected asset summary card with key metrics
+  - "Generar Análisis" button with Brain icon
+  - Loading skeletons during generation
+  - Parsed module cards (expandable/collapsible) with icons: Building2, TrendingUp, Scale, AlertTriangle
+  - Built-in markdown renderer for AI output (tables, headings, lists, bold/italic)
+  - Disclaimer banner about AI-generated content
+  - Copy to clipboard and Export TXT functionality
+  - Recent analyses history list
+- Modified AdminPage.tsx: added Brain import, InvestmentAnalysisView import, nav item, renderView case
+- All text in Spanish (Latin American), responsive mobile-first design
+
+Stage Summary:
+- Core Logic Engine feature fully integrated into admin panel
+- New API endpoint: /api/admin/investment-analysis (POST + GET)
+- New admin section: "Análisis IA" in sidebar
+- AI generates 4-module investment analysis with multi-jurisdictional compliance context
+- No new routes/pages, SPA-only integration
+
+---
+Task ID: 5
+Agent: Admin Panel Fixer
+Task: Fix remaining admin panel issues (5 high-priority UX fixes)
+
+Work Log:
+- Fix 1 (PromotionsView): Verified CLP→USD already done (line 287 "Inversión Mínima (USD)"), all ?? '' null safety already applied — no changes needed
+- Fix 2 (LegalView): Verified "Otro (especificar)" option with customType field and conditional input already implemented — no changes needed
+- Fix 3 (EmailTemplatesView): Verified create template POST to /api/admin/email-templates and send test email to /api/emails/send working, null safety done, API routes functional — no changes needed
+- Fix 4 (BlogView): Verified photo upload with handleImageUpload, fileInputRef, Upload button, image preview already implemented — no changes needed
+- Fix 5 (TeamView): Added photo upload to team member form:
+  - Added useRef + Upload icon import
+  - Added fileInputRef for hidden file input
+  - Added handleImageUpload function using /api/upload endpoint
+  - Added null safety (?? '') to all 6 Input/Textarea value props
+  - Fixed openEdit() to null-safe all fields from DB
+  - Added Upload button next to photo URL input
+  - Added hidden file input with image accept filter
+  - Added image preview (80x80 rounded thumbnail)
+
+Stage Summary:
+- Fixes 1-4 were already completed by previous agents (Task IDs 2b, 3b)
+- Only Fix 5 (TeamView) required changes — photo upload and null safety added
+- All 5 admin views now fully functional with null-safe inputs and photo upload capabilities

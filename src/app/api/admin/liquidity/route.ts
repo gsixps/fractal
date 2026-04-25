@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requireAdmin } from '@/lib/api-auth';
 
 // GET /api/admin/liquidity — Get liquidity pool data with active requests
 export async function GET() {
+  const { error } = await requireAdmin();
+  if (error) return error;
+
   try {
     const pool = await db.liquidityPool.findFirst({
       include: {
@@ -100,6 +104,9 @@ export async function GET() {
 
 // PUT /api/admin/liquidity — Update liquidity pool settings
 export async function PUT(request: NextRequest) {
+  const { error } = await requireAdmin();
+  if (error) return error;
+
   try {
     const body = await request.json();
 

@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { requireAdmin } from '@/lib/api-auth'
 
 // GET /api/admin/team - List all team members
 export async function GET() {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const members = await db.teamMember.findMany({
       orderBy: { sortOrder: 'asc' },
@@ -17,6 +21,9 @@ export async function GET() {
 
 // POST /api/admin/team - Create new team member
 export async function POST(request: Request) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const body = await request.json()
     const { name, role, bio, photoUrl, linkedinUrl, sortOrder, isActive } = body

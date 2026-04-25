@@ -62,7 +62,7 @@ export function TranslationsView() {
     try {
       setLoading(true)
       const params = new URLSearchParams()
-      if (searchKey) params.set('key', searchKey)
+      if (searchKey) params.set('search', searchKey)
       if (filterLocale !== 'all') params.set('locale', filterLocale)
       params.set('limit', '500')
 

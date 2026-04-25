@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { requireAdmin } from '@/lib/api-auth';
 
 // GET /api/admin/investments — List all investments with user and asset info
 export async function GET(request: NextRequest) {
+  const { error } = await requireAdmin();
+  if (error) return error;
+
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
@@ -75,6 +79,9 @@ export async function GET(request: NextRequest) {
 
 // POST /api/admin/investments — Create investment
 export async function POST(request: NextRequest) {
+  const { error } = await requireAdmin();
+  if (error) return error;
+
   try {
     const body = await request.json();
 

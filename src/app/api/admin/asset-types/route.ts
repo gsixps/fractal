@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { requireAdmin } from '@/lib/api-auth'
 
 // GET /api/admin/asset-types - List all asset types
 export async function GET() {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const assetTypes = await db.assetType.findMany({
       orderBy: { sortOrder: 'asc' },
@@ -17,6 +21,9 @@ export async function GET() {
 
 // POST /api/admin/asset-types - Create new asset type
 export async function POST(request: Request) {
+  const { error } = await requireAdmin()
+  if (error) return error
+
   try {
     const body = await request.json()
     const { name, slug, icon, description, color, sortOrder, isActive } = body

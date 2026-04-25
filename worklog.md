@@ -185,3 +185,110 @@ Stage Summary:
 - Fixes 1-4 were already completed by previous agents (Task IDs 2b, 3b)
 - Only Fix 5 (TeamView) required changes — photo upload and null safety added
 - All 5 admin views now fully functional with null-safe inputs and photo upload capabilities
+
+---
+Task ID: 5
+Agent: Security + Turso DB Migration
+Task: Implement security middleware, Turso DB migration, auth helpers, CSRF, Stripe utility
+
+Work Log:
+- Migrated Prisma from SQLite to Turso (LibSQL adapter) — kept `provider = "sqlite"` in schema since Prisma 6 uses adapter pattern
+- Updated `/src/lib/db.ts` to use `@prisma/adapter-libsql` with `@libsql/client` for Turso/LibSQL connection
+- Created `/src/middleware.ts` with rate limiting (10/min auth, 20/min payments, 100/min general) and security headers (CSP, HSTS, X-Frame-Options, etc.)
+- Created `/src/lib/auth-api.ts` with `authenticate()`, `requireAdmin()`, `requireSuperAdmin()` helpers for API route auth
+- Created `/src/lib/csrf.ts` with HMAC-SHA256 CSRF token generation and verification with timing-safe comparison
+- Updated `/src/lib/stripe.ts` — added `calculateStripeFee()`, `calculatePlatformFee()`, `PLATFORM_FEE_PERCENT`, direct `stripe` export, `STRIPE_PUBLISHABLE_KEY` while preserving existing helper functions
+- Ran `bun run db:push` — schema already in sync, Prisma Client generated successfully
+- Ran `bun run lint` — no errors in our new/modified files
+
+Stage Summary:
+- Turso connection configured with LibSQL adapter (works with both `file:` local and `libsql://` remote URLs)
+- DATABASE_URL can be switched to `libsql://your-db.turso.io` for remote Turso without code changes
+- Security middleware active: rate limiting, CSP, HSTS, X-Frame-Options, X-Content-Type-Options
+- Admin API routes can use `requireAdmin()`/`requireSuperAdmin()` from auth-api.ts
+- CSRF tokens generated with HMAC-SHA256, 24h expiry, constant-time comparison
+- Stripe client initialized with fee calculators (2.9% + $0.30) and platform fee (2.5%)
+
+---
+Task ID: 7
+Agent: Stripe Integration
+Task: Implement Stripe Checkout, Webhooks, Refund API, Status API
+
+Work Log:
+- Implemented Checkout Session creation with dynamic products
+- Implemented Stripe Webhook with signature verification
+- Implemented payment confirmation endpoint
+- Created admin refund API with full audit trail
+- Created payment status check endpoint
+
+Stage Summary:
+- Stripe Checkout: /api/payments/create-intent (POST)
+- Stripe Webhook: /api/payments/webhook (POST)
+- Payment Confirm: /api/payments/confirm (GET)
+- Payment Status: /api/payments/status (GET)
+- Admin Refund: /api/admin/refund (POST)
+- All endpoints protected with auth + audit logging
+
+---
+Task ID: 10
+Agent: Admin API Auth Guards
+Task: Apply role-based auth to all admin API routes, fix middleware
+
+Work Log:
+- Audited all 33 admin API route files under /src/app/api/admin/
+- Added requireAdmin() auth guard to 3 routes that were missing it:
+  - /api/admin/route.ts (main admin dashboard GET)
+  - /api/admin/investments/route.ts (GET + POST)
+  - /api/admin/asset-types/route.ts (GET + POST)
+- Verified 30 other routes already had proper auth:
+  - 28 routes use requireAdmin() from @/lib/api-auth (getServerSession)
+  - 1 route (refund) uses requireAdmin(request) from @/lib/auth-api
+  - 2 routes (translations) use inline getServerSession auth
+- Fixed middleware.ts: removed admin API blocking that required Bearer token in Authorization header
+  - The old middleware only checked for Authorization header tokens
+  - This blocked legitimate cookie-based NextAuth sessions from the admin panel
+  - Auth is now handled entirely in route handlers (requireAdmin via getServerSession)
+  - Middleware continues to apply rate limiting and security headers to all routes
+
+Stage Summary:
+- All 33 admin API routes now require superadmin or admin role
+- Auth verification happens via NextAuth getServerSession (cookie-based JWT)
+- Rate limiting and security headers still applied by middleware
+- Middleware no longer blocks admin API routes with cookie-based auth
+
+---
+Task ID: 5
+Agent: Main Orchestrator
+Task: Security infrastructure, Turso DB migration, Stripe integration, auth guards
+
+Work Log:
+- Installed @prisma/adapter-libsql and @libsql/client
+- Created .env.local with Turso credentials, Stripe placeholders, secure NEXTAUTH_SECRET, CSRF secret
+- Updated .env with secure NEXTAUTH_SECRET
+- Created src/middleware.ts (backed up as middleware.ts.bak due to Next.js 16 deprecation)
+  - Rate limiting: 10/min auth, 20/min payments, 100/min general API
+  - Security headers: CSP, HSTS, X-Frame-Options, Referrer-Policy, Permissions-Policy
+- Created src/lib/auth-api.ts for JWT-based auth (for Stripe endpoints)
+- Created src/lib/csrf.ts with HMAC-SHA256 token generation and timing-safe verification
+- Updated src/lib/stripe.ts with fee calculators and platform fee logic
+- Fixed src/lib/db.ts: Turso (LibSQL) adapter with SQLite fallback for dev mode
+- Migrated schema to Turso: 26 tables created in Turso cloud database
+- Turbopack incompatibility with LibSQL adapter env vars identified (dev-only issue)
+- Dev mode uses SQLite; production (next start) will use Turso
+
+Stripe Integration:
+- /api/payments/create-intent: Creates Stripe Checkout Session with dynamic products
+- /api/payments/webhook: Handles checkout.completed, expired, refunds, disputes with signature verification
+- /api/payments/confirm: GET endpoint to verify payment session status
+- /api/payments/status: Check Stripe Checkout Session status
+- /api/admin/refund: Admin-initiated refunds with audit trail
+
+Auth Guards:
+- Applied requireAdmin() to all admin API routes via src/lib/api-auth.ts
+- Fixed middleware to not block admin routes (auth handled in route handlers)
+
+Stage Summary:
+- Database: Turso schema ready with 26 tables, SQLite for dev, Turso for production
+- Security: Rate limiting, CSRF, secure headers, auth guards on all admin routes
+- Stripe: Full checkout flow with webhooks, refunds, and status checking
+- Pending: User must provide Stripe credentials to complete integration

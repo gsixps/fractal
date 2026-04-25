@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { requireAdmin } from '@/lib/api-auth'
 
 export async function GET() {
+  const { error } = await requireAdmin()
+  if (error) return error
+
+
   try {
     const [totalAssets, totalUsers, totalInvested, totalDividends, liquidityPool, recentTransactions] =
       await Promise.all([

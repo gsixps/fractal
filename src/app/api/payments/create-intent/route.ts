@@ -1,109 +1,147 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/api-auth'
-import { createPaymentIntent } from '@/lib/stripe'
+import { stripe } from '@/lib/stripe'
 import { db } from '@/lib/db'
+import { authenticate } from '@/lib/auth-api'
 
-/**
- * POST /api/payments/create-intent
- *
- * Creates a Stripe PaymentIntent for an investment purchase.
- *
- * Body: { amount: number, currency: string, assetId: string, fractions: number }
- * Returns: { clientSecret: string, paymentIntentId: string }
- */
-export async function POST(req: NextRequest) {
-  // ── Auth guard ────────────────────────────────────────────────────────────
-  const { error: authError, session } = await requireAuth()
-  if (authError) return authError
-
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: 'User session not found' }, { status: 401 })
-  }
-
-  // ── Validate request body ─────────────────────────────────────────────────
-  let body: { amount?: number; currency?: string; assetId?: string; fractions?: number }
+export async function POST(request: NextRequest) {
   try {
-    body = await req.json()
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
-  }
+    // 1. Authenticate user
+    const auth = await authenticate(request)
+    if (!auth.authenticated || !auth.userId) {
+      return NextResponse.json({ error: auth.error || 'Authentication required' }, { status: auth.status })
+    }
 
-  const { amount, currency = 'clp', assetId, fractions } = body
+    // 2. Parse and validate input
+    const body = await request.json()
+    const { assetId, fractionCount } = body
 
-  if (!amount || typeof amount !== 'number' || amount <= 0) {
-    return NextResponse.json({ error: 'A valid positive amount is required' }, { status: 400 })
-  }
+    if (!assetId || !fractionCount || fractionCount < 1) {
+      return NextResponse.json(
+        { error: 'Se requiere assetId y fractionCount (mínimo 1)' },
+        { status: 400 }
+      )
+    }
 
-  if (!assetId || typeof assetId !== 'string') {
-    return NextResponse.json({ error: 'assetId is required' }, { status: 400 })
-  }
-
-  if (!fractions || typeof fractions !== 'number' || fractions < 1) {
-    return NextResponse.json({ error: 'fractions must be at least 1' }, { status: 400 })
-  }
-
-  // ── Verify the asset exists and has enough fractions ──────────────────────
-  try {
+    // 3. Get asset and validate
     const asset = await db.asset.findUnique({
       where: { id: assetId },
-      select: {
-        id: true,
-        status: true,
-        pricePerFraction: true,
-        availableFractions: true,
+      include: {
+        images: {
+          where: { isCover: true },
+          select: { url: true },
+          take: 1,
+        },
       },
     })
 
-    if (!asset) {
-      return NextResponse.json({ error: 'Asset not found' }, { status: 404 })
-    }
-
-    if (asset.status !== 'active') {
-      return NextResponse.json({ error: 'Asset is not currently available for investment' }, { status: 400 })
-    }
-
-    if (asset.availableFractions < fractions) {
+    if (!asset || asset.status !== 'active') {
       return NextResponse.json(
-        { error: `Only ${asset.availableFractions} fractions available` },
-        { status: 400 },
+        { error: 'Activo no encontrado o no disponible' },
+        { status: 404 }
       )
     }
 
-    // ── Create PaymentIntent ─────────────────────────────────────────────────
-    const result = await createPaymentIntent(amount, currency, {
-      assetId,
-      userId: session.user.id,
-      fractions: String(fractions),
+    if (fractionCount > asset.availableFractions) {
+      return NextResponse.json(
+        { error: `Solo hay ${asset.availableFractions} fracciones disponibles` },
+        { status: 400 }
+      )
+    }
+
+    // 4. Calculate amount in USD cents
+    const amountPerFraction = Math.round(asset.pricePerFraction * 100) // Stripe needs cents
+    const totalAmountCents = amountPerFraction * fractionCount
+    const totalAmountUSD = asset.pricePerFraction * fractionCount
+
+    // 5. Create Stripe Checkout Session
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: `${asset.name} - Fracción Inmobiliaria`,
+              description: `${fractionCount} fracción(es) de ${asset.name} en ${asset.city}, ${asset.country}`,
+              images: asset.images.length > 0 ? asset.images.map(img => img.url) : [],
+            },
+            unit_amount: amountPerFraction,
+          },
+          quantity: fractionCount,
+        },
+      ],
+      metadata: {
+        assetId: asset.id,
+        userId: auth.userId,
+        fractionCount: fractionCount.toString(),
+        assetName: asset.name,
+        pricePerFraction: asset.pricePerFraction.toString(),
+      },
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}?payment=cancelled`,
     })
 
-    if (!result) {
+    if (!session.url) {
       return NextResponse.json(
-        { error: 'Payment service is not configured. Please set STRIPE_SECRET_KEY.' },
-        { status: 503 },
+        { error: 'Error al crear la sesión de pago' },
+        { status: 500 }
       )
     }
 
-    // ── Create a pending Investment record ───────────────────────────────────
+    // 6. Create pending Investment record
     const investment = await db.investment.create({
       data: {
-        userId: session.user.id,
-        assetId,
-        quantity: fractions,
+        userId: auth.userId,
+        assetId: asset.id,
+        quantity: fractionCount,
         pricePerUnit: asset.pricePerFraction,
-        totalAmount: amount,
+        totalAmount: totalAmountUSD,
         status: 'pending',
-        stripePaymentId: result.paymentIntentId,
+        stripePaymentId: session.id,
       },
     })
 
-    // ── Return client secret to the frontend ────────────────────────────────
+    // 7. Create Transaction record
+    await db.transaction.create({
+      data: {
+        userId: auth.userId,
+        investmentId: investment.id,
+        type: 'investment',
+        amount: totalAmountUSD,
+        currency: 'USD',
+        status: 'pending',
+        description: `Inversión: ${fractionCount} fracción(es) de ${asset.name}`,
+        referenceId: session.id,
+      },
+    })
+
+    // 8. Audit log
+    await db.auditLog.create({
+      data: {
+        userId: auth.userId,
+        action: 'create_checkout_session',
+        entity: 'investment',
+        entityId: investment.id,
+        details: JSON.stringify({
+          assetId: asset.id,
+          fractionCount,
+          totalAmount: totalAmountUSD,
+          sessionId: session.id,
+        }),
+      },
+    })
+
     return NextResponse.json({
-      clientSecret: result.clientSecret,
-      paymentIntentId: result.paymentIntentId,
+      sessionId: session.id,
+      url: session.url,
       investmentId: investment.id,
     })
-  } catch (err) {
-    console.error('[create-intent] DB error:', err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  } catch (error) {
+    console.error('[Payments] Create checkout error:', error)
+    return NextResponse.json(
+      { error: 'Error interno al procesar el pago' },
+      { status: 500 }
+    )
   }
 }

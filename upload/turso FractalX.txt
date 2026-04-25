@@ -1,0 +1,9 @@
+
+token:
+
+eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzcxNDA0ODQsImlkIjoiMDE5ZGM1ZDItZjMwMS03ZDdlLWI0NzAtOGVmZDQ5YTdlMWM1IiwicmlkIjoiNzI1OTVkZGEtOGQzOC00MWVjLWI0NGYtZGY0NDc3NGUyYmIyIn0.hXw6H1p8IhtCm9wglipKDBfo85VZflvPPSVhuw5ClfKKknpVQ3BoOufOGR6kI918Rtr-X_zHaTpK-zPIVdGiCg
+
+db:
+
+libsql://fractalx-ingalaco.aws-us-west-2.turso.io
+

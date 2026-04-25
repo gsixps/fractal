@@ -4,6 +4,10 @@ import Stripe from 'stripe'
 
 let _stripe: Stripe | null = null
 
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.warn('[Stripe] STRIPE_SECRET_KEY is not configured')
+}
+
 /**
  * Returns the Stripe instance initialized with the server secret key.
  * Returns null if STRIPE_SECRET_KEY is not set (graceful degradation for dev).
@@ -29,6 +33,30 @@ export function getStripe(): Stripe | null {
   return _stripe
 }
 
+// Direct export for convenience (may be null if not configured)
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
+  apiVersion: '2025-04-30.basil',
+  typescript: true,
+})
+
+export const STRIPE_PUBLISHABLE_KEY = process.env.STRIPE_PUBLISHABLE_KEY || ''
+
+// ─── Stripe Fee Calculator ─────────────────────────────────────
+// Stripe charges 2.9% + $0.30 for US cards (international may vary)
+export function calculateStripeFee(amount: number): number {
+  return Math.round((amount * 0.029 + 0.30) * 100) / 100
+}
+
+// ─── Platform Fee (3GSP commission) ────────────────────────────
+// This is the fee that 3GSP/GALAXY LLC takes from each transaction
+const PLATFORM_FEE_PERCENT = 2.5 // 2.5% platform fee
+
+export function calculatePlatformFee(amount: number): number {
+  return Math.round(amount * (PLATFORM_FEE_PERCENT / 100) * 100) / 100
+}
+
+export { PLATFORM_FEE_PERCENT }
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /**
@@ -43,10 +71,10 @@ export async function createPaymentIntent(
   currency: string,
   metadata: Record<string, string>,
 ): Promise<{ clientSecret: string; paymentIntentId: string } | null> {
-  const stripe = getStripe()
-  if (!stripe) return null
+  const s = getStripe()
+  if (!s) return null
 
-  const paymentIntent = await stripe.paymentIntents.create({
+  const paymentIntent = await s.paymentIntents.create({
     amount,
     currency,
     metadata,
@@ -70,15 +98,15 @@ export async function createCustomer(
   email: string,
   name: string,
 ): Promise<Stripe.Customer | null> {
-  const stripe = getStripe()
-  if (!stripe) return null
+  const s = getStripe()
+  if (!s) return null
 
-  const customers = await stripe.customers.list({ email, limit: 1 })
+  const customers = await s.customers.list({ email, limit: 1 })
   if (customers.data.length > 0) {
     return customers.data[0]
   }
 
-  return stripe.customers.create({ email, name })
+  return s.customers.create({ email, name })
 }
 
 /**
@@ -87,10 +115,10 @@ export async function createCustomer(
 export async function retrievePaymentIntent(
   id: string,
 ): Promise<Stripe.PaymentIntent | null> {
-  const stripe = getStripe()
-  if (!stripe) return null
+  const s = getStripe()
+  if (!s) return null
 
-  return stripe.paymentIntents.retrieve(id)
+  return s.paymentIntents.retrieve(id)
 }
 
 /**
@@ -103,10 +131,10 @@ export async function createRefund(
   paymentIntentId: string,
   amount?: number,
 ): Promise<Stripe.Refund | null> {
-  const stripe = getStripe()
-  if (!stripe) return null
+  const s = getStripe()
+  if (!s) return null
 
-  return stripe.refunds.create({
+  return s.refunds.create({
     payment_intent: paymentIntentId,
     amount,
   })
@@ -122,8 +150,8 @@ export function verifyWebhookSignature(
   body: string,
   sig: string,
 ): Stripe.Event {
-  const stripe = getStripe()
-  if (!stripe) {
+  const s = getStripe()
+  if (!s) {
     throw new Error(
       '[stripe] Cannot verify webhook: STRIPE_SECRET_KEY is not configured.',
     )
@@ -136,7 +164,7 @@ export function verifyWebhookSignature(
     )
   }
 
-  return stripe.webhooks.constructEvent(body, sig, webhookSecret)
+  return s.webhooks.constructEvent(body, sig, webhookSecret)
 }
 
 // ─── Publishable Key (client-safe) ───────────────────────────────────────────

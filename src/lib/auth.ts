@@ -2,7 +2,6 @@ import type { NextAuthOptions, User as NextAuthUser, Session, DefaultSession } f
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db'
-import { seedCurrencies } from '@/lib/seed-i18n'
 
 // Extend NextAuth types
 declare module 'next-auth' {
@@ -29,6 +28,7 @@ declare module 'next-auth/jwt' {
 }
 
 export const authOptions: NextAuthOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -80,7 +80,6 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user }) {
-      // On first sign in, add custom fields to the token
       if (user) {
         token.userId = user.id
         token.role = user.role
@@ -89,7 +88,6 @@ export const authOptions: NextAuthOptions = {
       return token
     },
     async session({ session, token }) {
-      // Forward custom fields from token to session
       if (session.user) {
         session.user.id = token.userId || ''
         session.user.role = token.role || 'investor'
@@ -102,41 +100,3 @@ export const authOptions: NextAuthOptions = {
     signIn: '/',
   },
 }
-
-// Seed superadmin if none exists
-export async function seedSuperAdmin() {
-  try {
-    const existingAdmin = await db.user.findUnique({
-      where: { email: 'admin@gsp.cl' },
-    })
-
-    if (!existingAdmin) {
-      const hashedPassword = await bcrypt.hash('GSP@admin2024', 12)
-      await db.user.create({
-        data: {
-          email: 'admin@gsp.cl',
-          passwordHash: hashedPassword,
-          name: 'GSP Superadmin',
-          role: 'superadmin',
-          kycStatus: 'verified',
-          isActive: true,
-          preferredLanguage: 'es',
-        },
-      })
-      console.log('✅ Superadmin seeded: admin@gsp.cl / GSP@admin2024')
-    } else if (existingAdmin.role !== 'superadmin' || !existingAdmin.passwordHash) {
-      const hashedPassword = existingAdmin.passwordHash || await bcrypt.hash('GSP@admin2024', 12)
-      await db.user.update({
-        where: { email: 'admin@gsp.cl' },
-        data: { role: 'superadmin', kycStatus: 'verified', passwordHash: hashedPassword },
-      })
-      console.log('✅ Existing admin user promoted to superadmin')
-    }
-  } catch {
-    // Ignore race condition errors during hot reload
-  }
-}
-
-// Run seed on module load
-seedSuperAdmin().catch(() => {})
-seedCurrencies().catch(() => {})

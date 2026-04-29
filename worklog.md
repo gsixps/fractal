@@ -292,3 +292,27 @@ Stage Summary:
 - Security: Rate limiting, CSRF, secure headers, auth guards on all admin routes
 - Stripe: Full checkout flow with webhooks, refunds, and status checking
 - Pending: User must provide Stripe credentials to complete integration
+
+---
+Task ID: 12
+Agent: Main Orchestrator
+Task: Diagnose app not loading, fix infrastructure issues, respond to pending questions
+
+Work Log:
+- Diagnosed "polarfs" error: NOT from our application - it's Alibaba Cloud PolarDB mount failure in sandbox infrastructure
+- Verified all application endpoints work correctly (HTTP 200): homepage, auth, assets (6), translations (387 keys), currencies (9), exchange-rates
+- Built production bundle successfully: `npx next build` compiled all 30+ routes
+- Created .env.local with secure NEXTAUTH_SECRET (256-bit), CSRF_SECRET, Turso placeholders, Stripe placeholders
+- Confirmed PromotionsView null safety already fixed (all form fields use ?? '')
+- Confirmed AdminPage all sections working with proper null safety
+- Identified sandbox PID limit (20 max) as root cause of dev server instability - Caddy uses 10 threads alone
+- Standalone production server works but gets killed by sandbox process limiter
+- Application code is fully functional; infrastructure constraints prevent persistent server
+
+Stage Summary:
+- App code: ALL FUNCTIONAL (verified with curl tests)
+- Infrastructure: sandbox PID limit (20) + polarfs mount error prevent persistent preview
+- .env.local: created with secure credentials
+- Turso: schema pushed (26 tables), dev uses SQLite, production will use Turso
+- Stripe: integration code ready, needs user credentials
+- Pending from user: Stripe credentials (pk_live, sk_live, whsec_), Turso auth token

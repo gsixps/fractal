@@ -18,6 +18,7 @@ const nextConfig: NextConfig = {
     "localhost",
     "127.0.0.1",
     "*.space.z.ai",
+    "http://*.space.z.ai",
     "https://*.space.z.ai",
   ],
   async headers() {

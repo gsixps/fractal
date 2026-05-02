@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { db } from '@/lib/db'
-import { requireAdmin } from '@/lib/auth-api'
+import { requireAdmin } from '@/lib/api-auth'
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = await requireAdmin(request)
-    if (!auth.authenticated) {
-      return NextResponse.json({ error: auth.error }, { status: auth.status })
-    }
+    const { error, session } = await requireAdmin()
+    if (error) return error
 
+    const adminUserId = session!.user.id
     const { investmentId, reason } = await request.json()
 
     if (!investmentId) {
@@ -38,8 +37,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the payment intent from Stripe
-    const session = await stripe.checkout.sessions.retrieve(investment.stripePaymentId)
-    const paymentIntentId = session.payment_intent as string
+    const stripeSession = await stripe.checkout.sessions.retrieve(investment.stripePaymentId)
+    const paymentIntentId = stripeSession.payment_intent as string
 
     if (!paymentIntentId) {
       return NextResponse.json({ error: 'No payment intent found' }, { status: 400 })
@@ -51,7 +50,7 @@ export async function POST(request: NextRequest) {
       reason: 'requested_by_customer',
       metadata: {
         investmentId: investment.id,
-        adminId: auth.userId!,
+        adminId: adminUserId,
         reason: reason || 'Refund requested by admin',
       },
     })
@@ -85,7 +84,7 @@ export async function POST(request: NextRequest) {
         status: 'completed',
         description: `Reembolso: ${investment.quantity} fracción(es) de ${investment.asset.name}. Motivo: ${reason || 'Solicitado por admin'}`,
         referenceId: refund.id,
-        processedBy: auth.userId,
+        processedBy: adminUserId,
       },
     })
 
@@ -102,7 +101,7 @@ export async function POST(request: NextRequest) {
     // Audit log
     await db.auditLog.create({
       data: {
-        userId: auth.userId!,
+        userId: adminUserId,
         action: 'admin_refund',
         entity: 'investment',
         entityId: investment.id,

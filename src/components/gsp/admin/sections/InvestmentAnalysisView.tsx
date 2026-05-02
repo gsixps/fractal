@@ -286,6 +286,7 @@ export function InvestmentAnalysisView() {
 
       const body: Record<string, string> = { assetId: selectedAssetId }
       if (investorCountry) body.investorCountry = investorCountry
+      if (riskProfile) body.riskProfile = riskProfile
 
       const res = await fetch('/api/admin/investment-analysis', {
         method: 'POST',
@@ -549,7 +550,7 @@ export function InvestmentAnalysisView() {
               </h3>
               <p className="text-sm text-muted-foreground flex items-center gap-1.5">
                 <Clock className="size-3" />
-                Generado: {new Date(analysisResult.generatedAt).toLocaleString('es-CL', {
+                Generado: {new Date(analysisResult.generatedAt).toLocaleString('en-US', {
                   dateStyle: 'medium',
                   timeStyle: 'short',
                 })}
@@ -668,7 +669,7 @@ export function InvestmentAnalysisView() {
                         <div>
                           <p className="text-sm font-medium">{a.assetName}</p>
                           <p className="text-xs text-muted-foreground">
-                            {new Date(a.generatedAt).toLocaleString('es-CL', {
+                            {new Date(a.generatedAt).toLocaleString('en-US', {
                               dateStyle: 'medium',
                               timeStyle: 'short',
                             })}

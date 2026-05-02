@@ -32,7 +32,6 @@ import {
   Tag,
   UsersRound,
   Mail,
-  Star,
   Layers,
   Languages,
   Coins,
@@ -489,7 +488,7 @@ function PanelGeneralView() {
         />
         <KpiCard
           title="Total Inversores"
-          value={stats.overview.totalInvestors.toLocaleString('es-CL')}
+          value={stats.overview.totalInvestors.toLocaleString('en-US')}
           subtitle={`${stats.overview.verifiedUsers} verificados`}
           icon={Users}
           trend={{ value: `+${stats.overview.recentSignups} este mes`, positive: true }}
@@ -1479,7 +1478,7 @@ function InversionesView() {
                         <TableCell className="text-right font-medium">{formatUSD(inv.totalAmount)}</TableCell>
                         <TableCell><StatusBadge status={inv.status} /></TableCell>
                         <TableCell className="hidden md:table-cell text-muted-foreground text-sm">
-                          {new Date(inv.createdAt).toLocaleDateString('es-CL')}
+                          {new Date(inv.createdAt).toLocaleDateString('en-US')}
                         </TableCell>
                         <TableCell className="text-right">
                           <Button variant="ghost" size="sm" onClick={() => openStatusChange(inv)}>
@@ -1813,7 +1812,7 @@ function LiquidezView() {
                       <TableCell className="text-right font-medium">{formatUSD(req.totalAmount)}</TableCell>
                       <TableCell><StatusBadge status={req.status} /></TableCell>
                       <TableCell className="hidden md:table-cell text-muted-foreground text-sm">
-                        {new Date(req.createdAt).toLocaleDateString('es-CL')}
+                        {new Date(req.createdAt).toLocaleDateString('en-US')}
                       </TableCell>
                     </TableRow>
                   ))}

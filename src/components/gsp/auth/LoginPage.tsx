@@ -255,7 +255,35 @@ export function LoginPage() {
                 <div className="flex justify-end">
                   <button
                     type="button"
-                    className="text-xs font-medium text-primary transition-colors duration-200 hover:text-primary/80 focus:outline-none"
+                    onClick={async () => {
+                      if (!email) {
+                        toast({
+                          title: 'Email requerido',
+                          description: 'Ingresa tu correo electrónico primero.',
+                          variant: 'destructive',
+                        })
+                        return
+                      }
+                      try {
+                        const res = await fetch('/api/auth/forgot-password', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ email }),
+                        })
+                        const data = await res.json()
+                        toast({
+                          title: data.success ? 'Solicitud enviada' : 'Error',
+                          description: data.message || 'Ocurrió un error.',
+                          variant: data.success ? 'default' : 'destructive',
+                        })
+                      } catch {
+                        toast({
+                          title: 'Función próximamente disponible',
+                          description: 'El restablecimiento de contraseña estará disponible pronto.',
+                        })
+                      }
+                    }}
+                    className="text-xs font-medium text-primary transition-colors duration-200 hover:text-primary/80 focus:outline-none cursor-pointer"
                   >
                     ¿Olvidaste tu contraseña?
                   </button>

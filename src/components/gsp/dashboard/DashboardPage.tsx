@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Activity,
   Eye,
+  Gift,
 } from 'lucide-react'
 
 import { Skeleton } from '@/components/ui/skeleton'
@@ -549,7 +550,7 @@ export default function DashboardPage() {
         {/* ── 6. Quick Actions ── */}
         <section className="mb-8">
           <h2 className="text-lg font-semibold mb-4">Acciones Rápidas</h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card className="gsp-card-interactive border-border/40">
               <CardContent className="flex items-center gap-4 p-4">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/8 text-primary">
@@ -587,6 +588,20 @@ export default function DashboardPage() {
                   <p className="text-xs text-muted-foreground font-light">Disponible: {formatUSD(user?.totalEarnings || 0)}</p>
                 </div>
                 <Button variant="outline" size="sm" className="shrink-0 text-xs border-border/50 cursor-pointer">Ir</Button>
+              </CardContent>
+            </Card>
+            <Card className="gsp-card-interactive border-border/40">
+              <CardContent className="flex items-center gap-4 p-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
+                  <Gift className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold">Referir Amigos</p>
+                  <p className="text-xs text-muted-foreground font-light">Gana $25 por cada referido</p>
+                </div>
+                <Button variant="outline" size="sm"
+                  className="shrink-0 text-xs border-emerald-200/50 text-emerald-700 hover:bg-emerald-50 cursor-pointer dark:border-emerald-800/30 dark:text-emerald-400 dark:hover:bg-emerald-950/50"
+                  onClick={() => navigate('referral')}>Ir</Button>
               </CardContent>
             </Card>
           </div>

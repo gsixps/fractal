@@ -53,10 +53,22 @@ interface BlogFormState {
   seoDescription: string
 }
 
+interface AIGenerateForm {
+  topic: string
+  locale: string
+  tone: string
+}
+
 const emptyForm: BlogFormState = {
   title: '', slug: '', category: 'educacion', tags: '', excerpt: '', content: '',
   coverImageUrl: '', status: 'draft', featured: false, readingTime: '5',
   seoTitle: '', seoDescription: '',
+}
+
+const emptyAIGenerateForm: AIGenerateForm = {
+  topic: '',
+  locale: 'es',
+  tone: 'professional',
 }
 
 const categoryLabels: Record<string, string> = {
@@ -71,6 +83,17 @@ const statusConfig: Record<string, string> = {
 }
 const statusLabels: Record<string, string> = {
   draft: 'Borrador', published: 'Publicado', archived: 'Archivado',
+}
+
+const localeLabels: Record<string, string> = {
+  es: 'Español',
+  en: 'English',
+}
+
+const toneLabels: Record<string, string> = {
+  professional: 'Profesional',
+  casual: 'Casual',
+  educational: 'Educativo',
 }
 
 function generateSlug(title: string): string {
@@ -94,6 +117,11 @@ export function BlogView() {
   const [form, setForm] = useState<BlogFormState>(emptyForm)
   const [submitting, setSubmitting] = useState(false)
   const [generating, setGenerating] = useState(false)
+
+  // AI Generate Dialog
+  const [aiDialogOpen, setAiDialogOpen] = useState(false)
+  const [aiForm, setAiForm] = useState<AIGenerateForm>(emptyAIGenerateForm)
+  const [aiGenerating, setAiGenerating] = useState(false)
 
   const [deleteTarget, setDeleteTarget] = useState<BlogPost | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -157,7 +185,50 @@ export function BlogView() {
     }
   }
 
-  const handleAIGenerate = async () => {
+  const handleAIGenerateFromDialog = async () => {
+    if (!aiForm.topic.trim()) {
+      toast({ title: 'Error', description: 'El tema es obligatorio', variant: 'destructive' })
+      return
+    }
+    try {
+      setAiGenerating(true)
+      const res = await fetch('/api/admin/blog/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          topic: aiForm.topic,
+          locale: aiForm.locale,
+          tone: aiForm.tone,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Error al generar contenido')
+
+      // Populate form with generated content
+      setEditing(null)
+      setForm({
+        ...emptyForm,
+        title: data.title || aiForm.topic,
+        slug: generateSlug(data.title || aiForm.topic),
+        excerpt: data.excerpt || '',
+        content: data.content || '',
+        tags: data.tags || '',
+        seoTitle: data.seoTitle || '',
+        seoDescription: data.seoDescription || '',
+        readingTime: data.readingTime != null ? String(data.readingTime) : '5',
+      })
+      setAiDialogOpen(false)
+      setFormOpen(true)
+      setAiForm(emptyAIGenerateForm)
+      toast({ title: 'Contenido generado', description: 'El artículo ha sido generado por IA. Revisa y edita antes de publicar.' })
+    } catch (err) {
+      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Error al generar con IA', variant: 'destructive' })
+    } finally {
+      setAiGenerating(false)
+    }
+  }
+
+  const handleAIGenerateInline = async () => {
     if (!form.title.trim()) {
       toast({ title: 'Error', description: 'El título es necesario para generar con IA', variant: 'destructive' })
       return
@@ -257,9 +328,21 @@ export function BlogView() {
           <h2 className="gsp-serif text-2xl font-normal tracking-tight">Blog</h2>
           <p className="text-muted-foreground">Gestiona los artículos del blog</p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer" onClick={openCreate}>
-          <Plus className="mr-2 size-4" /> Nuevo Artículo
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 cursor-pointer border-primary/30 text-primary hover:bg-primary/10"
+            onClick={() => { setAiForm(emptyAIGenerateForm); setAiDialogOpen(true) }}
+          >
+            <Sparkles className="size-4" />
+            <span className="hidden sm:inline">Generar con IA</span>
+            <span className="sm:hidden">IA</span>
+          </Button>
+          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer" onClick={openCreate}>
+            <Plus className="mr-2 size-4" /> Nuevo Artículo
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
@@ -346,6 +429,77 @@ export function BlogView() {
         </CardContent>
       </Card>
 
+      {/* AI Generate Dialog */}
+      <Dialog open={aiDialogOpen} onOpenChange={setAiDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="size-5 text-primary" />
+              Generar Artículo con IA
+            </DialogTitle>
+            <DialogDescription>
+              Ingresa un tema y la IA generará un artículo completo para el blog.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="ai-topic">Tema del Artículo *</Label>
+              <Input
+                id="ai-topic"
+                placeholder="Ej: Invertir en bienes raíces fraccionados"
+                value={aiForm.topic}
+                onChange={(e) => setAiForm({ ...aiForm, topic: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="ai-locale">Idioma</Label>
+                <Select value={aiForm.locale} onValueChange={(v) => setAiForm({ ...aiForm, locale: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="es">Español</SelectItem>
+                    <SelectItem value="en">English</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="ai-tone">Tono</Label>
+                <Select value={aiForm.tone} onValueChange={(v) => setAiForm({ ...aiForm, tone: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="professional">Profesional</SelectItem>
+                    <SelectItem value="casual">Casual</SelectItem>
+                    <SelectItem value="educational">Educativo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              La IA generará el título, contenido, extracto, etiquetas y metadatos SEO del artículo.
+              Podrás editar todo antes de publicar.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAiDialogOpen(false)} disabled={aiGenerating}>
+              Cancelar
+            </Button>
+            <Button
+              className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer"
+              onClick={handleAIGenerateFromDialog}
+              disabled={aiGenerating || !aiForm.topic.trim()}
+            >
+              {aiGenerating ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+              {aiGenerating ? 'Generando...' : 'Generar Artículo'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create/Edit Dialog */}
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
           <DialogHeader>
@@ -427,11 +581,11 @@ export function BlogView() {
                 type="button"
                 variant="outline"
                 className="gap-2 cursor-pointer border-primary/30 text-primary hover:bg-primary/10"
-                onClick={handleAIGenerate}
+                onClick={handleAIGenerateInline}
                 disabled={generating}
               >
                 {generating ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
-                {generating ? 'Generando...' : 'Generar con IA'}
+                {generating ? 'Generando...' : 'Generar Contenido con IA'}
               </Button>
               <span className="text-xs text-muted-foreground">Genera contenido, SEO y tiempo de lectura basado en el título y extracto</span>
             </div>

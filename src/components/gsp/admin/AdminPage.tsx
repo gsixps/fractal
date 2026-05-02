@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   LayoutDashboard,
   Building2,
@@ -36,6 +36,8 @@ import {
   Languages,
   Coins,
   Brain,
+  Download,
+  Bell,
 } from 'lucide-react'
 import { SettingsView } from './sections/SettingsView'
 import { BlogView } from './sections/BlogView'
@@ -105,6 +107,60 @@ function formatShortUSD(amount: number): string {
   if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`
   if (amount >= 1_000) return `$${(amount / 1_000).toFixed(0)}K`
   return `$${amount.toFixed(0)}`
+}
+
+// ─── CSV Export Utility ─────────────────────────────────────────────────────
+function exportToCSV(data: Record<string, unknown>[], filename: string) {
+  if (data.length === 0) return
+  const headers = Object.keys(data[0])
+  const csv = [
+    headers.join(','),
+    ...data.map(row => headers.map(h => {
+      const val = String(row[h] ?? '')
+      return val.includes(',') || val.includes('"') || val.includes('\n') ? `"${val.replace(/"/g, '""')}"` : val
+    }).join(','))
+  ].join('\n')
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+// ─── Admin Notification System ──────────────────────────────────────────────
+interface AdminNotification {
+  id: string
+  message: string
+  type: 'success' | 'error' | 'info'
+  timestamp: Date
+}
+
+const MAX_NOTIFICATIONS = 20
+
+// Module-level notification store (shared across components)
+let _notifications: AdminNotification[] = []
+let _listeners: Set<() => void> = new Set()
+
+function addAdminNotification(message: string, type: AdminNotification['type'] = 'info') {
+  const notification: AdminNotification = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    message,
+    type,
+    timestamp: new Date(),
+  }
+  _notifications = [notification, ..._notifications].slice(0, MAX_NOTIFICATIONS)
+  _listeners.forEach(l => l())
+}
+
+function getAdminNotifications(): AdminNotification[] {
+  return _notifications
+}
+
+function subscribeToNotifications(listener: () => void) {
+  _listeners.add(listener)
+  return () => _listeners.delete(listener)
 }
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -788,9 +844,30 @@ function ActivosView() {
           <h2 className="gsp-serif text-2xl font-normal tracking-tight">Activos</h2>
           <p className="text-muted-foreground">Gestiona los activos inmobiliarios de la plataforma</p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer" onClick={openCreate}>
-          <Plus className="mr-2 size-4" /> Nuevo Activo
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="cursor-pointer" onClick={() => exportToCSV(
+            assets.map(a => ({
+              Nombre: a.name,
+              Tipo: a.type,
+              Ciudad: a.city,
+              Region: a.region,
+              Estado: a.status,
+              'Valor Total (USD)': a.totalValue,
+              'Precio/Fraccion (USD)': a.pricePerFraction,
+              'Fracciones Disponibles': a.availableFractions,
+              'Fracciones Totales': a.totalFractions,
+              'Yield Anual (%)': a.annualYield,
+              'Financiado (%)': a.fundedPercentage,
+              'Inversores': a.investmentCount,
+            })),
+            `activos_${new Date().toISOString().slice(0, 10)}.csv`
+          )}>
+            <Download className="mr-2 size-4" /> Exportar CSV
+          </Button>
+          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer" onClick={openCreate}>
+            <Plus className="mr-2 size-4" /> Nuevo Activo
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -1162,9 +1239,29 @@ function UsuariosView() {
           <h2 className="text-2xl font-bold tracking-tight">Usuarios</h2>
           <p className="text-muted-foreground">Gestiona los inversores de la plataforma</p>
         </div>
-        <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={openCreate}>
-          <Plus className="mr-2 size-4" /> Nuevo Usuario
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="cursor-pointer" onClick={() => exportToCSV(
+            users.map(u => ({
+              Nombre: u.name || '',
+              Email: u.email,
+              Telefono: u.phone || '',
+              Rol: u.role,
+              'Estado KYC': u.kycStatus,
+              'Balance (USD)': u.balance,
+              'Total Invertido (USD)': u.totalInvested,
+              'Total Ganancias (USD)': u.totalEarnings,
+              Inversiones: u._count.investments,
+              Transacciones: u._count.transactions,
+              'Fecha Registro': u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-US') : '',
+            })),
+            `usuarios_${new Date().toISOString().slice(0, 10)}.csv`
+          )}>
+            <Download className="mr-2 size-4" /> Exportar CSV
+          </Button>
+          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer" onClick={openCreate}>
+            <Plus className="mr-2 size-4" /> Nuevo Usuario
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -1826,6 +1923,98 @@ function LiquidezView() {
   )
 }
 
+// ─── Notification Panel Component ────────────────────────────────────────────
+function NotificationPanel() {
+  const [open, setOpen] = useState(false)
+  const [notifications, setNotifications] = useState<AdminNotification[]>(getAdminNotifications)
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    return subscribeToNotifications(() => {
+      setNotifications(getAdminNotifications())
+    })
+  }, [])
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
+        setOpen(false)
+      }
+    }
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [open])
+
+  const typeConfig: Record<string, { color: string; icon: React.ElementType }> = {
+    success: { color: 'text-emerald-600 dark:text-emerald-400', icon: CheckCircle2 },
+    error: { color: 'text-red-600 dark:text-red-400', icon: XCircle },
+    info: { color: 'text-primary', icon: Activity },
+  }
+
+  const formatTime = (date: Date) => {
+    const now = new Date()
+    const diff = now.getTime() - date.getTime()
+    if (diff < 60000) return 'Ahora'
+    if (diff < 3600000) return `Hace ${Math.floor(diff / 60000)}m`
+    if (diff < 86400000) return `Hace ${Math.floor(diff / 3600000)}h`
+    return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
+  }
+
+  return (
+    <div className="relative" ref={panelRef}>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="relative size-9 cursor-pointer"
+        onClick={() => setOpen(!open)}
+      >
+        <Bell className="size-4" />
+        {notifications.length > 0 && (
+          <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+            {notifications.length > 9 ? '9+' : notifications.length}
+          </span>
+        )}
+      </Button>
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-2 w-80 rounded-xl border bg-card shadow-lg animate-in fade-in-0 zoom-in-95 slide-in-from-top-2">
+          <div className="flex items-center justify-between border-b px-4 py-3">
+            <h3 className="text-sm font-semibold">Actividad Reciente</h3>
+            {notifications.length > 0 && (
+              <span className="text-xs text-muted-foreground">{notifications.length} eventos</span>
+            )}
+          </div>
+          <div className="max-h-80 overflow-y-auto custom-scrollbar">
+            {notifications.length === 0 ? (
+              <div className="flex flex-col items-center py-8">
+                <Bell className="mb-2 size-8 text-muted-foreground/30" />
+                <p className="text-sm text-muted-foreground">Sin actividad reciente</p>
+              </div>
+            ) : (
+              <div className="divide-y">
+                {notifications.map((n) => {
+                  const cfg = typeConfig[n.type] || typeConfig.info
+                  const Icon = cfg.icon
+                  return (
+                    <div key={n.id} className="flex items-start gap-3 px-4 py-3 hover:bg-muted/50 transition-colors">
+                      <Icon className={`mt-0.5 size-4 shrink-0 ${cfg.color}`} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm leading-snug">{n.message}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">{formatTime(n.timestamp)}</p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Main Admin Page ─────────────────────────────────────────────────────────
 export default function AdminPage() {
   const adminTab = useAppStore((s) => s.adminTab)
@@ -1873,25 +2062,28 @@ export default function AdminPage() {
         {/* Mobile Header + Sheet */}
         <div className="flex-1">
           {/* Mobile Top Bar */}
-          <header className="sticky top-0 z-40 flex items-center gap-3 border-b bg-card px-4 py-3 lg:hidden">
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="size-9">
-                  <Menu className="size-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-64 p-0">
-                <SheetHeader className="p-4">
-                  <SheetTitle className="text-left text-lg font-bold text-emerald-700 dark:text-emerald-400">3GSP Admin</SheetTitle>
-                </SheetHeader>
-                <Separator />
-                <SidebarNav activeTab={adminTab} setActiveTab={(tab) => { setAdminTab(tab) }} />
-              </SheetContent>
-            </Sheet>
-            <div>
-              <h1 className="text-sm font-bold">3GSP Admin</h1>
-              <p className="text-xs text-muted-foreground">{navItems.find((n) => n.id === adminTab)?.label || 'Panel'}</p>
+          <header className="sticky top-0 z-40 flex items-center justify-between border-b bg-card px-4 py-3 lg:hidden">
+            <div className="flex items-center gap-3">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon" className="size-9">
+                    <Menu className="size-4" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-64 p-0">
+                  <SheetHeader className="p-4">
+                    <SheetTitle className="text-left text-lg font-bold text-emerald-700 dark:text-emerald-400">3GSP Admin</SheetTitle>
+                  </SheetHeader>
+                  <Separator />
+                  <SidebarNav activeTab={adminTab} setActiveTab={(tab) => { setAdminTab(tab) }} />
+                </SheetContent>
+              </Sheet>
+              <div>
+                <h1 className="text-sm font-bold">3GSP Admin</h1>
+                <p className="text-xs text-muted-foreground">{navItems.find((n) => n.id === adminTab)?.label || 'Panel'}</p>
+              </div>
             </div>
+            <NotificationPanel />
           </header>
 
           {/* Main Content */}

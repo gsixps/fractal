@@ -1014,7 +1014,7 @@ export async function seedDatabase(options?: { force?: boolean }) {
       balance: 5200000,
       totalInvested: 18250000,
       totalEarnings: 1685000,
-      referralCode: 'MARIA10',
+
       newsletterOptIn: true,
       termsAcceptedAt: new Date('2024-01-10'),
       termsVersion: '2.0',

@@ -16,6 +16,10 @@ export type Page =
   | 'admin-liquidity'
   | 'kyc'
   | 'liquidity'
+  | 'profile'
+  | 'referral'
+  | 'forgot-password'
+  | 'reports'
 
 // ─── Embedded Asset Data Types ────────────────────────────────────────────────
 

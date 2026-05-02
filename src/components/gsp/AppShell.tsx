@@ -8,6 +8,8 @@ import { Navbar } from '@/components/gsp/layout/Navbar'
 import { Footer } from '@/components/gsp/layout/Footer'
 import { LoginPage } from '@/components/gsp/auth/LoginPage'
 import { ChangePasswordDialog } from '@/components/gsp/auth/ChangePasswordDialog'
+import { OnboardingModal } from '@/components/gsp/shared/OnboardingModal'
+import { ChatWidget } from '@/components/gsp/shared/ChatWidget'
 import { Loader2, LogIn } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/lib/i18n-utils'
@@ -18,6 +20,11 @@ const MarketplacePage = lazy(() => import('@/components/gsp/marketplace/Marketpl
 const AssetDetailPage = lazy(() => import('@/components/gsp/asset/AssetDetailPage'))
 const DashboardPage = lazy(() => import('@/components/gsp/dashboard/DashboardPage'))
 const AdminPage = lazy(() => import('@/components/gsp/admin/AdminPage'))
+const KYCPage = lazy(() => import('@/components/gsp/kyc/KYCPage'))
+const ProfilePage = lazy(() => import('@/components/gsp/profile/ProfilePage'))
+const LiquidityPage = lazy(() => import('@/components/gsp/liquidity/LiquidityPage'))
+const ReferralPage = lazy(() => import('@/components/gsp/referral/ReferralPage'))
+const ReportsPage = lazy(() => import('@/components/gsp/reports/ReportsPage'))
 
 function PageLoader() {
   return (
@@ -28,7 +35,7 @@ function PageLoader() {
 }
 
 // Pages that require authentication
-const PROTECTED_PAGES = new Set(['dashboard', 'admin', 'admin-assets', 'admin-users', 'admin-financial', 'admin-liquidity'])
+const PROTECTED_PAGES = new Set(['dashboard', 'admin', 'admin-assets', 'admin-users', 'admin-financial', 'admin-liquidity', 'kyc', 'liquidity', 'profile', 'referral', 'reports'])
 
 export default function AppShell() {
   const currentPage = useAppStore((s) => s.currentPage)
@@ -82,6 +89,11 @@ export default function AppShell() {
       case 'dashboard': return user ? <DashboardPage /> : <LoginPage />
       case 'admin': case 'admin-assets': case 'admin-users': case 'admin-financial': case 'admin-liquidity':
         return user ? <AdminPage /> : <LoginPage />
+      case 'kyc': return user ? <KYCPage /> : <LoginPage />
+      case 'profile': return user ? <ProfilePage /> : <LoginPage />
+      case 'liquidity': return user ? <LiquidityPage /> : <LoginPage />
+      case 'reports': return user ? <ReportsPage /> : <LoginPage />
+      case 'referral': return user ? <ReferralPage /> : <LoginPage />
       default: return <HomePage />
     }
   }
@@ -94,6 +106,8 @@ export default function AppShell() {
       </main>
       <Footer />
       <ChangePasswordDialog open={showChangePassword} onOpenChange={setShowChangePassword} />
+      {user && <OnboardingModal />}
+      {user && <ChatWidget />}
     </>
   )
 }

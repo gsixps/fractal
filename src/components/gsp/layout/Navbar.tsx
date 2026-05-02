@@ -19,6 +19,7 @@ import {
   SheetClose,
 } from '@/components/ui/sheet'
 import { ChangePasswordDialog } from '@/components/gsp/auth/ChangePasswordDialog'
+import { NotificationPanel } from '@/components/gsp/shared/NotificationPanel'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,7 +31,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import {
   Menu,
-  Bell,
   ChevronDown,
   Home,
   Store,
@@ -64,7 +64,6 @@ export function Navbar() {
   const setLanguage = useAppStore((s) => s.setLanguage)
   const currency = useAppStore((s) => s.currency)
   const setCurrency = useAppStore((s) => s.setCurrency)
-  const [notificationCount, setNotificationCount] = useState(3)
   const [isScrolled, setIsScrolled] = useState(false)
   const [showChangePassword, setShowChangePassword] = useState(false)
   const [dbCurrencies, setDbCurrencies] = useState<Array<{ code: string; name: string; symbol: string; flag: string; isActive: boolean }>>([])
@@ -247,20 +246,7 @@ export function Navbar() {
 
           {/* Notification Bell - only when logged in */}
           {user && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="relative size-9 transition-colors duration-200 hover:text-foreground"
-            onClick={() => setNotificationCount(0)}
-            aria-label={t('nav.notifications')}
-          >
-            <Bell className="size-[18px]" />
-            {notificationCount > 0 && (
-              <span className="absolute right-1.5 top-1.5 flex size-2 items-center justify-center rounded-full bg-emerald-500">
-                <span className="sr-only">{notificationCount} {t('nav.notifications').toLowerCase()}</span>
-              </span>
-            )}
-          </Button>
+          <NotificationPanel />
           )}
 
           {/* User Dropdown or Login Button */}
@@ -307,7 +293,7 @@ export function Navbar() {
                   <LayoutDashboard className="size-4" />
                   {t('nav.portfolio')}
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem onClick={() => navigate('profile')} className="cursor-pointer">
                   <User className="size-4" />
                   {t('nav.profile')}
                 </DropdownMenuItem>

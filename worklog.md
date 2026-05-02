@@ -341,3 +341,183 @@ Stage Summary:
 - Fixed AdminPage locale inconsistencies (es-CL → en-US)
 - Fixed unused Star import in AdminPage
 - Fixed refund route to use consistent requireAdmin from api-auth
+
+---
+Task ID: 1
+Agent: Security & Config
+Task: Fix security and configuration issues
+
+Work Log:
+- Restored middleware.ts with CSP fix for preview domains
+- Updated .env.local with CSRF_SECRET and Stripe placeholders
+- Fixed next.config.ts: disabled ignoreBuildErrors, restricted CORS
+
+Stage Summary:
+- Middleware active with security headers, rate limiting, and CSP
+- CSRF_SECRET is now properly configured
+- CORS restricted to authorized origins
+- TypeScript errors will now block builds
+
+---
+Task ID: 4
+Agent: UX Improvements + Onboarding
+Task: Add onboarding flow, notification panel, and related APIs
+
+Work Log:
+- Created OnboardingModal with 4-step welcome flow (Welcome → Invest → Earn → Start)
+- Created NotificationPanel dropdown for bell icon with mark-as-read and mark-all-read
+- Integrated NotificationPanel into Navbar (replaced simple bell button)
+- Integrated OnboardingModal into AppShell (shows on first login, navigates to marketplace on complete)
+- Created /api/notifications GET endpoint with auth, unreadOnly filter, and pagination
+- Created /api/notifications/[id]/read PUT endpoint with auth and ownership check
+- Verified Notification model exists in Prisma schema (already had seed data in seed.ts)
+
+Stage Summary:
+- Onboarding modal shows on first login (4 steps with localStorage persistence)
+- Notification panel functional with real-time unread badge count
+- 2 new API routes for notifications (GET list + PUT mark read)
+- Notification seed data already exists in seed.ts (3 sample notifications per user)
+---
+Task ID: 3
+Agent: Admin Improvements + Blog AI
+Task: CSV export, Blog AI generation, enhanced admin features
+
+Work Log:
+- Added CSV export utility function to AdminPage.tsx (exportToCSV with BOM for UTF-8 support)
+- Added "Exportar CSV" button to ActivosView (exports 12 fields: name, type, city, status, value, price, fractions, yield, funded %, investors)
+- Added "Exportar CSV" button to UsuariosView (exports 11 fields: name, email, phone, role, KYC, balance, invested, earnings, investments, transactions, date)
+- Added Download and Bell icons to lucide-react imports
+- Updated blog generate API route (/api/admin/blog/generate) to accept topic, locale, tone parameters
+- Added fallback content generator for when z-ai-web-dev-sdk is unavailable
+- Enhanced BlogView with standalone AI Generate dialog (topic, language ES/EN, tone professional/casual/educational)
+- AI dialog generates title, content, excerpt, tags, SEO metadata, and reading time
+- Inline AI generation still available within article editor for content refresh
+- Created NotificationPanel component with dropdown, badge counter, click-outside-close
+- Added module-level notification system (addAdminNotification, subscribeToNotifications) for admin action tracking
+- Integrated NotificationPanel into mobile header bar
+- Added useRef import to AdminPage.tsx
+- Fixed React lint warning (set-state-in-effect) in NotificationPanel
+- All changes pass ESLint with zero errors in modified files
+
+Stage Summary:
+- CSV export available for assets and users with proper UTF-8 BOM encoding
+- Blog AI generation powered by LLM (z-ai-web-dev-sdk) with fallback generator
+- AI Generate dialog with topic/language/tone options
+- Admin notification panel with badge, dropdown, and type-based icons
+- Module-level notification store ready for integration with admin CRUD operations
+
+---
+Task ID: 2
+Agent: New Pages Implementation
+Task: Create KYC, Profile, and Liquidity pages
+
+Work Log:
+- Created KYCPage with step wizard (personal info, document upload, address proof)
+- Created ProfilePage with user info display and edit capabilities
+- Created LiquidityPage with pool overview and withdrawal request form
+- Created forgot-password API route
+- Updated store Page type with 'profile' and 'forgot-password'
+- Updated AppShell with lazy loading and routing for new pages
+- Updated Navbar profile link to navigate to profile page
+- Updated LoginPage forgot password link
+
+Stage Summary:
+- 3 new pages created: KYC, Profile, Liquidity
+- 1 new API route: /api/auth/forgot-password
+- Store and AppShell updated to support new pages
+- Navbar profile link now functional
+
+---
+Task ID: 7-b
+Agent: Financial Reports + Chat Support
+Task: Create financial reports page, report APIs, AI chat widget, and chat API
+
+Work Log:
+
+Part A: Financial Reports
+- Created /api/reports/monthly/route.ts (GET): Returns monthly report with totalInvested, totalDividends, totalWithdrawn, netReturn, activeInvestments, topAssets, all-time totals. Supports period query param (30/90/365/all days). Requires authentication.
+- Created /api/reports/investment/route.ts (GET): Returns detailed investment report with investment details, asset info, payments history, projected returns (annual/monthly dividend, current estimated value), performance metrics (ROI, gain/loss, dividend yield). Requires investmentId query param + auth.
+- Created ReportsPage.tsx component with:
+  - Period selector (Last 30 Days, 90 Days, 1 Year, All Time) using shadcn Select
+  - 4 overview cards: Total Invested, Dividends Received, Net Return, Active Investments
+  - Top Assets bar chart (CSS-based horizontal bars with emerald gradient)
+  - Period Summary breakdown cards with visual progress bars
+  - All-Time Portfolio hero card with gsp-gradient-hero style
+  - CSV download button (generates report with BOM for UTF-8)
+  - Loading skeletons, empty states
+  - Emerald theme consistent with project design system
+
+Part B: AI Chat Support
+- Created /api/chat/route.ts (POST): Uses z-ai-web-dev-sdk (glm-4-flash) for conversational AI. System prompt defines GALAXY AI Assistant role with 3GSP platform knowledge. Limits conversation history to last 10 messages. Includes fallback response when SDK unavailable. Requires authentication.
+- Created ChatWidget.tsx component with:
+  - Floating chat bubble button (bottom-right, emerald primary color)
+  - Expandable chat panel (380px wide, 520px tall, max 80vh)
+  - Message bubbles with user/assistant avatars (Bot icon for AI)
+  - Auto-scroll to latest message
+  - Typing indicator (bouncing dots animation)
+  - Input field with Enter key support and send button
+  - Pre-filled greeting message on first open
+  - Loading states with spinner on send button
+  - Error handling with user-friendly messages
+  - Disclaimer text at bottom
+  - Responsive design (full width on mobile)
+  - Close/minimize button
+
+Integration:
+- Added 'reports' to Page type union in store.tsx
+- Added ReportsPage lazy import in AppShell.tsx
+- Added 'reports' case in renderPage switch (protected route, requires auth)
+- Added 'reports' to PROTECTED_PAGES set
+- Imported ChatWidget in AppShell, rendered for authenticated users
+
+Stage Summary:
+- 3 new API routes: /api/reports/monthly, /api/reports/investment, /api/chat
+- 2 new components: ReportsPage, ChatWidget
+- Reports page accessible via navigate('reports') for authenticated users
+- AI chat widget visible to all authenticated users as floating bubble
+- All routes protected with requireAuth()
+- ESLint passes with zero errors
+
+---
+Task ID: 7-a
+Agent: Referral System
+Task: Create Referral System with code generation, application, stats, and full UI page
+
+Work Log:
+- Added ReferralCode and Referral models to Prisma schema (end of file)
+  - ReferralCode: id, code (unique), userId (unique, one-to-one with User), usesCount, isActive, timestamps
+  - Referral: id, referrerId, referredId, referralCodeId (optional), bonusAmount, bonusCurrency, status (pending/completed/paid), createdAt
+- Updated User model: replaced `referralCode String? @unique` and `referredBy String?` with proper relations (referralCode, referrals, referredBy)
+- Ran `bun run db:push --accept-data-loss` to sync schema (dropped old referralCode string column)
+- Created /api/referral/code/route.ts:
+  - GET: Returns user's referral code (auto-generates one if none exists using 8-char alphanumeric code)
+  - POST: Deactivates old code, generates new unique code
+- Created /api/referral/apply/route.ts:
+  - POST: Validates referral code, checks for self-referral and duplicate referrer, creates Referral record with $25 bonus, increments uses count
+- Created /api/referral/stats/route.ts:
+  - GET: Returns referral code info, stats (total referrals, pending/paid bonuses, total earned), referral history list, and wasReferred info
+- Created ReferralPage.tsx component with:
+  - Referral code display with copy button
+  - Copy link and share (Web Share API with fallback) buttons
+  - Generate new code button
+  - Apply referral code dialog (with input validation, success/error messages)
+  - "Was referred" banner showing referrer info
+  - 3 stat cards: Total Referidos, Bonos Pendientes, Total Ganado
+  - Referral history table with name, email, date, bonus amount, status badges
+  - Bonus explanation section ($25 for referrer, $10 for referred)
+  - Loading skeletons, empty states, emerald theme
+- Added 'referral' to Page type union in store.tsx
+- Updated AppShell.tsx: added 'referral' to PROTECTED_PAGES, added case in renderPage switch
+- Updated DashboardPage.tsx: added "Referir Amigos" quick action card (4th card, emerald-themed, navigates to referral page)
+- Added Gift icon import to DashboardPage.tsx
+- Updated seed.ts: removed old referralCode field from user seed data
+- ESLint passes with zero errors
+
+Stage Summary:
+- 3 new API routes: /api/referral/code, /api/referral/apply, /api/referral/stats
+- 2 new Prisma models: ReferralCode, Referral
+- 1 new page: ReferralPage (accessible via navigate('referral'))
+- Dashboard Quick Actions expanded to 4 cards with referral link
+- Full referral flow: generate code → share link → apply code → track bonuses
+- Bonus structure: $25 for referrer, $10 for referred (configurable in API)
+

@@ -32,8 +32,10 @@ model User {
   termsAcceptedAt  DateTime?
   termsVersion     String?
   riskProfile      String?
-  referralCode     String?   @unique
-  referredBy       String?
+  // Referral relations
+  referralCode     ReferralCode?
+  referrals        Referral[]  @relation("ReferrerReferrals")
+  referredBy       Referral[]  @relation("ReferredReferrals")
   isActive         Boolean   @default(true)
   lastLoginAt      DateTime?
   notes            String?
@@ -540,4 +542,33 @@ model Currency {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// ==================== REFERRAL SYSTEM ====================
+
+model ReferralCode {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  usesCount   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  referrals   Referral[]
+}
+
+model Referral {
+  id              String        @id @default(cuid())
+  referrerId      String
+  referrer        User          @relation("ReferrerReferrals", fields: [referrerId], references: [id])
+  referredId      String
+  referred        User          @relation("ReferredReferrals", fields: [referredId], references: [id])
+  referralCodeId  String?
+  referralCode    ReferralCode? @relation(fields: [referralCodeId], references: [id])
+  bonusAmount     Float         @default(0)
+  bonusCurrency   String        @default("USD")
+  status          String        @default("pending") // pending, completed, paid
+  createdAt       DateTime      @default(now())
 }

@@ -32,7 +32,7 @@ export function Footer() {
             </div>
             <div>
               <span className="text-lg font-bold tracking-tight text-white">
-                Galaxy LLC
+                3GSP
               </span>
             </div>
           </div>
@@ -55,7 +55,7 @@ export function Footer() {
         {/* Bottom Row */}
         <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
           <p className="text-center text-xs text-white/40 sm:text-left">
-            &copy; {new Date().getFullYear()} Galaxy LLC. {t('footer.rights')}.
+            &copy; {new Date().getFullYear()} 3GSP. Todos Los Derechos reservados.
           </p>
 
           {/* Controls */}

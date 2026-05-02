@@ -521,3 +521,34 @@ Stage Summary:
 - Full referral flow: generate code → share link → apply code → track bonuses
 - Bonus structure: $25 for referrer, $10 for referred (configurable in API)
 
+---
+Task ID: 13
+Agent: Secondary Market Builder
+Task: Implement Secondary Market feature for buying/selling fractions
+
+Work Log:
+- Added SecondaryMarketListing model to Prisma schema with relations to User, Investment, Asset
+- Ran db:push to sync schema to database
+- Created 5 API routes:
+  - /api/secondary-market/route.ts (GET + POST) - list/create listings
+  - /api/secondary-market/my-listings/route.ts (GET) - user's listings
+  - /api/secondary-market/[id]/buy/route.ts (POST) - buy fractions
+  - /api/secondary-market/[id]/cancel/route.ts (POST) - cancel listing
+  - /api/secondary-market/my-investments/route.ts (GET) - available investments to list
+- Created SecondaryMarketPage component with 3 tabs:
+  - Explorar Mercado: browse active listings with filters/sort, buy dialog
+  - Mis Listas: view/manage user's listings with cancel, progress bars
+  - Publicar Fracciones: select investment, set price, create listing
+- Added 'secondary-market' to Page type union in store.tsx
+- Registered SecondaryMarketPage in AppShell with lazy import
+- Added "Mercado Secundario" nav link to Navbar (for all users)
+- Added i18n translations (es + en) for nav.secondaryMarket
+- Seeded 4 sample SM listings (2 active, 1 sold, 1 partial)
+- All lint checks pass with 0 errors and 0 warnings
+
+Stage Summary:
+- New Prisma model: SecondaryMarketListing (seller, investment, asset relations, statuses: active/sold/cancelled/partial)
+- 5 new API endpoints for secondary market CRUD
+- Full SPA page with emerald theme, responsive design, loading skeletons
+- Seed data: 4 listings across 2 users, 3 different statuses
+- Available from navbar for both authenticated and non-authenticated users

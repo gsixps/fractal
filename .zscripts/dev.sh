@@ -1,6 +1,6 @@
 #!/bin/sh
 cd /home/z/my-project
 while true; do
-  node keepalive.js
-  sleep 2
+  bun run dev
+  sleep 3
 done

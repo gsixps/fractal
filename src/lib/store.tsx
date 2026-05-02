@@ -20,6 +20,7 @@ export type Page =
   | 'referral'
   | 'forgot-password'
   | 'reports'
+  | 'secondary-market'
 
 // ─── Embedded Asset Data Types ────────────────────────────────────────────────
 

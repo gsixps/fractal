@@ -81,11 +81,13 @@ export function Navbar() {
     ? [
         { labelKey: 'nav.home', page: 'home' as Page, icon: <Home className="size-4" /> },
         { labelKey: 'nav.marketplace', page: 'marketplace' as Page, icon: <Store className="size-4" /> },
+        { labelKey: 'nav.secondaryMarket', page: 'secondary-market' as Page, icon: <Store className="size-4" /> },
         { labelKey: 'nav.portfolio', page: 'dashboard' as Page, icon: <PieChart className="size-4" /> },
       ]
     : [
         { labelKey: 'nav.home', page: 'home' as Page, icon: <Home className="size-4" /> },
         { labelKey: 'nav.marketplace', page: 'marketplace' as Page, icon: <Store className="size-4" /> },
+        { labelKey: 'nav.secondaryMarket', page: 'secondary-market' as Page, icon: <Store className="size-4" /> },
       ]
 
   const isAdmin = user?.role === 'admin' || user?.role === 'superadmin'
@@ -345,7 +347,7 @@ export function Navbar() {
                   <span className="gsp-gradient-text text-lg font-bold">3GSP</span>
                 </SheetTitle>
                 <SheetDescription className="text-left text-muted-foreground">
-                  GALAXY LLC — Inversión Inmobiliaria Fraccionada
+                  Inversión Inmobiliaria Fraccionada
                 </SheetDescription>
               </SheetHeader>
 

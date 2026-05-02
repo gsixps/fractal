@@ -41,6 +41,8 @@ model User {
   notes            String?
 
   investments       Investment[]
+  secondaryMarketListings    SecondaryMarketListing[] @relation("SellerListings")
+  secondaryMarketPurchases   SecondaryMarketListing[] @relation("BuyerPurchases")
   transactions      Transaction[]
   dividendPayments  DividendPayment[]
   kycDocuments      KYCDocument[]
@@ -132,6 +134,7 @@ model Asset {
   documents             AssetDocument[]
   cashFlowProjections   CashFlowProjection[]
   investments           Investment[]
+  secondaryMarketListings SecondaryMarketListing[]
 
   createdAt             DateTime            @default(now())
   updatedAt             DateTime            @updatedAt
@@ -196,6 +199,7 @@ model Investment {
 
   transactions     Transaction[]
   dividendPayments DividendPayment[]
+  secondaryMarketListings SecondaryMarketListing[]
 
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
@@ -557,6 +561,36 @@ model ReferralCode {
   updatedAt   DateTime @updatedAt
 
   referrals   Referral[]
+}
+
+// ==================== SECONDARY MARKET ====================
+
+model SecondaryMarketListing {
+  id                  String    @id @default(cuid())
+  sellerId            String
+  seller              User        @relation("SellerListings", fields: [sellerId], references: [id])
+  investmentId        String
+  investment          Investment @relation(fields: [investmentId], references: [id])
+  assetId             String
+  asset               Asset       @relation(fields: [assetId], references: [id])
+
+  fractionCount       Int
+  pricePerFraction    Float
+  totalPrice          Float
+  status              String     @default("active")
+
+  buyerId             String?
+  buyer               User?       @relation("BuyerPurchases", fields: [buyerId], references: [id])
+  soldFractionCount   Int        @default(0)
+  platformFee         Float      @default(0)
+  netAmount           Float?
+
+  expiresAt           DateTime?
+  soldAt              DateTime?
+  cancelledAt         DateTime?
+
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
 }
 
 model Referral {

@@ -70,13 +70,9 @@ function HeroSection() {
         <div className="text-center max-w-4xl mx-auto">
           <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible">
             <Badge variant="outline" className="mb-6 px-3.5 py-1.5 text-sm gap-1.5 border-primary/20 bg-primary/5 text-primary font-medium">
-              <Zap className="size-3.5" /> {t('home.whyGsp')}
+              <Zap className="size-3.5" /> Inversión Fraccionada
             </Badge>
           </motion.div>
-
-          <p className="text-xs font-semibold tracking-[0.2em] uppercase text-primary/60 mt-3 mb-1">
-            by GALAXY LLC
-          </p>
 
           {/* Impeccable: serif heading for trust/premium feel */}
           <motion.h1 custom={1} variants={fadeUp} initial="hidden" animate="visible"
@@ -422,10 +418,10 @@ function LiquiditySection() {
     <AnimatedSection className="gsp-section">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div custom={0} variants={fadeUp} className="text-center mb-14">
-          <Badge variant="outline" className="mb-4 border-primary/20 bg-primary/5 text-primary font-medium"><Clock className="size-3.5 mr-1" /> {t('nav.liquidity')}</Badge>
-          <h2 className="gsp-serif text-3xl sm:text-4xl font-normal tracking-tight">{t('home.liquidity.title')}</h2>
+          <Badge variant="outline" className="mb-4 border-primary/20 bg-primary/5 text-primary font-medium"><TrendingUp className="size-3.5 mr-1" /> Mercado Secundario</Badge>
+          <h2 className="gsp-serif text-3xl sm:text-4xl font-normal tracking-tight">Mercado Secundario de Fracciones</h2>
           <p className="mt-3 text-muted-foreground max-w-xl mx-auto text-lg font-light">
-            {t('home.liquidity.subtitle')}
+            Compra y vende fracciones con otros inversores. Liquidez real, precios justos.
           </p>
         </motion.div>
 
@@ -436,12 +432,12 @@ function LiquiditySection() {
                 <div className="inline-flex items-center justify-center size-12 rounded-2xl bg-primary/10 text-primary mb-5">
                   <Zap className="size-6" />
                 </div>
-                <h3 className="text-2xl font-semibold tracking-tight">{t('asset.expressExit')}</h3>
+                <h3 className="text-2xl font-semibold tracking-tight">Mercado Secundario</h3>
                 <p className="mt-3 text-muted-foreground leading-relaxed font-light">
-                  {t('asset.expressExitDesc')}
+                  Compra y vende fracciones de activos directamente con otros inversores.
                 </p>
                 <ul className="mt-6 space-y-3">
-                  {[t('liquidity.processingTimeValue'), t('liquidity.feeValue'), t('liquidity.noHistory'), t('home.whyGsp.verifiedDesc')].map((item, idx) => (
+                  {['Precios competitivos fijados por vendedores', 'Comisión del 1.5% por transacción', 'Transferencia instantánea de fracciones', 'Disponible para inversores verificados (KYC)'].map((item, idx) => (
                     <li key={idx} className="flex items-start gap-3 text-sm">
                       <CheckCircle2 className="size-5 text-primary shrink-0 mt-0.5" />
                       <span className="text-muted-foreground">{item}</span>
@@ -466,7 +462,7 @@ function LiquiditySection() {
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-semibold text-primary flex items-center gap-2 text-sm">
-                        <TrendingUp className="size-4" /> GALAXY
+                        <TrendingUp className="size-4" /> 3GSP
                       </span>
                       <span className="font-bold text-primary text-lg">3%</span>
                     </div>
@@ -522,7 +518,7 @@ function TransparencySection() {
           <Card className="border-border/40 overflow-hidden shadow-[0_4px_24px_oklch(0.45_0.155_162/0.06)]">
             <div className="grid grid-cols-3 gsp-gradient text-white">
               <div className="px-5 py-3.5 font-semibold text-sm">{t('common.all')}</div>
-              <div className="px-5 py-3.5 font-semibold text-sm text-center">GALAXY</div>
+              <div className="px-5 py-3.5 font-semibold text-sm text-center">3GSP</div>
               <div className="px-5 py-3.5 font-semibold text-sm text-center">{t('marketplace.title')}</div>
             </div>
             {rows.map((row, i) => (

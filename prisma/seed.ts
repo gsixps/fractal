@@ -865,6 +865,142 @@ async function seed() {
   console.log(`   FAQs:               ${counts[9]}`)
   console.log(`   Site Settings:      ${counts[10]}`)
   console.log('═'.repeat(50))
+  // ═══════════════════════════════════════════════════════════════
+  // 10. SECONDARY MARKET LISTINGS
+  // ═══════════════════════════════════════════════════════════════
+  console.log('\n🏪 Seeding Secondary Market Listings...')
+
+  // Ensure demo user has completed investments for listings
+  await db.investment.updateMany({
+    where: { userId: demoUserId, status: 'active' },
+    data: { status: 'completed' },
+  })
+
+  // Create a second seller for realistic demo data
+  const seller2 = await db.user.upsert({
+    where: { email: 'carlos@example.com' },
+    update: {
+      name: 'Carlos Muñoz',
+      role: 'investor',
+      kycStatus: 'verified',
+      balance: 2_500_000,
+      totalInvested: 5_000_000,
+      totalEarnings: 450_000,
+    },
+    create: {
+      id: 'usr_demo_002',
+      email: 'carlos@example.com',
+      passwordHash: await bcrypt.hash('Carlos2024!', 12),
+      name: 'Carlos Muñoz',
+      role: 'investor',
+      kycStatus: 'verified',
+      balance: 2_500_000,
+      totalInvested: 5_000_000,
+      totalEarnings: 450_000,
+      isActive: true,
+      preferredLanguage: 'es',
+    },
+  })
+
+  // Create investment for seller2 if not exists
+  const assetId2 = assetIdBySlug['micro-data-center-valparaiso']
+  let seller2InvId = ''
+  if (assetId2) {
+    const existingInv2 = await db.investment.findFirst({ where: { userId: seller2.id, assetId: assetId2 } })
+    if (existingInv2) {
+      seller2InvId = existingInv2.id
+    } else {
+      const inv2 = await db.investment.create({
+        data: {
+          userId: seller2.id,
+          assetId: assetId2,
+          quantity: 15,
+          pricePerUnit: 185_000,
+          totalAmount: 2_775_000,
+          status: 'completed',
+          completedAt: new Date('2024-10-15T10:00:00.000Z'),
+        },
+      })
+      seller2InvId = inv2.id
+    }
+  }
+
+  const now = new Date()
+  const expiresAt = new Date(now)
+  expiresAt.setDate(expiresAt.getDate() + 30)
+
+  const smListingsData = [
+    // Listing 1: Active listing from demo user (María) - 5 fractions of Bodega
+    {
+      sellerId: demoUserId,
+      investmentId: investmentIdBySlug['bodega-e-commerce-maipu-hub'],
+      assetId: assetIdBySlug['bodega-e-commerce-maipu-hub'],
+      fractionCount: 5,
+      pricePerFraction: 135_000, // Slight premium over purchase price
+      totalPrice: 675_000,
+      status: 'active',
+      expiresAt,
+    },
+    // Listing 2: Active listing from Carlos - 8 fractions of Data Center
+    {
+      sellerId: seller2.id,
+      investmentId: seller2InvId,
+      assetId: assetIdBySlug['micro-data-center-valparaiso'],
+      fractionCount: 8,
+      pricePerFraction: 195_000,
+      totalPrice: 1_560_000,
+      status: 'active',
+      expiresAt,
+    },
+    // Listing 3: Sold listing (already completed)
+    {
+      sellerId: demoUserId,
+      investmentId: investmentIdBySlug['centro-logistico-santiago-norte'],
+      assetId: assetIdBySlug['centro-logistico-santiago-norte'],
+      fractionCount: 3,
+      pricePerFraction: 260_000,
+      totalPrice: 780_000,
+      status: 'sold',
+      soldFractionCount: 3,
+      platformFee: 11_700,
+      netAmount: 768_300,
+      soldAt: new Date('2025-01-20T15:30:00.000Z'),
+    },
+    // Listing 4: Partial listing (some sold, some remaining)
+    {
+      sellerId: demoUserId,
+      investmentId: investmentIdBySlug['micro-data-center-valparaiso'],
+      assetId: assetIdBySlug['micro-data-center-valparaiso'],
+      fractionCount: 10,
+      pricePerFraction: 190_000,
+      totalPrice: 1_900_000,
+      status: 'partial',
+      soldFractionCount: 4,
+      platformFee: 11_400,
+      netAmount: 748_600,
+      cancelledAt: new Date('2025-04-01T10:00:00.000Z'),
+    },
+  ]
+
+  // Clear and re-seed secondary market listings
+  const existingSM = await db.secondaryMarketListing.count()
+  if (existingSM > 0) {
+    await db.secondaryMarketListing.deleteMany()
+    console.log(`   🗑️  Cleared ${existingSM} existing secondary market listings`)
+  }
+
+  for (const sm of smListingsData) {
+    if (!sm.investmentId || !sm.assetId) continue
+    try {
+      await db.secondaryMarketListing.create({ data: sm })
+      console.log(`   ✅ Created SM listing: ${sm.fractionCount}f @ ${sm.pricePerFraction} (${sm.status})`)
+    } catch (err) {
+      console.log(`   ⚠️  Failed to create SM listing:`, err)
+    }
+  }
+
+  console.log(`   📊 Secondary Market Listings: ${smListingsData.length} seeded`)
+
   console.log('✅ Seed completed successfully!')
 }
 

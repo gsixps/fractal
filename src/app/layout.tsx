@@ -3,8 +3,8 @@ import "./globals.css";
 import { SessionProvider } from "@/components/SessionProvider";
 
 export const metadata: Metadata = {
-  title: "GALAXY — Fractional Real Estate Investment",
-  description: "Invest in premium real estate assets. Powered by GALAXY LLC.",
+  title: "3GSP — Inversión Inmobiliaria Fraccionada",
+  description: "Invierte en activos inmobiliarios premium con fracciones accesibles. 3GSP.",
   icons: {
     icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
   },

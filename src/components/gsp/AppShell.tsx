@@ -25,6 +25,7 @@ const ProfilePage = lazy(() => import('@/components/gsp/profile/ProfilePage'))
 const LiquidityPage = lazy(() => import('@/components/gsp/liquidity/LiquidityPage'))
 const ReferralPage = lazy(() => import('@/components/gsp/referral/ReferralPage'))
 const ReportsPage = lazy(() => import('@/components/gsp/reports/ReportsPage'))
+const SecondaryMarketPage = lazy(() => import('@/components/gsp/secondary-market/SecondaryMarketPage'))
 
 function PageLoader() {
   return (
@@ -94,6 +95,7 @@ export default function AppShell() {
       case 'liquidity': return user ? <LiquidityPage /> : <LoginPage />
       case 'reports': return user ? <ReportsPage /> : <LoginPage />
       case 'referral': return user ? <ReferralPage /> : <LoginPage />
+      case 'secondary-market': return <SecondaryMarketPage />
       default: return <HomePage />
     }
   }

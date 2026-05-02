@@ -316,3 +316,28 @@ Stage Summary:
 - Turso: schema pushed (26 tables), dev uses SQLite, production will use Turso
 - Stripe: integration code ready, needs user credentials
 - Pending from user: Stripe credentials (pk_live, sk_live, whsec_), Turso auth token
+
+---
+Task ID: 1
+Agent: Main Orchestrator
+Task: Fix PID limit causing blank screen - switch to production mode
+
+Work Log:
+- Diagnosed root cause: Turbopack dev mode spawns multiple child processes that exceed container PID limit
+- Confirmed no actual cgroup PID limit (pids.max = max) - issue is process thrashing from multiple shell sessions
+- Built production bundle: `npx next build` - 30+ routes compiled successfully
+- Copied static assets: `.next/static` → `.next/standalone/.next/`, `public/` → `.next/standalone/`
+- Updated `.zscripts/dev.sh` to use `node .next/standalone/server.js` instead of `bun run dev`
+- Production server starts in 72ms (vs 4.5s in dev mode)
+- All 8 public API endpoints return 200: /, /api/assets, /api/currencies, /api/translations, /api/settings, /api/exchange-rates, /api/blog, /api/faq
+- Protected endpoints return 401: /api/dashboard, /api/admin
+
+Stage Summary:
+- Application now runs in production mode with single-node process
+- Startup time reduced from ~4.5s to ~72ms (60x faster)
+- All APIs verified working
+- Footer updated: Galaxy LLC with "powered by GALAXY" link to galaxylabs.site
+- Fixed InvestmentAnalysisView riskProfile bug (now sent to API)
+- Fixed AdminPage locale inconsistencies (es-CL → en-US)
+- Fixed unused Star import in AdminPage
+- Fixed refund route to use consistent requireAdmin from api-auth

@@ -1,51 +1,42 @@
+// Minimal keepalive server — single process, loads .env.local, restarts on crash
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const logFile = path.join(__dirname, 'dev.log');
-const isProduction = process.env.PRODUCTION === 'true';
-
-function startServer() {
-  // Clear previous log on fresh start
-  if (!global._restarting) {
-    fs.writeFileSync(logFile, '');
-  }
-  global._restarting = true;
-  
-  const logStream = fs.openSync(logFile, 'a');
-  const cmd = isProduction 
-    ? 'node' 
-    : 'npx';
-  const args = isProduction
-    ? [path.join(__dirname, '.next/standalone/server.js')]
-    : ['next', 'dev', '-p', '3000'];
-  
-  const child = spawn(cmd, args, {
-    stdio: ['ignore', logStream, logStream],
-    env: { 
-      ...process.env, 
-      NODE_OPTIONS: '--max-old-space-size=2048',
-      PORT: '3000',
-    },
-    detached: false,
-  });
-
-  console.log(`[keepalive] Started server (PID: ${child.pid})`);
-
-  child.on('exit', (code, signal) => {
-    const now = new Date().toISOString();
-    const msg = `[keepalive] Server exited (code: ${code}, signal: ${signal}) at ${now}. Restarting in 3s...\n`;
-    console.log(msg);
-    fs.appendFileSync(logFile, msg);
-    setTimeout(startServer, 3000);
-  });
-
-  child.on('error', (err) => {
-    const msg = `[keepalive] Error: ${err.message}. Restarting in 5s...\n`;
-    console.error(msg);
-    fs.appendFileSync(logFile, msg);
-    setTimeout(startServer, 5000);
+// Load .env.local manually
+const envPath = path.join(__dirname, '.env.local');
+if (fs.existsSync(envPath)) {
+  const content = fs.readFileSync(envPath, 'utf8');
+  content.split('\n').forEach(line => {
+    const [key, ...rest] = line.split('=');
+    if (key && key.trim() && !key.startsWith('#')) {
+      process.env[key.trim()] = rest.join('=').trim();
+    }
   });
 }
 
-startServer();
+// Force SQLite
+process.env.TURSO_DATABASE_URL = '';
+process.env.TURSO_AUTH_TOKEN = '';
+process.env.PORT = '3000';
+
+function start() {
+  const child = spawn(process.execPath, ['.next/standalone/server.js'], {
+    cwd: __dirname,
+    stdio: ['inherit', 'inherit', 'inherit'],
+    env: { ...process.env },
+  });
+  
+  child.on('exit', (code) => {
+    console.log(`[keepalive] Server exited (code: ${code}), restarting in 3s...`);
+    setTimeout(start, 3000);
+  });
+  
+  child.on('error', (err) => {
+    console.error('[keepalive] Spawn error:', err.message);
+    setTimeout(start, 3000);
+  });
+}
+
+console.log('[keepalive] Starting GALAXY 3GSP server...');
+start();

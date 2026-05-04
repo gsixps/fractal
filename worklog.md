@@ -719,3 +719,25 @@ Stage Summary:
 - 3 admin panel enhancements
 - All APIs verified working
 - Zero lint errors
+
+---
+Task ID: 1
+Agent: main
+Task: Fix preview panel display and superadmin login
+
+Work Log:
+- Diagnosed that dev server was running (port 3000, HTTP 200) but app appeared broken
+- Found duplicate Next.js instances running simultaneously
+- Discovered NEXTAUTH_SECRET was completely missing from .env file
+- Verified database was populated (superadmin user admin@gsp.cl exists with valid bcrypt hash)
+- Verified password hash matches "GSP@admin2024" via bcrypt.compare
+- Added NEXTAUTH_SECRET to .env
+- Killed duplicate processes, restarted dev server cleanly
+- Tested login via CSRF-protected POST to /api/auth/callback/credentials → HTTP 302 (success)
+- Verified session returns correct user: admin@gsp.cl, role: superadmin
+
+Stage Summary:
+- Root cause: Missing NEXTAUTH_SECRET prevented NextAuth from functioning
+- Fix: Added NEXTAUTH_SECRET=gsp-super-secret-key-2024-production-fx9k2m to .env
+- Login now works correctly with admin@gsp.cl / GSP@admin2024
+- Page loads with HTTP 200, preview panel should now display correctly

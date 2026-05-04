@@ -587,7 +587,8 @@ export default function DashboardPage() {
                   <p className="text-sm font-semibold">Retirar Ganancias</p>
                   <p className="text-xs text-muted-foreground font-light">Disponible: {formatUSD(user?.totalEarnings || 0)}</p>
                 </div>
-                <Button variant="outline" size="sm" className="shrink-0 text-xs border-border/50 cursor-pointer">Ir</Button>
+                <Button variant="outline" size="sm" className="shrink-0 text-xs border-border/50 cursor-pointer"
+                  onClick={() => navigate('liquidity')}>Ir</Button>
               </CardContent>
             </Card>
             <Card className="gsp-card-interactive border-border/40">

@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { useAppStore } from '@/lib/store'
 import { useT } from '@/lib/i18n-utils'
 import { cn } from '@/lib/utils'
@@ -19,6 +20,15 @@ export function Footer() {
   const setLanguage = useAppStore((s) => s.setLanguage)
   const currency = useAppStore((s) => s.currency)
   const setCurrency = useAppStore((s) => s.setCurrency)
+
+  const [currencies, setCurrencies] = useState<Array<{code: string; name: string; symbol: string; flagEmoji?: string; isDefault?: boolean; active?: boolean}>>([])
+
+  useEffect(() => {
+    fetch('/api/currencies')
+      .then(r => r.ok ? r.json() : [])
+      .then(setCurrencies)
+      .catch(() => {})
+  }, [])
 
   return (
     <footer className="mt-auto border-t bg-foreground text-background">
@@ -105,15 +115,11 @@ export function Footer() {
               onChange={(e) => setCurrency(e.target.value)}
               className="h-7 rounded-md border border-white/10 bg-white/5 px-2 text-[11px] font-medium text-white/60 text-center focus:outline-none focus:ring-1 focus:ring-emerald-500/50"
             >
-              <option value="USD">USD</option>
-              <option value="EUR">EUR</option>
-              <option value="CLP">CLP</option>
-              <option value="MXN">MXN</option>
-              <option value="COP">COP</option>
-              <option value="ARS">ARS</option>
-              <option value="PEN">PEN</option>
-              <option value="BRL">BRL</option>
-              <option value="VES">VES</option>
+              {currencies.length > 0 ? currencies.filter(c => c.active).map((c) => (
+                <option key={c.code} value={c.code}>{c.flagEmoji || ''} {c.code}</option>
+              )) : (
+                <option value="USD">🇺🇸 USD</option>
+              )}
             </select>
           </div>
         </div>

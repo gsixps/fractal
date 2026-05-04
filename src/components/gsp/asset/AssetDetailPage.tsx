@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Slider } from '@/components/ui/slider'
 import { Skeleton } from '@/components/ui/skeleton'
+import { InvestmentDialog } from '@/components/gsp/shared/InvestmentDialog'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
@@ -115,6 +116,7 @@ export default function AssetDetailPage() {
   const isKycVerified = user !== null && user.kycStatus === 'verified'
   const isUserLoggedIn = user !== null
   const [quantity, setQuantity] = useState(1)
+  const [investDialogOpen, setInvestDialogOpen] = useState(false)
 
   useEffect(() => {
     if (!selectedAssetId) { navigate('marketplace'); return }
@@ -385,16 +387,16 @@ export default function AssetDetailPage() {
                   <span className="text-lg font-bold text-foreground">{formatUSD(totalInvestment)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-primary">Estimated annual dividend ({asset.annualYield}%):</span>
+                  <span className="text-sm text-primary">Dividendo anual estimado ({asset.annualYield}%):</span>
                   <span className="text-lg font-bold text-foreground">{formatUSD(annualDividend)}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-primary">Estimated monthly dividend:</span>
+                  <span className="text-sm text-primary">Dividendo mensual estimado:</span>
                   <span className="text-sm font-medium text-primary">{formatUSD(annualDividend / 12)}</span>
                 </div>
               </div>
 
-              <Button size="lg" className="w-full h-12 text-base font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-200 cursor-pointer">
+              <Button size="lg" onClick={() => setInvestDialogOpen(true)} className="w-full h-12 text-base font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-200 cursor-pointer">
                 Invertir Ahora — {formatUSD(totalInvestment)}
               </Button>
 
@@ -428,6 +430,26 @@ export default function AssetDetailPage() {
           </Button>
         </div>
       </div>
+
+      <InvestmentDialog
+        open={investDialogOpen}
+        onOpenChange={setInvestDialogOpen}
+        asset={asset ? {
+          id: asset.id,
+          name: asset.name,
+          type: asset.type,
+          city: asset.city,
+          region: asset.region,
+          pricePerFraction: asset.pricePerFraction,
+          totalFractions: asset.totalFractions,
+          availableFractions: asset.availableFractions,
+          annualYield: asset.annualYield,
+          totalProjectedReturn: asset.totalProjectedReturn,
+          fundedPercentage: asset.fundedPercentage,
+          images: asset.images,
+        } : null}
+        user={user ? { id: user.id, name: user.name, email: user.email } : null}
+      />
     </div>
   )
 }

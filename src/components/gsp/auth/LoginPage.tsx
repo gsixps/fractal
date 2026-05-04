@@ -77,8 +77,8 @@ export function LoginPage() {
             description: `Hola ${su.name || 'Inversionista'}, tu sesión ha sido iniciada correctamente.`,
           })
 
-          // Navigate to admin backend after login
-          setTimeout(() => navigate('admin'), 300)
+          // Navigate based on user role
+          setTimeout(() => navigate(role === 'admin' || role === 'superadmin' ? 'admin' : 'dashboard'), 300)
         }
       }
     } catch {

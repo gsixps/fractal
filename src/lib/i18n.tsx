@@ -46,6 +46,8 @@ const translations: LocaleMap = {
     'nav.liquidity': 'Liquidez',
     'nav.langSwitch': 'EN',
     'nav.menu': 'Menú',
+    'nav.secondaryMarket': 'Mercado Secundario',
+    'nav.reports': 'Reportes',
 
     // ── HOME PAGE ───────────────────────────────────────────────────────────
     'home.hero.title': 'Invierte en activos inmobiliarios desde $120.000',
@@ -476,6 +478,8 @@ const translations: LocaleMap = {
     'nav.liquidity': 'Liquidity',
     'nav.langSwitch': 'ES',
     'nav.menu': 'Menu',
+    'nav.secondaryMarket': 'Secondary Market',
+    'nav.reports': 'Reports',
 
     // ── HOME PAGE ───────────────────────────────────────────────────────────
     'home.hero.title': 'Invest in real estate assets from $120,000',

@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useAppStore } from '@/lib/store'
 import { useT } from '@/lib/i18n-utils'
 import { useCurrency } from '@/lib/currency'
+import { useToast } from '@/hooks/use-toast'
 
 /* ── Impeccable Motion Config (no bounce/elastic) ── */
 const ease = [0.22, 1, 0.36, 1] as const
@@ -60,8 +61,9 @@ function HeroSection() {
   ]
   return (
     <section className="relative overflow-hidden">
-      {/* Background glow */}
+      {/* Background glow + radial gradient overlay */}
       <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-50/80 via-background to-background" />
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[700px] rounded-full bg-gradient-to-br from-emerald-200/40 via-emerald-100/20 to-transparent blur-3xl" />
         <div className="absolute bottom-0 right-0 w-[400px] h-[400px] rounded-full bg-emerald-200/15 blur-3xl" />
       </div>
@@ -100,7 +102,7 @@ function HeroSection() {
 
         {/* Stats Bar — Glass card */}
         <motion.div custom={4} variants={fadeUp} initial="hidden" animate="visible" className="mt-16 sm:mt-20">
-          <div className="gsp-glass rounded-2xl border border-border/40 shadow-[0_4px_24px_oklch(0.45_0.155_162/0.06)]">
+          <div className="gsp-glass rounded-2xl border border-primary/10 shadow-[0_4px_24px_oklch(0.45_0.155_162/0.06)] transition-all duration-500 animate-[pulse_4s_ease-in-out_infinite] [animation-duration:4s]">
             <div className="grid grid-cols-2 lg:grid-cols-4">
               {stats.map((s, i) => (
                 <div key={i} className={`py-6 px-6 sm:px-8 text-center ${i < 3 ? 'lg:border-r lg:border-border/30' : ''} ${i < 2 ? 'border-b border-border/30 lg:border-b-0' : ''}`}>
@@ -110,6 +112,9 @@ function HeroSection() {
               ))}
             </div>
           </div>
+          <p className="mt-4 text-xs text-muted-foreground/60 flex items-center justify-center gap-1.5">
+            Powered by <span className="font-semibold text-foreground/40">GALAXY LLC</span>
+          </p>
         </motion.div>
       </div>
     </section>
@@ -120,30 +125,31 @@ function HeroSection() {
    HOW IT WORKS — 4-Step Investment Process (dark section)
    ══════════════════════════════════════════════════════════════════ */
 function HowItWorksSection() {
+  const t = useT()
   const steps = [
     {
       step: 1,
       icon: <Grid3x3 className="size-7" />,
-      title: 'Reserva tus fracciones',
-      description: 'Juntamos los aportes de cientos de personas en cada proyecto.',
+      title: t('home.howItWorks.step1.title'),
+      description: t('home.howItWorks.step1.description'),
     },
     {
       step: 2,
       icon: <CheckCircle2 className="size-7" />,
-      title: 'Tu inversión se activa',
-      description: 'Completado el financiamiento del proyecto, tienes derecho a tu proporción de sus ganancias.',
+      title: t('home.howItWorks.step2.title'),
+      description: t('home.howItWorks.step2.description'),
     },
     {
       step: 3,
       icon: <CalendarDays className="size-7" />,
-      title: 'Gana por arriendos',
-      description: 'Podrás recibir ingresos periódicos durante la operación del proyecto.',
+      title: t('home.howItWorks.step3.title'),
+      description: t('home.howItWorks.step3.description'),
     },
     {
       step: 4,
       icon: <TrendingUp className="size-7" />,
-      title: 'Crece tu inversión',
-      description: 'Participas de la plusvalía del proyecto y la variación de su moneda local.',
+      title: t('home.howItWorks.step4.title'),
+      description: t('home.howItWorks.step4.description'),
     },
   ]
 
@@ -153,11 +159,11 @@ function HowItWorksSection() {
         {/* Section header */}
         <motion.div custom={0} variants={fadeUp} className="text-center mb-16">
           <span className="inline-flex items-center gap-1.5 mb-4 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-[0.15em] uppercase bg-emerald-800/60 text-emerald-300 border border-emerald-700/40">
-            <Layers className="size-3.5" /> Proceso de Inversión
+            <Layers className="size-3.5" /> {t('home.howItWorks.label')}
           </span>
-          <h2 className="gsp-serif text-3xl sm:text-4xl font-normal tracking-tight text-white">¿Cómo funciona?</h2>
+          <h2 className="gsp-serif text-3xl sm:text-4xl font-normal tracking-tight text-white">{t('home.howItWorks.title')}</h2>
           <p className="mt-3 text-emerald-200/60 max-w-xl mx-auto text-lg font-light">
-            Así empiezas tu inversión inmobiliaria
+            {t('home.howItWorks.subtitle')}
           </p>
         </motion.div>
 
@@ -545,7 +551,16 @@ function TransparencySection() {
    ══════════════════════════════════════════════════════════════════ */
 function CTASection() {
   const t = useT()
-  const [email, setEmail] = useState('')
+  const [ctaEmail, setCtaEmail] = useState('')
+  const { toast } = useToast()
+
+  const handleCTASubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!ctaEmail.trim()) return
+    toast({ title: '¡Registrado!', description: 'Te contactaremos pronto con las mejores oportunidades.' })
+    setCtaEmail('')
+  }
+
   return (
     <AnimatedSection className="gsp-section">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -562,19 +577,19 @@ function CTASection() {
             <p className="mt-4 text-white/80 max-w-lg mx-auto text-lg font-light">
               {t('home.cta.subtitle')}
             </p>
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto">
+            <form onSubmit={handleCTASubmit} className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto">
               <Input
                 type="email"
                 placeholder="tu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={ctaEmail}
+                onChange={(e) => setCtaEmail(e.target.value)}
                 className="h-12 bg-white/15 backdrop-blur-md border-white/20 text-white placeholder:text-white/50 focus:border-white/40 focus:ring-white/20"
               />
-              <Button size="lg"
+              <Button type="submit" size="lg"
                 className="bg-white text-emerald-800 hover:bg-white/90 gap-2 h-12 px-6 shrink-0 font-medium shadow-lg transition-all duration-200 cursor-pointer">
                 {t('home.cta.button')} <ArrowRight className="size-4" />
               </Button>
-            </div>
+            </form>
           </div>
         </motion.div>
       </div>
@@ -603,9 +618,9 @@ function TrustSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {badges.map((b, i) => (
             <motion.div key={b.title} custom={i + 1} variants={fadeUp}>
-              <Card className="h-full border-border/40 gsp-card-hover bg-card/60 backdrop-blur-sm text-center">
+              <Card className="h-full border-border/40 bg-card/60 backdrop-blur-sm text-center group transition-all duration-300 ease-out hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1">
                 <CardContent className="p-6 flex flex-col items-center gap-3">
-                  <div className="flex items-center justify-center size-14 rounded-2xl bg-primary/8 text-primary">
+                  <div className="flex items-center justify-center size-14 rounded-2xl bg-primary/8 text-primary transition-all duration-300 ease-out group-hover:bg-primary/15 group-hover:scale-110">
                     {b.icon}
                   </div>
                   <h3 className="font-semibold">{b.title}</h3>

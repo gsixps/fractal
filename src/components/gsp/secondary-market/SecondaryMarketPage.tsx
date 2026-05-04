@@ -50,6 +50,7 @@ interface SecondaryListing {
     name: string
     type: string
     city: string
+    pricePerFraction: number
     images: { id: string; url: string; alt: string | null; sortOrder: number; isCover: boolean }[]
   }
   buyer?: { id: string; name: string | null } | null
@@ -309,7 +310,9 @@ function ExploreTab({ format, user }: { format: (a: number) => string; user: { i
             const coverImage = listing.asset.images?.[0]?.url || '/placeholder.jpg'
             const available = listing.fractionCount - listing.soldFractionCount
             const timeRemaining = getTimeRemaining(listing.expiresAt)
-            const priceGain = listing.pricePerFraction / listing.seller.id ? 0 : 0 // placeholder
+            const priceGain = listing.asset.pricePerFraction > 0 
+              ? ((listing.pricePerFraction - listing.asset.pricePerFraction) / listing.asset.pricePerFraction) * 100 
+              : 0
 
             return (
               <Card key={listing.id} className="overflow-hidden gsp-card-hover group">
@@ -349,6 +352,12 @@ function ExploreTab({ format, user }: { format: (a: number) => string; user: { i
                       <span className="text-xs text-muted-foreground">Precio/fracción</span>
                       <span className="text-lg font-bold text-emerald-700">{format(listing.pricePerFraction)}</span>
                     </div>
+                    {priceGain !== 0 && (
+                      <div className={`flex items-baseline justify-between text-xs ${priceGain > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                        <span className="text-muted-foreground">Variación</span>
+                        <span className="font-medium">{priceGain > 0 ? '+' : ''}{priceGain.toFixed(1)}%</span>
+                      </div>
+                    )}
                     <div className="flex items-baseline justify-between">
                       <span className="text-xs text-muted-foreground">Fracciones</span>
                       <span className="text-sm font-medium">{available} disponibles</span>
@@ -362,12 +371,14 @@ function ExploreTab({ format, user }: { format: (a: number) => string; user: { i
                   <Button
                     className="mt-4 w-full gsp-gradient text-white hover:shadow-lg hover:shadow-emerald-500/20 transition-all"
                     onClick={() => {
+                      if (!user) return
                       setBuyDialog({ listing, maxFractions: available })
                       setBuyFractionCount(1)
                       setBuyError('')
                     }}
+                    disabled={!user}
                   >
-                    Comprar
+                    {user ? 'Comprar' : 'Inicia sesión para comprar'}
                   </Button>
                 </CardContent>
               </Card>

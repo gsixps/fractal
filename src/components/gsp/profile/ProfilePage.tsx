@@ -92,6 +92,7 @@ function KYCBadge({ status }: { status: string }) {
 export default function ProfilePage() {
   const t = useT()
   const user = useAppStore((s) => s.user)
+  const setUser = useAppStore((s) => s.setUser)
   const navigate = useAppStore((s) => s.navigate)
   const dashboardData = useAppStore((s) => s.dashboardData)
   const fetchDashboard = useAppStore((s) => s.fetchDashboard)
@@ -105,6 +106,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user) {
       setEditName(user.name || '')
+      setEditPhone((user as Record<string, unknown>).phone as string || '')
     }
   }, [user])
 
@@ -115,17 +117,31 @@ export default function ProfilePage() {
   const handleSave = async () => {
     setIsSaving(true)
     try {
-      // Simulate save - in production this would call an API
-      await new Promise((resolve) => setTimeout(resolve, 800))
+      const res = await fetch('/api/user/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editName,
+          phone: editPhone || null,
+        }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || 'Error al actualizar perfil')
+      }
+      // Update local user state
+      if (user) {
+        setUser({ ...user, name: editName })
+      }
       toast({
         title: t('common.success'),
         description: 'Tu perfil ha sido actualizado correctamente.',
       })
       setIsEditing(false)
-    } catch {
+    } catch (err) {
       toast({
         title: t('common.error'),
-        description: 'No se pudo actualizar el perfil.',
+        description: err instanceof Error ? err.message : 'No se pudo actualizar el perfil.',
         variant: 'destructive',
       })
     } finally {
@@ -136,7 +152,7 @@ export default function ProfilePage() {
   const handleCancelEdit = () => {
     setIsEditing(false)
     setEditName(user?.name || '')
-    setEditPhone('')
+    setEditPhone((user as Record<string, unknown>).phone as string || '')
   }
 
   if (!user) {

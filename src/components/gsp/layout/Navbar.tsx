@@ -45,6 +45,7 @@ import {
   DollarSign,
   LogIn,
   Lock,
+  FileText,
 } from 'lucide-react'
 
 interface NavLink {
@@ -64,6 +65,7 @@ export function Navbar() {
   const setLanguage = useAppStore((s) => s.setLanguage)
   const currency = useAppStore((s) => s.currency)
   const setCurrency = useAppStore((s) => s.setCurrency)
+  const [unreadCount, setUnreadCount] = useState(0)
   const [isScrolled, setIsScrolled] = useState(false)
   const [showChangePassword, setShowChangePassword] = useState(false)
   const [dbCurrencies, setDbCurrencies] = useState<Array<{ code: string; name: string; symbol: string; flag: string; isActive: boolean }>>([])
@@ -141,21 +143,45 @@ export function Navbar() {
             return (
               <Button
                 key={link.page}
-                variant={isActive ? 'secondary' : 'ghost'}
+                variant="ghost"
                 size="sm"
                 onClick={() => navigate(link.page)}
                 className={cn(
-                  'gap-2 font-medium transition-colors duration-200',
+                  'relative gap-2 font-medium transition-colors duration-200 rounded-md px-3',
                   isActive
-                    ? 'bg-secondary text-secondary-foreground shadow-sm'
+                    ? 'text-foreground'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
               >
                 {link.icon}
                 {t(link.labelKey)}
+                {/* Active underline indicator */}
+                {isActive && (
+                  <span className="absolute bottom-0 left-1/2 h-0.5 w-5 -translate-x-1/2 rounded-full bg-primary" />
+                )}
               </Button>
             )
           })}
+          {/* Reports Link - only for authenticated users */}
+          {user && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('reports')}
+              className={cn(
+                'relative gap-2 font-medium transition-colors duration-200 rounded-md px-3',
+                currentPage === 'reports'
+                  ? 'text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <FileText className="size-4" />
+              {t('nav.reports')}
+              {currentPage === 'reports' && (
+                <span className="absolute bottom-0 left-1/2 h-0.5 w-5 -translate-x-1/2 rounded-full bg-primary" />
+              )}
+            </Button>
+          )}
           {/* Admin Link - only for admins */}
           {isAdmin && (
           <Button
@@ -163,14 +189,17 @@ export function Navbar() {
             size="sm"
             onClick={() => navigate('admin')}
             className={cn(
-              'gap-2 font-medium transition-colors duration-200',
+              'relative gap-2 font-medium transition-colors duration-200 rounded-md px-3',
               currentPage === 'admin'
-                ? 'bg-secondary text-secondary-foreground shadow-sm'
+                ? 'text-foreground'
                 : 'text-muted-foreground hover:text-foreground'
             )}
           >
             <ShieldCheck className="size-4" />
             {t('nav.admin')}
+            {currentPage === 'admin' && (
+              <span className="absolute bottom-0 left-1/2 h-0.5 w-5 -translate-x-1/2 rounded-full bg-primary" />
+            )}
           </Button>
           )}
         </div>
@@ -248,7 +277,7 @@ export function Navbar() {
 
           {/* Notification Bell - only when logged in */}
           {user && (
-          <NotificationPanel />
+          <NotificationPanel onCountChange={setUnreadCount} />
           )}
 
           {/* User Dropdown or Login Button */}
@@ -411,6 +440,34 @@ export function Navbar() {
                     </SheetClose>
                   )
                 })}
+
+                {/* Reports Link - mobile, only for authenticated users */}
+                {user && (
+                  <SheetClose asChild>
+                    <Button
+                      variant={currentPage === 'reports' ? 'secondary' : 'ghost'}
+                      className={cn(
+                        'w-full justify-start gap-3 px-3 py-5 rounded-xl transition-colors duration-200 cursor-pointer',
+                        currentPage === 'reports'
+                          ? 'bg-primary/8 text-primary font-medium'
+                          : 'text-muted-foreground hover:text-foreground'
+                      )}
+                      onClick={() => navigate('reports')}
+                    >
+                      <span
+                        className={cn(
+                          'flex size-9 items-center justify-center rounded-lg transition-colors duration-200',
+                          currentPage === 'reports'
+                            ? 'bg-primary/12 text-primary'
+                            : 'bg-muted text-muted-foreground'
+                        )}
+                      >
+                        <FileText className="size-4" />
+                      </span>
+                      {t('nav.reports')}
+                    </Button>
+                  </SheetClose>
+                )}
 
                 <Separator className="my-2" />
 

@@ -158,7 +158,7 @@ export function NotificationPanel({ onCountChange }: NotificationPanelProps) {
         >
           <Bell className="size-[18px]" />
           {hasUnread && (
-            <span className="absolute -right-0.5 -top-0.5 flex min-size-[18px] items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-bold text-white shadow-sm">
+            <span className="absolute -right-0.5 -top-0.5 flex min-size-[18px] items-center justify-center rounded-full bg-emerald-500 px-1 text-[10px] font-bold text-white shadow-sm animate-pulse">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}

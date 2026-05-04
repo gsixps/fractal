@@ -109,19 +109,19 @@ export default function ReportsPage() {
   const handleDownloadCSV = useCallback(() => {
     if (!report) return
     const rows = [
-      ['3GSP Financial Report', report.period, '', ''],
-      ['Start Date', report.startDate, 'End Date', report.endDate],
+      ['Reporte Financiero 3GSP', report.period, '', ''],
+      ['Fecha Inicio', report.startDate, 'Fecha Fin', report.endDate],
       ['', '', '', ''],
-      ['Metric', 'Value', '', ''],
-      ['Total Invested', report.totalInvested.toFixed(2), '', ''],
-      ['Total Dividends', report.totalDividends.toFixed(2), '', ''],
-      ['Total Withdrawn', report.totalWithdrawn.toFixed(2), '', ''],
-      ['Net Return', report.netReturn.toFixed(2), '', ''],
-      ['Active Investments', String(report.activeInvestments), '', ''],
-      ['All-Time Invested', report.allTimeInvested.toFixed(2), '', ''],
-      ['All-Time Dividends', report.allTimeDividends.toFixed(2), '', ''],
+      ['Métrica', 'Valor', '', ''],
+      ['Total Invertido', report.totalInvested.toFixed(2), '', ''],
+      ['Total Dividendos', report.totalDividends.toFixed(2), '', ''],
+      ['Total Retirado', report.totalWithdrawn.toFixed(2), '', ''],
+      ['Retorno Neto', report.netReturn.toFixed(2), '', ''],
+      ['Inversiones Activas', String(report.activeInvestments), '', ''],
+      ['Total Histórico Invertido', report.allTimeInvested.toFixed(2), '', ''],
+      ['Total Histórico Dividendos', report.allTimeDividends.toFixed(2), '', ''],
       ['', '', '', ''],
-      ['Top Assets', 'Invested (USD)', 'Annual Yield (%)', ''],
+      ['Principales Activos', 'Invertido (USD)', 'Yield Anual (%)', ''],
       ...report.topAssets.map((a) => [
         a.name,
         a.invested.toFixed(2),
@@ -171,10 +171,10 @@ export default function ReportsPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
           <div>
             <h1 className="gsp-serif text-2xl font-normal tracking-tight sm:text-3xl">
-              Financial Reports
+              Reportes Financieros
             </h1>
             <p className="text-sm text-muted-foreground mt-1 font-light">
-              Track your investment performance and financial overview
+              Sigue el rendimiento de tus inversiones y resumen financiero
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -184,10 +184,10 @@ export default function ReportsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="30">Last 30 Days</SelectItem>
-                <SelectItem value="90">Last 90 Days</SelectItem>
-                <SelectItem value="365">Last Year</SelectItem>
-                <SelectItem value="all">All Time</SelectItem>
+                <SelectItem value="30">Últimos 30 días</SelectItem>
+                <SelectItem value="90">Últimos 90 días</SelectItem>
+                <SelectItem value="365">Último año</SelectItem>
+                <SelectItem value="all">Todo el tiempo</SelectItem>
               </SelectContent>
             </Select>
             <Button
@@ -206,30 +206,30 @@ export default function ReportsPage() {
         {/* Overview Cards */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-8">
           <ReportCard
-            title="Total Invested"
+            title="Total Invertido"
             value={fmtUSD(report?.totalInvested || 0)}
             icon={Wallet}
-            description={`All-time: ${fmtUSD(report?.allTimeInvested || 0)}`}
+            description={`Todo el tiempo: ${fmtUSD(report?.allTimeInvested || 0)}`}
           />
           <ReportCard
-            title="Dividends Received"
+            title="Dividendos Recibidos"
             value={fmtUSD(report?.totalDividends || 0)}
             icon={DollarSign}
             valueColorClass="text-primary"
-            description={`All-time: ${fmtUSD(report?.allTimeDividends || 0)}`}
+            description={`Todo el tiempo: ${fmtUSD(report?.allTimeDividends || 0)}`}
           />
           <ReportCard
-            title="Net Return"
+            title="Retorno Neto"
             value={fmtUSD(report?.netReturn || 0)}
             icon={report && report.netReturn >= 0 ? TrendingUp : ArrowDownRight}
             valueColorClass={report && report.netReturn >= 0 ? 'text-primary' : 'text-red-600 dark:text-red-400'}
-            description={report && report.netReturn >= 0 ? 'Positive returns' : 'Negative returns'}
+            description={report && report.netReturn >= 0 ? 'Retornos positivos' : 'Retornos negativos'}
           />
           <ReportCard
-            title="Active Investments"
+            title="Inversiones Activas"
             value={String(report?.activeInvestments || 0)}
             icon={BarChart3}
-            description={report ? `${report.period} period` : ''}
+            description={report ? `Período ${report.period}` : ''}
           />
         </div>
 
@@ -240,17 +240,17 @@ export default function ReportsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <PieChart className="h-5 w-5 text-primary" />
-                Top Assets by Investment
+                Activos con Mayor Inversión
               </CardTitle>
               <CardDescription className="font-light">
-                Your highest allocation assets in this period
+                Tus activos con mayor asignación en este período
               </CardDescription>
             </CardHeader>
             <CardContent>
               {!report?.topAssets?.length ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <Building2 className="h-12 w-12 text-muted-foreground/30 mb-3" />
-                  <p className="text-sm text-muted-foreground">No investments in this period</p>
+                  <p className="text-sm text-muted-foreground">Sin inversiones en este período</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -294,10 +294,10 @@ export default function ReportsPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <FileBarChart className="h-5 w-5 text-primary" />
-                Period Summary
+                Resumen del Período
               </CardTitle>
               <CardDescription className="font-light">
-                {report?.period || '—'} financial overview
+                {report?.period || '—'} resumen financiero
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -305,28 +305,28 @@ export default function ReportsPage() {
                 {/* Visual breakdown */}
                 <div className="grid grid-cols-2 gap-4">
                   <BreakdownItem
-                    label="Invested"
+                    label="Invertido"
                     value={report?.totalInvested || 0}
                     total={report?.totalInvested || 1}
                     color="bg-emerald-500"
                     icon={<ArrowUpRight className="h-4 w-4" />}
                   />
                   <BreakdownItem
-                    label="Dividends"
+                    label="Dividendos"
                     value={report?.totalDividends || 0}
                     total={report?.totalInvested || 1}
                     color="bg-amber-500"
                     icon={<DollarSign className="h-4 w-4" />}
                   />
                   <BreakdownItem
-                    label="Withdrawn"
+                    label="Retirado"
                     value={report?.totalWithdrawn || 0}
                     total={report?.totalInvested || 1}
                     color="bg-sky-500"
                     icon={<ArrowDownRight className="h-4 w-4" />}
                   />
                   <BreakdownItem
-                    label="Net Return"
+                    label="Retorno Neto"
                     value={Math.abs(report?.netReturn || 0)}
                     total={report?.totalInvested || 1}
                     color={report && report.netReturn >= 0 ? 'bg-primary' : 'bg-red-500'}
@@ -338,12 +338,12 @@ export default function ReportsPage() {
                 {report && (
                   <div className="mt-4 rounded-xl bg-muted/50 p-4 border border-border/30">
                     <p className="text-xs font-medium text-muted-foreground mb-1">
-                      Key Insight
+                      Insight Clave
                     </p>
                     <p className="text-sm font-light text-foreground/80">
                       {report.totalInvested > 0
-                        ? `Your dividend yield this period is ${((report.totalDividends / report.totalInvested) * 100).toFixed(1)}% on ${fmtUSD(report.totalInvested)} invested across ${report.activeInvestments} active investment${report.activeInvestments !== 1 ? 's' : ''}.`
-                        : 'Start investing to see your financial performance insights here.'}
+                        ? `Tu rendimiento de dividendos en este período es ${((report.totalDividends / report.totalInvested) * 100).toFixed(1)}% sobre ${fmtUSD(report.totalInvested)} invertidos en ${report.activeInvestments} inversión${report.activeInvestments !== 1 ? 'es' : ''} activa${report.activeInvestments !== 1 ? 's' : ''}.`
+                        : 'Comienza a invertir para ver tus insights de rendimiento financiero aquí.'}
                     </p>
                   </div>
                 )}
@@ -363,9 +363,9 @@ export default function ReportsPage() {
                   <BarChart3 className="h-5 w-5" />
                 </div>
                 <div>
-                  <CardTitle className="text-white text-lg">All-Time Portfolio</CardTitle>
+                  <CardTitle className="text-white text-lg">Portafolio Histórico</CardTitle>
                   <CardDescription className="text-white/70 font-light">
-                    Your complete investment history at a glance
+                    Historial completo de inversiones de un vistazo
                   </CardDescription>
                 </div>
               </div>
@@ -373,15 +373,15 @@ export default function ReportsPage() {
             <CardContent className="relative">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div className="rounded-xl bg-white/10 p-4 backdrop-blur-sm">
-                  <p className="text-xs text-white/70 font-light">All-Time Invested</p>
+                  <p className="text-xs text-white/70 font-light">Total Histórico Invertido</p>
                   <p className="text-xl font-bold mt-1">{fmtUSD(report.allTimeInvested)}</p>
                 </div>
                 <div className="rounded-xl bg-white/10 p-4 backdrop-blur-sm">
-                  <p className="text-xs text-white/70 font-light">All-Time Dividends</p>
+                  <p className="text-xs text-white/70 font-light">Total Histórico Dividendos</p>
                   <p className="text-xl font-bold mt-1">{fmtUSD(report.allTimeDividends)}</p>
                 </div>
                 <div className="rounded-xl bg-white/10 p-4 backdrop-blur-sm">
-                  <p className="text-xs text-white/70 font-light">Overall Return</p>
+                  <p className="text-xs text-white/70 font-light">Retorno Global</p>
                   <p className="text-xl font-bold mt-1">
                     {fmtPercent(
                       report.allTimeInvested > 0

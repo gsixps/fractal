@@ -15,7 +15,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from '@/components/ui/sheet'
-import { Separator } from '@/components/ui/separator'
 
 const TYPES = [
   { key: 'all', label: 'Todos', icon: <Search className="size-3.5" /> },
@@ -152,41 +151,44 @@ export default function MarketplacePage() {
           </div>
 
           {/* Desktop filters */}
-          <div className="hidden sm:flex flex-wrap items-center gap-2.5 mt-5">
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mr-1">Tipo</span>
-            {TYPES.map(t => (
-              <Button key={t.key} variant={typeFilter === t.key ? 'default' : 'outline'} size="sm"
-                onClick={() => setTypeFilter(t.key)}
-                className={
-                  typeFilter === t.key
-                    ? 'bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shadow-sm cursor-pointer'
-                    : 'gap-1.5 text-muted-foreground border-border/50 hover:text-foreground cursor-pointer'
-                }>
-                {t.icon} {t.label}
-              </Button>
-            ))}
-            <Separator orientation="vertical" className="mx-2 h-5" />
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mr-1">País</span>
-            {COUNTRIES.map(c => (
-              <Button key={c.key} variant={countryFilter === c.key ? 'default' : 'outline'} size="sm"
-                onClick={() => setCountryFilter(c.key)}
-                className={
-                  countryFilter === c.key
-                    ? 'bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shadow-sm cursor-pointer'
-                    : 'gap-1.5 text-muted-foreground border-border/50 hover:text-foreground cursor-pointer'
-                }>
-                {c.flag} {c.label}
-              </Button>
-            ))}
-            <div className="ml-auto flex items-center gap-1.5">
-              <ArrowUpDown className="size-3.5 text-muted-foreground" />
+          <div className="hidden sm:flex flex-wrap items-center gap-2 mt-5">
+            <div className="flex items-center gap-1.5 bg-card/80 backdrop-blur-sm border border-border/30 rounded-full px-2 py-1">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">Tipo</span>
+              {TYPES.map(t => (
+                <Button key={t.key} variant={typeFilter === t.key ? 'default' : 'ghost'} size="sm"
+                  onClick={() => setTypeFilter(t.key)}
+                  className={
+                    typeFilter === t.key
+                      ? 'bg-primary hover:bg-primary/90 text-primary-foreground gap-1 shadow-sm cursor-pointer h-8 rounded-full text-xs'
+                      : 'gap-1 text-muted-foreground hover:text-foreground cursor-pointer h-8 rounded-full text-xs'
+                  }>
+                  {t.icon} {t.label}
+                </Button>
+              ))}
+            </div>
+            <div className="flex items-center gap-1.5 bg-card/80 backdrop-blur-sm border border-border/30 rounded-full px-2 py-1">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">País</span>
+              {COUNTRIES.map(c => (
+                <Button key={c.key} variant={countryFilter === c.key ? 'default' : 'ghost'} size="sm"
+                  onClick={() => setCountryFilter(c.key)}
+                  className={
+                    countryFilter === c.key
+                      ? 'bg-primary hover:bg-primary/90 text-primary-foreground gap-1 shadow-sm cursor-pointer h-8 rounded-full text-xs'
+                      : 'gap-1 text-muted-foreground hover:text-foreground cursor-pointer h-8 rounded-full text-xs'
+                  }>
+                  {c.flag} {c.label}
+                </Button>
+              ))}
+            </div>
+            <div className="ml-auto flex items-center gap-1.5 bg-card/80 backdrop-blur-sm border border-border/30 rounded-full px-2 py-1">
+              <ArrowUpDown className="size-3 text-muted-foreground ml-1" />
               {SORTS.map(s => (
                 <Button key={s.key} variant={sortBy === s.key ? 'default' : 'ghost'} size="sm"
                   onClick={() => setSortBy(s.key)}
                   className={
                     sortBy === s.key
-                      ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer'
-                      : 'text-muted-foreground hover:text-foreground text-xs cursor-pointer'
+                      ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer h-8 rounded-full text-xs'
+                      : 'text-muted-foreground hover:text-foreground cursor-pointer h-8 rounded-full text-xs'
                   }>
                   {s.label}
                 </Button>
@@ -231,7 +233,7 @@ export default function MarketplacePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {sorted.map((asset) => (
               <Card key={asset.id}
-                className="overflow-hidden gsp-card-hover border-border/40 group h-full flex flex-col"
+                className="overflow-hidden gsp-card-hover gsp-shine border-border/40 group h-full flex flex-col"
                 onClick={() => selectAsset(asset.id)}
                 role="button"
                 tabIndex={0}

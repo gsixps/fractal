@@ -119,7 +119,7 @@ export function InvestmentDialog({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           amount: totalAmount,
-          currency: 'clp',
+          currency: 'usd',
           assetId: asset.id,
           fractions: quantity,
         }),

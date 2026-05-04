@@ -275,6 +275,62 @@
     box-shadow:
       0 4px 6px -1px oklch(0.45 0.155 162 / 0.08),
       0 10px 25px -5px oklch(0.45 0.155 162 / 0.12);
+    border-color: oklch(0.45 0.155 162 / 0.25);
+  }
+
+  /* ── Shine Shimmer ── */
+  .gsp-shine {
+    position: relative;
+    overflow: hidden;
+  }
+  .gsp-shine::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      oklch(1 0 0 / 0.08) 40%,
+      oklch(1 0 0 / 0.14) 50%,
+      oklch(1 0 0 / 0.08) 60%,
+      transparent 100%
+    );
+    transition: none;
+    pointer-events: none;
+  }
+  .gsp-shine:hover::after {
+    animation: gsp-shine-slide 600ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .dark .gsp-shine::after {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      oklch(0.9 0.02 162 / 0.06) 40%,
+      oklch(0.9 0.02 162 / 0.10) 50%,
+      oklch(0.9 0.02 162 / 0.06) 60%,
+      transparent 100%
+    );
+  }
+
+  /* ── Gradient Border ── */
+  .gsp-gradient-border {
+    position: relative;
+    background-clip: padding-box;
+  }
+  .gsp-gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, var(--gsp-gradient-start), var(--gsp-gradient-end), oklch(0.60 0.14 140));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
   }
 
   .gsp-card-interactive {
@@ -397,6 +453,11 @@
 @keyframes gsp-shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
+}
+
+@keyframes gsp-shine-slide {
+  0% { left: -100%; }
+  100% { left: 150%; }
 }
 
 @keyframes gsp-pulse-soft {

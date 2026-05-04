@@ -9,6 +9,17 @@ import {
   Sun,
   Moon,
   ExternalLink,
+  Globe,
+  DollarSign,
+  MapPin,
+  Mail,
+  Phone,
+  Building2,
+  FileText,
+  ShieldCheck,
+  Scale,
+  Users,
+  BookOpen,
 } from 'lucide-react'
 
 export function Footer() {
@@ -21,7 +32,7 @@ export function Footer() {
   const currency = useAppStore((s) => s.currency)
   const setCurrency = useAppStore((s) => s.setCurrency)
 
-  const [currencies, setCurrencies] = useState<Array<{code: string; name: string; symbol: string; flagEmoji?: string; isDefault?: boolean; active?: boolean}>>([])
+  const [currencies, setCurrencies] = useState<Array<{code: string; name: string; symbol: string; flag?: string; isActive?: boolean}>>([])
 
   useEffect(() => {
     fetch('/api/currencies')
@@ -30,104 +41,209 @@ export function Footer() {
       .catch(() => {})
   }, [])
 
+  const companyLinks = [
+    { label: 'Sobre Nosotros', onClick: () => navigate('home') },
+    { label: 'Cómo Funciona', onClick: () => navigate('home') },
+    { label: 'Marketplace', onClick: () => navigate('marketplace') },
+    { label: 'Mercado Secundario', onClick: () => navigate('secondary-market') },
+  ]
+
+  const supportLinks = [
+    { label: 'Centro de Ayuda', onClick: () => {} },
+    { label: 'Términos y Condiciones', onClick: () => {} },
+    { label: 'Política de Privacidad', onClick: () => {} },
+    { label: 'Política de Cookies', onClick: () => {} },
+  ]
+
   return (
-    <footer className="mt-auto border-t bg-foreground text-background">
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {/* Main Row */}
-        <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
-          {/* Brand */}
-          <div className="flex items-center gap-3">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-white/10">
-              <span className="text-sm font-bold text-emerald-400">G</span>
+    <footer className="mt-auto border-t border-border/40 bg-foreground text-background">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Main Footer Content */}
+        <div className="py-12 sm:py-16">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
+            {/* Column 1: Brand + Company Info */}
+            <div className="sm:col-span-2 lg:col-span-1">
+              <div className="flex items-center gap-2.5 mb-5">
+                <div className="flex size-9 items-center justify-center rounded-lg bg-white/10">
+                  <span className="text-sm font-bold text-emerald-400">G</span>
+                </div>
+                <span className="text-xl font-bold tracking-tight text-white">
+                  3GSP
+                </span>
+              </div>
+              <p className="text-sm text-white/50 leading-relaxed font-light max-w-xs">
+                Inversión inmobiliaria fraccionada. Diversifica tu portafolio con activos reales desde $50 USD.
+              </p>
+              <div className="mt-5 space-y-2">
+                <div className="flex items-center gap-2 text-xs text-white/40">
+                  <MapPin className="size-3.5 shrink-0" />
+                  <span>Santiago, Chile · Miami, USA</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-white/40">
+                  <Mail className="size-3.5 shrink-0" />
+                  <span>contacto@3gsp.com</span>
+                </div>
+              </div>
             </div>
+
+            {/* Column 2: Company */}
             <div>
-              <span className="text-lg font-bold tracking-tight text-white">
-                3GSP
-              </span>
+              <h4 className="text-xs font-bold uppercase tracking-[0.15em] text-white/60 mb-4 flex items-center gap-2">
+                <Building2 className="size-3.5" /> Empresa
+              </h4>
+              <ul className="space-y-2.5">
+                {companyLinks.map((link) => (
+                  <li key={link.label}>
+                    <button
+                      onClick={link.onClick}
+                      className="text-sm text-white/45 hover:text-emerald-400 transition-colors duration-200 font-light"
+                    >
+                      {link.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Column 3: Legal + Support */}
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-[0.15em] text-white/60 mb-4 flex items-center gap-2">
+                <Scale className="size-3.5" /> Legal y Soporte
+              </h4>
+              <ul className="space-y-2.5">
+                {supportLinks.map((link) => (
+                  <li key={link.label}>
+                    <button
+                      onClick={link.onClick}
+                      className="text-sm text-white/45 hover:text-emerald-400 transition-colors duration-200 font-light"
+                    >
+                      {link.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              {/* Regulatory badges */}
+              <div className="mt-6 flex items-center gap-2">
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/5 border border-white/8">
+                  <ShieldCheck className="size-3 text-emerald-400" />
+                  <span className="text-[10px] font-semibold text-white/50">CMF</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/5 border border-white/8">
+                  <FileText className="size-3 text-emerald-400" />
+                  <span className="text-[10px] font-semibold text-white/50">SEC</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/5 border border-white/8">
+                  <Users className="size-3 text-emerald-400" />
+                  <span className="text-[10px] font-semibold text-white/50">AML</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Column 4: Newsletter + Social */}
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-[0.15em] text-white/60 mb-4 flex items-center gap-2">
+                <BookOpen className="size-3.5" /> Newsletter
+              </h4>
+              <p className="text-sm text-white/45 font-light mb-3">
+                Recibe oportunidades de inversión cada semana.
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  placeholder="tu@email.com"
+                  className="flex-1 h-9 rounded-lg bg-white/5 border border-white/10 px-3 text-xs text-white placeholder:text-white/25 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 focus:border-emerald-500/30"
+                />
+                <button className="h-9 px-3 rounded-lg gsp-gradient text-white text-xs font-semibold hover:opacity-90 transition-opacity duration-200 shrink-0">
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <Separator className="bg-white/8" />
+
+        {/* Bottom Bar */}
+        <div className="py-5">
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+            {/* Left: Copyright */}
+            <div className="flex items-center gap-3">
+              <p className="text-xs text-white/35 font-light">
+                &copy; {new Date().getFullYear()} 3GSP. Todos los derechos reservados.
+              </p>
+              <a
+                href="https://galaxylabs.site"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium text-white/35 transition-colors hover:bg-white/8 hover:text-emerald-400"
+              >
+                powered by
+                <span className="font-bold text-emerald-400/70">GALAXY</span>
+                <ExternalLink className="size-2.5" />
+              </a>
+            </div>
+
+            {/* Right: Controls */}
+            <div className="flex items-center gap-1.5">
+              {/* Theme Toggle */}
+              <button
+                onClick={() => setAppTheme(appTheme === 'dark' ? 'light' : 'dark')}
+                className="flex size-7 items-center justify-center rounded-lg text-white/40 transition-colors hover:bg-white/8 hover:text-emerald-400"
+                aria-label="Toggle theme"
+              >
+                {appTheme === 'dark' ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
+              </button>
+
+              <div className="mx-1 h-3 w-px bg-white/8" />
+
+              {/* Language Toggle */}
+              <div className="flex items-center gap-0.5">
+                <button
+                  onClick={() => setLanguage('es')}
+                  className={cn(
+                    'flex size-7 items-center justify-center rounded-lg text-[11px] font-semibold transition-colors',
+                    language === 'es'
+                      ? 'bg-emerald-500/20 text-emerald-400'
+                      : 'text-white/35 hover:bg-white/8 hover:text-white/55'
+                  )}
+                >
+                  ES
+                </button>
+                <button
+                  onClick={() => setLanguage('en')}
+                  className={cn(
+                    'flex size-7 items-center justify-center rounded-lg text-[11px] font-semibold transition-colors',
+                    language === 'en'
+                      ? 'bg-emerald-500/20 text-emerald-400'
+                      : 'text-white/35 hover:bg-white/8 hover:text-white/55'
+                  )}
+                >
+                  EN
+                </button>
+              </div>
+
+              <div className="mx-1 h-3 w-px bg-white/8" />
+
+              {/* Currency Selector */}
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="h-7 rounded-lg border border-white/8 bg-white/5 px-2 text-[11px] font-semibold text-white/50 text-center focus:outline-none focus:ring-1 focus:ring-emerald-500/50"
+              >
+                {currencies.length > 0 ? currencies.filter(c => c.isActive).map((c) => (
+                  <option key={c.code} value={c.code}>{c.flag || ''} {c.code}</option>
+                )) : (
+                  <option value="USD">🇺🇸 USD</option>
+                )}
+              </select>
             </div>
           </div>
 
-          {/* Powered by GALAXY */}
-          <a
-            href="https://galaxylabs.site"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-white/60 transition-colors hover:bg-white/10 hover:text-emerald-400"
-          >
-            powered by
-            <span className="font-bold text-emerald-400">GALAXY</span>
-            <ExternalLink className="size-3" />
-          </a>
-        </div>
-
-        <Separator className="my-4 bg-white/10" />
-
-        {/* Bottom Row */}
-        <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
-          <p className="text-center text-xs text-white/40 sm:text-left">
-            &copy; {new Date().getFullYear()} 3GSP. Todos Los Derechos reservados.
+          {/* Risk Warning */}
+          <p className="mt-4 text-center text-[10px] leading-relaxed text-white/20">
+            {t('footer.riskWarning')}
           </p>
-
-          {/* Controls */}
-          <div className="flex items-center gap-1">
-            {/* Theme Toggle */}
-            <button
-              onClick={() => setAppTheme(appTheme === 'dark' ? 'light' : 'dark')}
-              className="flex size-7 items-center justify-center rounded-md text-white/50 transition-colors hover:bg-white/10 hover:text-emerald-400"
-              aria-label="Toggle theme"
-            >
-              {appTheme === 'dark' ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
-            </button>
-
-            <span className="mx-1 text-white/10">|</span>
-
-            {/* Language Toggle */}
-            <div className="flex items-center gap-0.5">
-              <button
-                onClick={() => setLanguage('es')}
-                className={cn(
-                  'flex size-7 items-center justify-center rounded-md text-[11px] font-medium transition-colors',
-                  language === 'es'
-                    ? 'bg-emerald-500/20 text-emerald-400'
-                    : 'text-white/40 hover:bg-white/10 hover:text-white/60'
-                )}
-              >
-                ES
-              </button>
-              <button
-                onClick={() => setLanguage('en')}
-                className={cn(
-                  'flex size-7 items-center justify-center rounded-md text-[11px] font-medium transition-colors',
-                  language === 'en'
-                    ? 'bg-emerald-500/20 text-emerald-400'
-                    : 'text-white/40 hover:bg-white/10 hover:text-white/60'
-                )}
-              >
-                EN
-              </button>
-            </div>
-
-            <span className="mx-1 text-white/10">|</span>
-
-            {/* Currency Selector */}
-            <select
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value)}
-              className="h-7 rounded-md border border-white/10 bg-white/5 px-2 text-[11px] font-medium text-white/60 text-center focus:outline-none focus:ring-1 focus:ring-emerald-500/50"
-            >
-              {currencies.length > 0 ? currencies.filter(c => c.active).map((c) => (
-                <option key={c.code} value={c.code}>{c.flagEmoji || ''} {c.code}</option>
-              )) : (
-                <option value="USD">🇺🇸 USD</option>
-              )}
-            </select>
-          </div>
         </div>
-
-        {/* Risk Warning */}
-        <p className="mt-3 text-center text-[11px] leading-relaxed text-white/25">
-          {t('footer.riskWarning')}
-        </p>
       </div>
     </footer>
   )

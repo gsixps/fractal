@@ -106,7 +106,9 @@ function StatCard({
   accentColor?: string
 }) {
   return (
-    <Card className="relative overflow-hidden border-border/40 gsp-card-hover">
+    <Card className="relative overflow-hidden border-border/40 gsp-card-hover gsp-shine">
+      {/* Subtle top gradient accent bar */}
+      <div className="absolute top-0 left-0 right-0 h-[3px] gsp-gradient opacity-60 rounded-t-xl" />
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardDescription className="text-sm font-medium text-muted-foreground">
           {title}
@@ -123,8 +125,8 @@ function StatCard({
       <div className="px-6 pb-4">
         <p className="text-xs text-muted-foreground font-light">{description}</p>
       </div>
-      {/* Subtle corner accent — no harsh colors */}
-      <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-primary/4" />
+      {/* Subtle corner accent */}
+      <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-primary/[0.03]" />
     </Card>
   )
 }
@@ -156,7 +158,7 @@ function InvestmentCard({
   const coverUrl = investment.asset.images[0]?.url
 
   return (
-    <Card className="gsp-card-interactive border-border/40">
+    <Card className="gsp-card-hover gsp-shine border-border/40">
       <CardContent className="p-4 sm:p-5">
         <div className="flex gap-4">
           <div className="hidden sm:block h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-muted">
@@ -322,6 +324,30 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Portfolio Summary Gradient Banner */}
+        <div className="mb-8 relative overflow-hidden rounded-2xl gsp-gradient p-6 sm:p-8 text-white">
+          <div className="absolute -right-16 -top-16 w-48 h-48 rounded-full bg-white/5" />
+          <div className="absolute right-20 -bottom-8 w-32 h-32 rounded-full bg-white/5" />
+          <div className="relative z-10">
+            <p className="text-sm text-white/70 font-light mb-1">Valor Total del Portafolio</p>
+            <p className="text-3xl sm:text-4xl font-bold tracking-tight">{formatUSD(portfolioValue)}</p>
+            <div className="mt-4 flex flex-wrap gap-4 text-sm text-white/70">
+              <div>
+                <span className="text-white/50 font-light">Invertido: </span>
+                <span className="font-semibold text-white">{formatUSD(user?.totalInvested || 0)}</span>
+              </div>
+              <div>
+                <span className="text-white/50 font-light">Dividendos: </span>
+                <span className="font-semibold text-emerald-200">{formatUSD(data.totalDividends)}</span>
+              </div>
+              <div>
+                <span className="text-white/50 font-light">Activos: </span>
+                <span className="font-semibold text-white">{data.investments.length}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* ── 1. Stats Row ── */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-8">
           <StatCard
@@ -356,7 +382,7 @@ export default function DashboardPage() {
         <section className="mb-8">
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold">Mis Inversiones</h2>
+              <h2 className="gsp-serif text-xl font-normal tracking-tight">Mis Inversiones</h2>
               <p className="text-sm text-muted-foreground font-light">
                 {data.investments.length} activo{data.investments.length !== 1 ? 's' : ''} en tu portafolio
               </p>

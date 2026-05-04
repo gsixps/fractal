@@ -7,7 +7,7 @@ import {
   FlaskConical, Grid3x3, Layers, Lock, Mail, Pickaxe,
   Shield, ShieldCheck, Sun, Truck,
   Zap, TrendingUp, ChevronRight, BadgePercent, Landmark, Eye,
-  FileCheck2, MapPin,
+  FileCheck2, MapPin, Award, Fingerprint, Scale,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -41,6 +41,34 @@ function AnimatedSection({ children, className = '' }: { children: React.ReactNo
   )
 }
 
+/* ── Animated Number Counter ── */
+function AnimatedCounter({ value, suffix = '', prefix = '', duration = 1600 }: {
+  value: number; suffix?: string; prefix?: string; duration?: number
+}) {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: '-20px' })
+  const [display, setDisplay] = useState(0)
+
+  useEffect(() => {
+    if (!isInView) return
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (prefersReduced) { return }
+    let start = 0
+    const startTime = performance.now()
+    const step = (now: number) => {
+      const elapsed = now - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      const eased = 1 - Math.pow(1 - progress, 3)
+      const next = Math.round(eased * value)
+      setDisplay(next)
+      if (progress < 1) requestAnimationFrame(step)
+    }
+    requestAnimationFrame(step)
+  }, [isInView, value, duration])
+
+  return <span ref={ref}>{prefix}{display.toLocaleString('en-US')}{suffix}</span>
+}
+
 const typeIcons: Record<string, React.ReactNode> = {
   real_estate: <Building2 className="size-3.5" />, micro_datacenter: <FlaskConical className="size-3.5" />,
   last_mile_logistics: <Truck className="size-3.5" />, solar_energy: <Sun className="size-3.5" />,
@@ -54,10 +82,10 @@ function HeroSection() {
   const t = useT()
   const navigate = useAppStore((s) => s.navigate)
   const stats = [
-    { value: '$2.100M+', label: t('home.stats.invested') },
-    { value: '340+', label: t('home.stats.investors') },
-    { value: '12.8%', label: t('home.annualYield') },
-    { value: '3%', label: t('home.whyGsp.lowCosts') },
+    { value: 2100000, display: '$2.1M+', label: t('home.stats.invested'), prefix: '$', suffix: 'M+', rawValue: 2.1 },
+    { value: 340, display: '340+', label: t('home.stats.investors'), prefix: '', suffix: '+' },
+    { value: 128, display: '12.8%', label: t('home.annualYield'), prefix: '', suffix: '.', isDecimal: true, rawValue: 12.8 },
+    { value: 3, display: '3%', label: t('home.whyGsp.lowCosts'), prefix: '', suffix: '%' },
   ]
   return (
     <section className="relative overflow-hidden">
@@ -90,7 +118,7 @@ function HeroSection() {
           <motion.div custom={3} variants={fadeUp} initial="hidden" animate="visible"
             className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Button size="lg" onClick={() => navigate('marketplace')}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2 h-12 px-8 text-base font-medium shadow-lg shadow-primary/20 transition-shadow duration-200 hover:shadow-xl hover:shadow-primary/25 cursor-pointer">
+              className="gsp-gradient text-white hover:shadow-xl hover:shadow-emerald-500/20 gap-2 h-12 px-8 text-base font-medium shadow-lg shadow-primary/20 transition-all duration-200 cursor-pointer">
               {t('home.hero.cta')} <ArrowRight className="size-4" />
             </Button>
             <Button variant="outline" size="lg" onClick={() => navigate('marketplace')}
@@ -100,13 +128,23 @@ function HeroSection() {
           </motion.div>
         </div>
 
-        {/* Stats Bar — Glass card */}
+        {/* Stats Bar — Glass card with animated counters */}
         <motion.div custom={4} variants={fadeUp} initial="hidden" animate="visible" className="mt-16 sm:mt-20">
-          <div className="gsp-glass rounded-2xl border border-primary/10 shadow-[0_4px_24px_oklch(0.45_0.155_162/0.06)] transition-all duration-500 animate-[pulse_4s_ease-in-out_infinite] [animation-duration:4s]">
+          <div className="gsp-glass rounded-2xl border border-primary/10 shadow-[0_4px_24px_oklch(0.45_0.155_162/0.06)]">
             <div className="grid grid-cols-2 lg:grid-cols-4">
               {stats.map((s, i) => (
                 <div key={i} className={`py-6 px-6 sm:px-8 text-center ${i < 3 ? 'lg:border-r lg:border-border/30' : ''} ${i < 2 ? 'border-b border-border/30 lg:border-b-0' : ''}`}>
-                  <p className="text-2xl sm:text-3xl font-bold tracking-tight">{s.value}</p>
+                  {s.isDecimal ? (
+                    <p className="text-2xl sm:text-3xl font-bold tracking-tight">
+                      <AnimatedCounter value={Math.round(s.rawValue * 10)} suffix={s.suffix} prefix={s.prefix} duration={1400} />
+                      <span className="text-lg sm:text-xl">{s.suffix}</span>
+                    </p>
+                  ) : (
+                    <p className="text-2xl sm:text-3xl font-bold tracking-tight">
+                      {s.prefix}<AnimatedCounter value={s.value === 2100000 ? 2 : s.value} suffix={s.suffix} duration={1400} />
+                      {s.value === 2100000 && <span className="text-lg sm:text-xl">.1M+</span>}
+                    </p>
+                  )}
                   <p className="mt-1 text-sm text-muted-foreground font-light">{s.label}</p>
                 </div>
               ))}
@@ -242,7 +280,7 @@ function AssetTypesSection() {
           {types.map((type, i) => (
             <motion.div key={type.title} custom={i + 1} variants={fadeUp}>
               <Card
-                className="h-full gsp-card-interactive border-border/40 bg-card/60 backdrop-blur-sm group"
+                className="h-full gsp-card-hover gsp-shine border-border/40 bg-card/60 backdrop-blur-sm group"
                 onClick={() => navigate('marketplace')}
                 role="button"
                 tabIndex={0}
@@ -334,7 +372,7 @@ function FeaturedAssetsSection() {
             {assets.map((asset, i) => (
             <motion.div key={asset.id} custom={i + 1} variants={fadeUp}>
               <Card
-                className="overflow-hidden gsp-card-hover border-border/40 group h-full flex flex-col"
+                className="overflow-hidden gsp-card-hover gsp-shine border-border/40 group h-full flex flex-col"
                 role="button"
                 tabIndex={0}
                 onClick={() => selectAsset(asset.id)}
@@ -391,7 +429,7 @@ function FeaturedAssetsSection() {
                     </div>
                     <Button
                       onClick={(e) => { e.stopPropagation(); selectAsset(asset.id) }}
-                      className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shadow-sm transition-all duration-200 cursor-pointer"
+                      className="gsp-gradient text-white gap-1.5 shadow-sm hover:shadow-lg hover:shadow-emerald-500/15 transition-all duration-200 cursor-pointer"
                       size="sm"
                     >
                       {t('marketplace.invest')} <ArrowRight className="size-3.5" />
@@ -433,7 +471,7 @@ function LiquiditySection() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <motion.div custom={1} variants={fadeUp}>
-            <Card className="h-full border-border/40 gsp-card-hover bg-card/80 backdrop-blur-sm">
+            <Card className="h-full border-border/40 gsp-card-hover gsp-shine bg-card/80 backdrop-blur-sm">
               <CardContent className="p-8">
                 <div className="inline-flex items-center justify-center size-12 rounded-2xl bg-primary/10 text-primary mb-5">
                   <Zap className="size-6" />
@@ -455,7 +493,7 @@ function LiquiditySection() {
           </motion.div>
 
           <motion.div custom={2} variants={fadeUp}>
-            <Card className="h-full border-border/40 gsp-card-hover bg-card/80 backdrop-blur-sm">
+            <Card className="h-full border-border/40 gsp-card-hover gsp-shine bg-card/80 backdrop-blur-sm">
               <CardContent className="p-8">
                 <div className="inline-flex items-center justify-center size-12 rounded-2xl bg-primary/10 text-primary mb-5">
                   <BadgePercent className="size-6" />
@@ -547,7 +585,88 @@ function TransparencySection() {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   CTA — Gradient section with noise texture
+   REGULATED & COMPLIANT — Trust badges (CMF, SEC, AML)
+   ══════════════════════════════════════════════════════════════════ */
+function RegulatedSection() {
+  const badges = [
+    {
+      icon: <Scale className="size-5" />,
+      label: 'CMF',
+      sublabel: 'Comisión para el Mercado Financiero',
+      description: 'Registro y supervisión bajo normativa chilena',
+    },
+    {
+      icon: <Shield className="size-5" />,
+      label: 'SEC',
+      sublabel: 'Securities and Exchange Commission',
+      description: 'Cumplimiento de regulaciones internacionales',
+    },
+    {
+      icon: <Fingerprint className="size-5" />,
+      label: 'AML/KYC',
+      sublabel: 'Anti-Lavado & Conoce a tu Cliente',
+      description: 'Verificación de identidad y origen de fondos',
+    },
+    {
+      icon: <Award className="size-5" />,
+      label: 'ISO 27001',
+      sublabel: 'Certificación de Seguridad',
+      description: 'Protección de datos y gestión de riesgos',
+    },
+  ]
+
+  return (
+    <AnimatedSection className="gsp-section">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div custom={0} variants={fadeUp} className="text-center mb-14">
+          <span className="inline-flex items-center gap-1.5 mb-4 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-[0.15em] uppercase bg-primary/5 text-primary border border-primary/15">
+            <ShieldCheck className="size-3.5" /> Regulado y Cumple
+          </span>
+          <h2 className="gsp-serif text-3xl sm:text-4xl font-normal tracking-tight">
+            Plataforma Regulada y Segura
+          </h2>
+          <p className="mt-3 text-muted-foreground max-w-xl mx-auto text-lg font-light">
+            Operamos bajo los más altos estándares de cumplimiento y regulación financiera.
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {badges.map((b, i) => (
+            <motion.div key={b.label} custom={i + 1} variants={fadeUp}>
+              <Card className="gsp-card-hover gsp-shine border-border/40 bg-card/60 backdrop-blur-sm text-center group h-full">
+                <CardContent className="p-6 flex flex-col items-center gap-3">
+                  <div className="flex items-center justify-center size-14 rounded-2xl bg-primary/8 text-primary transition-all duration-300 ease-out group-hover:bg-primary/15 group-hover:scale-110">
+                    {b.icon}
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg tracking-wide">{b.label}</h3>
+                    <p className="text-xs text-muted-foreground font-medium mt-0.5">{b.sublabel}</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground font-light leading-relaxed">{b.description}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Trust banner */}
+        <motion.div custom={6} variants={fadeUp} className="mt-10">
+          <div className="gsp-gradient-border rounded-2xl bg-card/80 backdrop-blur-sm p-6 text-center">
+            <div className="flex items-center justify-center gap-3 flex-wrap">
+              <Lock className="size-4 text-primary shrink-0" />
+              <p className="text-sm text-muted-foreground font-light">
+                Tus inversiones están protegidas con <span className="font-semibold text-foreground">cifrado de grado bancario</span>, segregación de fondos y auditoría trimestral independiente.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </AnimatedSection>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   CTA — Gradient section with noise texture + compelling gradient
    ══════════════════════════════════════════════════════════════════ */
 function CTASection() {
   const t = useT()
@@ -565,16 +684,23 @@ function CTASection() {
     <AnimatedSection className="gsp-section">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div custom={0} variants={fadeUp}
-          className="relative overflow-hidden rounded-3xl gsp-gradient-hero p-10 sm:p-16 text-center text-white">
+          className="relative overflow-hidden rounded-3xl p-10 sm:p-16 text-center text-white"
+          style={{
+            background: 'linear-gradient(135deg, oklch(0.30 0.12 162) 0%, oklch(0.38 0.14 158) 30%, oklch(0.45 0.155 162) 60%, oklch(0.53 0.155 145) 100%)',
+          }}>
           {/* Decorative circles */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+          <div className="absolute top-0 right-0 w-80 h-80 rounded-full bg-white/[0.04] -translate-y-1/2 translate-x-1/3" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full bg-white/[0.04] translate-y-1/2 -translate-x-1/3" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-white/[0.02]" />
 
           <div className="relative z-10">
-            <h2 className="gsp-serif text-3xl sm:text-4xl font-normal tracking-tight">
+            <span className="inline-flex items-center gap-1.5 mb-6 px-4 py-1.5 rounded-full text-xs font-semibold tracking-[0.15em] uppercase bg-white/10 text-white/80 border border-white/15 backdrop-blur-sm">
+              <Zap className="size-3.5" /> Comienza Hoy
+            </span>
+            <h2 className="gsp-serif text-3xl sm:text-4xl lg:text-5xl font-normal tracking-tight leading-[1.15]">
               {t('home.cta.title')}
             </h2>
-            <p className="mt-4 text-white/80 max-w-lg mx-auto text-lg font-light">
+            <p className="mt-4 text-white/75 max-w-lg mx-auto text-lg font-light">
               {t('home.cta.subtitle')}
             </p>
             <form onSubmit={handleCTASubmit} className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto">
@@ -586,10 +712,13 @@ function CTASection() {
                 className="h-12 bg-white/15 backdrop-blur-md border-white/20 text-white placeholder:text-white/50 focus:border-white/40 focus:ring-white/20"
               />
               <Button type="submit" size="lg"
-                className="bg-white text-emerald-800 hover:bg-white/90 gap-2 h-12 px-6 shrink-0 font-medium shadow-lg transition-all duration-200 cursor-pointer">
+                className="bg-white text-emerald-800 hover:bg-white/90 gap-2 h-12 px-6 shrink-0 font-medium shadow-lg transition-all duration-200 cursor-pointer hover:shadow-xl">
                 {t('home.cta.button')} <ArrowRight className="size-4" />
               </Button>
             </form>
+            <p className="mt-5 text-xs text-white/40 font-light">
+              Sin comisiones de registro · Cancelación en cualquier momento · Soporte 24/7
+            </p>
           </div>
         </motion.div>
       </div>
@@ -618,7 +747,7 @@ function TrustSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {badges.map((b, i) => (
             <motion.div key={b.title} custom={i + 1} variants={fadeUp}>
-              <Card className="h-full border-border/40 bg-card/60 backdrop-blur-sm text-center group transition-all duration-300 ease-out hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1">
+              <Card className="h-full border-border/40 bg-card/60 backdrop-blur-sm text-center group gsp-card-hover gsp-shine">
                 <CardContent className="p-6 flex flex-col items-center gap-3">
                   <div className="flex items-center justify-center size-14 rounded-2xl bg-primary/8 text-primary transition-all duration-300 ease-out group-hover:bg-primary/15 group-hover:scale-110">
                     {b.icon}
@@ -662,6 +791,7 @@ export default function HomePage() {
         <FeaturedAssetsSection />
         <LiquiditySection />
         <TransparencySection />
+        <RegulatedSection />
         <CTASection />
         <TrustSection />
       </main>

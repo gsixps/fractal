@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { Plus, Pencil, Trash2, Search, Loader2, FileText, Sparkles, Upload } from 'lucide-react'
+import { Plus, Pencil, Trash2, Search, Loader2, FileText, Sparkles, Upload, Bold, Italic, Heading1, Heading2, List, Quote } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -591,7 +591,132 @@ export function BlogView() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="b-content">Contenido</Label>
-              <Textarea id="b-content" value={form.content ?? ''} onChange={(e) => setForm({ ...form, content: e.target.value })} rows={8} />
+              {/* Rich Text Toolbar */}
+              <div className="flex items-center gap-0.5 rounded-lg border bg-muted/30 p-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 cursor-pointer"
+                  title="Negrita"
+                  onClick={() => {
+                    const textarea = document.getElementById('b-content') as HTMLTextAreaElement
+                    if (textarea) {
+                      const start = textarea.selectionStart
+                      const end = textarea.selectionEnd
+                      const text = form.content ?? ''
+                      const before = text.slice(0, start)
+                      const selected = text.slice(start, end)
+                      const after = text.slice(end)
+                      setForm({ ...form, content: `${before}**${selected || 'texto'}**${after}` })
+                    }
+                  }}
+                >
+                  <Bold className="size-3.5" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 cursor-pointer"
+                  title="Cursiva"
+                  onClick={() => {
+                    const textarea = document.getElementById('b-content') as HTMLTextAreaElement
+                    if (textarea) {
+                      const start = textarea.selectionStart
+                      const end = textarea.selectionEnd
+                      const text = form.content ?? ''
+                      const before = text.slice(0, start)
+                      const selected = text.slice(start, end)
+                      const after = text.slice(end)
+                      setForm({ ...form, content: `${before}_${selected || 'texto'}_${after}` })
+                    }
+                  }}
+                >
+                  <Italic className="size-3.5" />
+                </Button>
+                <div className="mx-1 h-4 w-px bg-border" />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 cursor-pointer"
+                  title="Título H2"
+                  onClick={() => {
+                    const textarea = document.getElementById('b-content') as HTMLTextAreaElement
+                    if (textarea) {
+                      const start = textarea.selectionStart
+                      const text = form.content ?? ''
+                      const before = text.slice(0, start)
+                      const after = text.slice(start)
+                      setForm({ ...form, content: `${before}\n## Título\n${after}` })
+                    }
+                  }}
+                >
+                  <Heading2 className="size-3.5" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 cursor-pointer"
+                  title="Título H3"
+                  onClick={() => {
+                    const textarea = document.getElementById('b-content') as HTMLTextAreaElement
+                    if (textarea) {
+                      const start = textarea.selectionStart
+                      const text = form.content ?? ''
+                      const before = text.slice(0, start)
+                      const after = text.slice(start)
+                      setForm({ ...form, content: `${before}\n### Subtítulo\n${after}` })
+                    }
+                  }}
+                >
+                  <Heading1 className="size-3.5" />
+                </Button>
+                <div className="mx-1 h-4 w-px bg-border" />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 cursor-pointer"
+                  title="Lista"
+                  onClick={() => {
+                    const textarea = document.getElementById('b-content') as HTMLTextAreaElement
+                    if (textarea) {
+                      const start = textarea.selectionStart
+                      const text = form.content ?? ''
+                      const before = text.slice(0, start)
+                      const after = text.slice(start)
+                      setForm({ ...form, content: `${before}\n- Elemento de lista\n${after}` })
+                    }
+                  }}
+                >
+                  <List className="size-3.5" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 cursor-pointer"
+                  title="Cita"
+                  onClick={() => {
+                    const textarea = document.getElementById('b-content') as HTMLTextAreaElement
+                    if (textarea) {
+                      const start = textarea.selectionStart
+                      const end = textarea.selectionEnd
+                      const text = form.content ?? ''
+                      const before = text.slice(0, start)
+                      const selected = text.slice(start, end)
+                      const after = text.slice(end)
+                      setForm({ ...form, content: `${before}\n> ${selected || 'Cita aquí'}\n${after}` })
+                    }
+                  }}
+                >
+                  <Quote className="size-3.5" />
+                </Button>
+              </div>
+              <Textarea id="b-content" value={form.content ?? ''} onChange={(e) => setForm({ ...form, content: e.target.value })} rows={8} className="font-mono text-sm" />
             </div>
             <div className="flex items-center gap-2">
               <Switch checked={form.featured} onCheckedChange={(v) => setForm({ ...form, featured: v })} id="b-featured" />

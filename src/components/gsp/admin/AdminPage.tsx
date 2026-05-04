@@ -38,6 +38,11 @@ import {
   Brain,
   Download,
   Bell,
+  CircleDot,
+  UserCircle,
+  Eye,
+  LogOut,
+  CalendarDays,
 } from 'lucide-react'
 import { SettingsView } from './sections/SettingsView'
 import { BlogView } from './sections/BlogView'
@@ -330,6 +335,18 @@ const emptyUserForm: UserFormState = {
 
 // ─── Status Badge Components ─────────────────────────────────────────────────
 function StatusBadge({ status }: { status: string }) {
+  const dotColor: Record<string, string> = {
+    active: 'bg-emerald-500',
+    draft: 'bg-yellow-500',
+    paused: 'bg-orange-500',
+    pending: 'bg-yellow-500',
+    completed: 'bg-emerald-500',
+    cancelled: 'bg-red-500',
+    processing: 'bg-blue-500',
+    verified: 'bg-emerald-500',
+    submitted: 'bg-blue-500',
+    rejected: 'bg-red-500',
+  }
   const config: Record<string, string> = {
     active: 'bg-emerald-50 text-emerald-700 border-emerald-200/60 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800/40',
     draft: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200/60 dark:border-yellow-800/40',
@@ -349,7 +366,8 @@ function StatusBadge({ status }: { status: string }) {
     rejected: 'Rechazado',
   }
   return (
-    <Badge variant="outline" className={config[status] || 'bg-secondary text-muted-foreground border-border/50'}>
+    <Badge variant="outline" className={`${config[status] || 'bg-secondary text-muted-foreground border-border/50'} gap-1.5`}>
+      <span className={`inline-block size-1.5 rounded-full ${dotColor[status] || 'bg-muted-foreground'}`} />
       {label[status] || status}
     </Badge>
   )
@@ -357,13 +375,26 @@ function StatusBadge({ status }: { status: string }) {
 
 // ─── KPI Card Component ─────────────────────────────────────────────────────
 function KpiCard({
-  title, value, subtitle, icon: Icon, trend,
+  title, value, subtitle, icon: Icon, trend, gradient = 'emerald',
 }: {
   title: string; value: string; subtitle: string
   icon: React.ElementType; trend?: { value: string; positive: boolean }
+  gradient?: 'emerald' | 'amber' | 'blue' | 'rose'
 }) {
+  const gradientBg: Record<string, string> = {
+    emerald: 'bg-gradient-to-br from-emerald-50/80 to-teal-50/40 dark:from-emerald-950/30 dark:to-teal-950/20',
+    amber: 'bg-gradient-to-br from-amber-50/80 to-orange-50/40 dark:from-amber-950/30 dark:to-orange-950/20',
+    blue: 'bg-gradient-to-br from-sky-50/80 to-indigo-50/40 dark:from-sky-950/30 dark:to-indigo-950/20',
+    rose: 'bg-gradient-to-br from-rose-50/80 to-pink-50/40 dark:from-rose-950/30 dark:to-pink-950/20',
+  }
+  const gradientIcon: Record<string, string> = {
+    emerald: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400',
+    amber: 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400',
+    blue: 'bg-sky-100 text-sky-600 dark:bg-sky-900/40 dark:text-sky-400',
+    rose: 'bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-400',
+  }
   return (
-    <Card className="relative overflow-hidden border-border/40 gsp-card-hover">
+    <Card className={`relative overflow-hidden border-border/40 gsp-card-hover ${gradientBg[gradient]}`}>
       <CardContent className="p-4 sm:p-6">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
@@ -379,7 +410,7 @@ function KpiCard({
               <span className="text-xs text-muted-foreground">{subtitle}</span>
             </div>
           </div>
-          <div className="rounded-xl bg-primary/8 p-2.5 text-primary">
+          <div className={`rounded-full p-2.5 ${gradientIcon[gradient]}`}>
             <Icon className="size-5" />
           </div>
         </div>
@@ -408,8 +439,8 @@ function CardSkeleton() {
 }
 
 // ─── Sidebar Navigation ─────────────────────────────────────────────────────
-const navItems: Array<{ id: string; label: string; icon: React.ElementType | null; isSeparator?: boolean }> = [
-  { id: 'overview', label: 'Panel General', icon: LayoutDashboard },
+const navItems: Array<{ id: string; label: string; icon: React.ElementType | null; isSeparator?: boolean; section?: string }> = [
+  { id: 'overview', label: 'Panel General', icon: LayoutDashboard, section: 'Principal' },
   { id: 'assets', label: 'Activos', icon: Building2 },
   { id: 'asset-types', label: 'Tipos de Activo', icon: Layers },
   { id: 'users', label: 'Usuarios', icon: Users },
@@ -417,17 +448,17 @@ const navItems: Array<{ id: string; label: string; icon: React.ElementType | nul
   { id: 'liquidity', label: 'Liquidez', icon: Droplets },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   { id: 'investment-analysis', label: 'Análisis IA', icon: Brain },
-  { id: '_sep_cms', label: '', icon: null, isSeparator: true },
+  { id: '_sep_cms', label: '', icon: null, isSeparator: true, section: 'Contenido' },
   { id: 'settings', label: 'Configuración', icon: Settings },
   { id: 'blog', label: 'Blog', icon: FileText },
   { id: 'faq', label: 'FAQ', icon: HelpCircle },
   { id: 'testimonials', label: 'Testimonios', icon: Quote },
-  { id: '_sep_cms2', label: '', icon: null, isSeparator: true },
+  { id: '_sep_cms2', label: '', icon: null, isSeparator: true, section: 'Gestión' },
   { id: 'legal', label: 'Legal', icon: Scale },
   { id: 'promotions', label: 'Promociones', icon: Tag },
   { id: 'team', label: 'Equipo', icon: UsersRound },
   { id: 'email-templates', label: 'Emails', icon: Mail },
-  { id: '_sep_i18n', label: '', icon: null, isSeparator: true },
+  { id: '_sep_i18n', label: '', icon: null, isSeparator: true, section: 'Global' },
   { id: 'translations', label: 'Traducciones', icon: Languages },
   { id: 'currencies', label: 'Monedas', icon: Coins },
 ]
@@ -440,8 +471,15 @@ function SidebarNav({
   setActiveTab: (tab: string) => void
 }) {
   return (
-    <nav className="flex flex-col gap-1 p-3">
+    <nav className="flex flex-col gap-0.5 p-3">
       {navItems.map((item) => {
+        if (item.isSeparator && item.section) {
+          return (
+            <div key={item.id} className="pt-4 pb-1.5 px-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">{item.section}</p>
+            </div>
+          )
+        }
         if (item.isSeparator) return <Separator key={item.id} className="my-2" />
         const Icon = item.icon!
         const isActive = activeTab === item.id
@@ -449,9 +487,9 @@ function SidebarNav({
           <button
             key={item.id}
             onClick={() => setActiveTab(item.id)}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
+            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
               isActive
-                ? 'bg-primary/8 text-primary font-medium'
+                ? 'bg-primary/10 text-primary shadow-sm'
                 : 'text-muted-foreground hover:bg-muted hover:text-foreground'
             }`}
           >
@@ -541,6 +579,7 @@ function PanelGeneralView() {
           subtitle={`${stats.assets.active} activos`}
           icon={Building2}
           trend={{ value: `${stats.assets.active} activos`, positive: true }}
+          gradient="emerald"
         />
         <KpiCard
           title="Total Inversores"
@@ -548,6 +587,7 @@ function PanelGeneralView() {
           subtitle={`${stats.overview.verifiedUsers} verificados`}
           icon={Users}
           trend={{ value: `+${stats.overview.recentSignups} este mes`, positive: true }}
+          gradient="blue"
         />
         <KpiCard
           title="Capital Invertido"
@@ -555,6 +595,7 @@ function PanelGeneralView() {
           subtitle={`${stats.investments.total} inversiones`}
           icon={Wallet}
           trend={{ value: formatShortUSD(stats.investments.recentInvestmentVolume) + ' reciente', positive: true }}
+          gradient="amber"
         />
         <KpiCard
           title="Dividendos Pagados"
@@ -562,6 +603,7 @@ function PanelGeneralView() {
           subtitle={`${stats.dividends.total} pagos realizados`}
           icon={TrendingUp}
           trend={{ value: `${stats.dividends.total} pagos`, positive: true }}
+          gradient="rose"
         />
       </div>
 
@@ -654,6 +696,30 @@ function PanelGeneralView() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Recent Activity */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Activity className="size-4 text-primary" />
+            Actividad Reciente
+          </CardTitle>
+          <CardDescription>Últimas 5 inversiones registradas</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="divide-y">
+            {stats.investments.recentInvestments > 0 ? (
+              <div className="px-6 py-4 text-center">
+                <p className="text-sm text-muted-foreground">{stats.investments.recentInvestments} inversiones recientes · {formatShortUSD(stats.investments.recentInvestmentVolume)} volumen</p>
+              </div>
+            ) : (
+              <div className="px-6 py-4 text-center">
+                <p className="text-sm text-muted-foreground">Sin inversiones recientes</p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Investment Summary */}
       <Card>
@@ -913,6 +979,7 @@ function ActivosView() {
                       <TableHead className="hidden sm:table-cell">Tipo</TableHead>
                       <TableHead className="hidden md:table-cell">Ciudad</TableHead>
                       <TableHead className="text-right">Precio/Frac.</TableHead>
+                      <TableHead className="text-right hidden lg:table-cell">Total Invertido</TableHead>
                       <TableHead className="text-right">Financiado</TableHead>
                       <TableHead>Estado</TableHead>
                       <TableHead className="text-right">Acciones</TableHead>
@@ -921,10 +988,18 @@ function ActivosView() {
                   <TableBody>
                     {assets.map((asset) => (
                       <TableRow key={asset.id}>
-                        <TableCell className="font-medium">{asset.name}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className="hidden sm:flex size-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-100 to-teal-50 dark:from-emerald-900/30 dark:to-teal-950/20">
+                              <Building2 className="size-4 text-emerald-600 dark:text-emerald-400" />
+                            </div>
+                            <span className="font-medium">{asset.name}</span>
+                          </div>
+                        </TableCell>
                         <TableCell className="hidden sm:table-cell"><Badge variant="secondary" className="capitalize">{asset.type}</Badge></TableCell>
                         <TableCell className="hidden md:table-cell text-muted-foreground">{asset.city}</TableCell>
                         <TableCell className="text-right text-sm">{formatUSD(asset.pricePerFraction)}</TableCell>
+                        <TableCell className="text-right hidden lg:table-cell font-medium">{formatUSD(asset.pricePerFraction * (asset.totalFractions - asset.availableFractions))}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
                             <div className="hidden sm:block w-16"><Progress value={asset.fundedPercentage} className="h-1.5" /></div>
@@ -1236,7 +1311,7 @@ function UsuariosView() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Usuarios</h2>
+          <h2 className="gsp-serif text-2xl font-normal tracking-tight">Usuarios</h2>
           <p className="text-muted-foreground">Gestiona los inversores de la plataforma</p>
         </div>
         <div className="flex items-center gap-2">
@@ -1315,7 +1390,7 @@ function UsuariosView() {
                       <TableRow key={user.id}>
                         <TableCell>
                           <div className="flex items-center gap-3">
-                            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-bold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                            <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-100 to-teal-50 text-xs font-bold text-emerald-700 dark:from-emerald-900/40 dark:to-teal-950/30 dark:text-emerald-400">
                               {(user.name || user.email).split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
                             </div>
                             <div>
@@ -1326,7 +1401,14 @@ function UsuariosView() {
                         </TableCell>
                         <TableCell className="hidden md:table-cell text-muted-foreground">{user.email}</TableCell>
                         <TableCell className="hidden sm:table-cell"><Badge variant="secondary" className="capitalize">{user.role}</Badge></TableCell>
-                        <TableCell><StatusBadge status={user.kycStatus} /></TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <StatusBadge status={user.kycStatus} />
+                            {user.kycStatus !== 'verified' && (
+                              <Progress value={user.kycStatus === 'submitted' ? 66 : user.kycStatus === 'pending' ? 33 : 0} className="hidden sm:block w-10 h-1" />
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="text-right font-medium">
                           {user.totalInvested > 0 ? formatShortUSD(user.totalInvested) : '—'}
                         </TableCell>
@@ -1335,8 +1417,9 @@ function UsuariosView() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-1">
-                            <Button variant="ghost" size="icon" className="size-8" onClick={() => openEdit(user)}><Pencil className="size-4" /></Button>
-                            <Button variant="ghost" size="icon" className="size-8 text-red-500 hover:text-red-600" onClick={() => setDeleteTarget(user)}><Trash2 className="size-4" /></Button>
+                            <Button variant="ghost" size="sm" className="size-8" onClick={() => openEdit(user)} title="Ver Perfil"><Eye className="size-4" /></Button>
+                            <Button variant="ghost" size="sm" className="size-8" onClick={() => openEdit(user)} title="Editar"><Pencil className="size-4" /></Button>
+                            <Button variant="ghost" size="sm" className="size-8 text-red-500 hover:text-red-600" onClick={() => setDeleteTarget(user)} title="Eliminar"><Trash2 className="size-4" /></Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -1527,7 +1610,7 @@ function InversionesView() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight">Inversiones</h2>
+        <h2 className="gsp-serif text-2xl font-normal tracking-tight">Inversiones</h2>
         <p className="text-muted-foreground">Gestiona las inversiones de la plataforma</p>
       </div>
 
@@ -1738,7 +1821,7 @@ function LiquidezView() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Pool de Liquidez</h2>
+          <h2 className="gsp-serif text-2xl font-normal tracking-tight">Pool de Liquidez</h2>
           <p className="text-muted-foreground">Gestiona el fondo de liquidez de la plataforma</p>
         </div>
         <Button variant="outline" size="sm" onClick={fetchData}>
@@ -2019,6 +2102,19 @@ function NotificationPanel() {
 export default function AdminPage() {
   const adminTab = useAppStore((s) => s.adminTab)
   const setAdminTab = useAppStore((s) => s.setAdminTab)
+  const user = useAppStore((s) => s.user)
+  const [lastUpdated, setLastUpdated] = useState(new Date())
+
+  const refreshTimestamp = useCallback(() => {
+    setLastUpdated(new Date())
+  }, [])
+
+  const greeting = () => {
+    const h = new Date().getHours()
+    if (h < 12) return 'Buenos días'
+    if (h < 18) return 'Buenas tardes'
+    return 'Buenas noches'
+  }
 
   const renderView = () => {
     switch (adminTab) {
@@ -2048,14 +2144,37 @@ export default function AdminPage() {
     <div className="min-h-screen bg-background">
       <div className="flex">
         {/* Desktop Sidebar */}
-        <aside className="hidden lg:block w-64 shrink-0 border-r bg-card">
+        <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r bg-card">
           <div className="sticky top-0 h-screen overflow-y-auto">
-            <div className="p-4">
-              <h1 className="gsp-serif text-2xl font-normal text-primary">3GSP Admin</h1>
-              <p className="text-xs text-muted-foreground">3GSP by GALAXY LLC</p>
+            {/* Sidebar Header */}
+            <div className="p-4 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="flex size-9 items-center justify-center rounded-xl gsp-gradient">
+                  <Building2 className="size-5 text-white" />
+                </div>
+                <div>
+                  <h1 className="gsp-serif text-lg font-normal text-primary">3GSP Admin</h1>
+                  <p className="text-[11px] text-muted-foreground">GALAXY LLC</p>
+                </div>
+              </div>
             </div>
             <Separator />
             <SidebarNav activeTab={adminTab} setActiveTab={setAdminTab} />
+            {/* Sidebar Footer */}
+            <div className="mt-auto border-t p-3">
+              <div className="flex items-center gap-3 rounded-lg px-3 py-2">
+                <div className="flex size-8 items-center justify-center rounded-full bg-gradient-to-br from-emerald-100 to-teal-50 text-xs font-bold text-emerald-700 dark:from-emerald-900/40 dark:to-teal-950/30 dark:text-emerald-400">
+                  {(user?.name || 'A').split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{user?.name || 'Admin'}</p>
+                  <p className="text-[11px] text-muted-foreground capitalize">{user?.role || 'admin'}</p>
+                </div>
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/30 text-primary">
+                  {user?.role === 'superadmin' ? 'Super' : 'Admin'}
+                </Badge>
+              </div>
+            </div>
           </div>
         </aside>
 
@@ -2086,8 +2205,58 @@ export default function AdminPage() {
             <NotificationPanel />
           </header>
 
+          {/* Desktop Admin Header */}
+          <header className="sticky top-0 z-40 hidden lg:flex items-center justify-between border-b bg-card/80 backdrop-blur-md px-6 py-3">
+            <div className="flex items-center gap-4">
+              <h2 className="text-sm font-semibold text-foreground">
+                {navItems.find((n) => n.id === adminTab)?.label || 'Panel General'}
+              </h2>
+              <Separator orientation="vertical" className="h-4" />
+              <p className="text-xs text-muted-foreground">
+                <CalendarDays className="inline size-3 mr-1" />
+                Última actualización: {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-foreground" onClick={refreshTimestamp}>
+                <RefreshCw className="size-3.5" />
+                <span className="text-xs">Actualizar</span>
+              </Button>
+              <NotificationPanel />
+              <Separator orientation="vertical" className="h-5" />
+              <div className="flex items-center gap-2">
+                <div className="flex size-7 items-center justify-center rounded-full bg-gradient-to-br from-emerald-100 to-teal-50 text-[11px] font-bold text-emerald-700 dark:from-emerald-900/40 dark:to-teal-950/30 dark:text-emerald-400">
+                  {(user?.name || 'A').split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
+                </div>
+                <div className="hidden xl:block">
+                  <p className="text-xs font-medium">{user?.name || 'Admin'}</p>
+                  <p className="text-[10px] text-muted-foreground capitalize">{user?.role || 'admin'}</p>
+                </div>
+              </div>
+            </div>
+          </header>
+
           {/* Main Content */}
           <main className="p-4 sm:p-6 lg:p-8">
+            {/* Welcome Banner (only on overview) */}
+            {adminTab === 'overview' && (
+              <div className="mb-6 rounded-xl bg-gradient-to-r from-primary/5 via-primary/3 to-transparent border border-primary/10 px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold">
+                      {greeting()}, <span className="gsp-gradient-text">{user?.name || 'Administrador'}</span>
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-0.5">
+                      Aquí tienes un resumen de la actividad actual de 3GSP by GALAXY LLC
+                    </p>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-2">
+                    <CircleDot className="size-4 text-primary animate-pulse" />
+                    <span className="text-xs text-muted-foreground">En vivo</span>
+                  </div>
+                </div>
+              </div>
+            )}
             {renderView()}
           </main>
         </div>

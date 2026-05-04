@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { Plus, Pencil, Trash2, Loader2, Mail, Send, Sparkles } from 'lucide-react'
+import { Plus, Pencil, Trash2, Loader2, Mail, Send, Sparkles, Eye, Code } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -68,6 +68,9 @@ export function EmailTemplatesView() {
   const [testTarget, setTestTarget] = useState<EmailTemplate | null>(null)
   const [testEmail, setTestEmail] = useState('')
   const [sending, setSending] = useState(false)
+
+  // Variable preview state
+  const [previewTarget, setPreviewTarget] = useState<EmailTemplate | null>(null)
 
   const { toast } = useToast()
 
@@ -239,9 +242,10 @@ export function EmailTemplatesView() {
                         </TableCell>
                         <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-end gap-1">
+                            <Button variant="ghost" size="icon" className="size-8 cursor-pointer" title="Vista previa variables" onClick={() => setPreviewTarget(item)}><Eye className="size-4" /></Button>
                             <Button variant="ghost" size="icon" className="size-8 cursor-pointer" title="Enviar prueba" onClick={() => openTestDialog(item)}><Send className="size-4" /></Button>
-                            <Button variant="ghost" size="icon" className="size-8 cursor-pointer" onClick={() => openEdit(item)}><Pencil className="size-4" /></Button>
-                            <Button variant="ghost" size="icon" className="size-8 text-red-500 hover:text-red-600 cursor-pointer" onClick={() => setDeleteTarget(item)}><Trash2 className="size-4" /></Button>
+                            <Button variant="ghost" size="icon" className="size-8 cursor-pointer" title="Editar" onClick={() => openEdit(item)}><Pencil className="size-4" /></Button>
+                            <Button variant="ghost" size="icon" className="size-8 text-red-500 hover:text-red-600 cursor-pointer" title="Eliminar" onClick={() => setDeleteTarget(item)}><Trash2 className="size-4" /></Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -318,6 +322,104 @@ export function EmailTemplatesView() {
               {submitting && <Loader2 className="mr-2 size-4 animate-spin" />}
               {editing ? 'Guardar Cambios' : 'Crear Plantilla'}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Variable Preview Dialog */}
+      <Dialog open={!!previewTarget} onOpenChange={(open) => { if (!open) { setPreviewTarget(null) } }}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto custom-scrollbar">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Code className="size-5 text-primary" />
+              Vista Previa de Variables
+            </DialogTitle>
+            <DialogDescription>
+              Plantilla: <span className="font-semibold">{previewTarget?.name}</span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {/* Subject Preview */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Asunto</p>
+              <div className="rounded-lg border bg-muted/30 p-3 text-sm">
+                <p className="text-foreground">{previewTarget?.subject ?? ''}</p>
+              </div>
+            </div>
+
+            {/* Variables Detected */}
+            {(previewTarget?.variables ?? '').split(',').filter(v => v.trim()).length > 0 ? (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Variables Detectadas ({(previewTarget?.variables ?? '').split(',').filter(v => v.trim()).length})
+                </p>
+                <div className="space-y-2">
+                  {(previewTarget?.variables ?? '').split(',').filter(v => v.trim()).map((variable) => {
+                    const varName = variable.trim()
+                    const sampleValues: Record<string, string> = {
+                      user_name: 'Juan Pérez',
+                      user_email: 'juan@ejemplo.com',
+                      amount: '$1,250.00',
+                      date: new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' }),
+                      asset_name: 'Torre Santiago 502',
+                      platform_name: '3GSP',
+                      company_name: 'GALAXY LLC',
+                      transaction_id: 'TXN-2024-ABC123',
+                      plan_name: 'Plan Premium',
+                      status: 'Completado',
+                      link: 'https://3gsp.galaxylabs.site/verify',
+                    }
+                    return (
+                      <div key={varName} className="flex items-center gap-3 rounded-lg border bg-card p-3">
+                        <Badge variant="outline" className="font-mono text-xs border-primary/30 text-primary shrink-0">
+                          {`{{${varName}}}`}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">→</span>
+                        <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                          {sampleValues[varName] || `[${varName}]`}
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed p-6 text-center">
+                <Code className="mx-auto mb-2 size-8 text-muted-foreground/30" />
+                <p className="text-sm text-muted-foreground">Sin variables definidas</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">Agrega variables en el campo &quot;Variables&quot; separadas por coma</p>
+              </div>
+            )}
+
+            {/* Preview with Variables Substituted */}
+            {(previewTarget?.bodyHtml || previewTarget?.bodyText) && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Vista Previa con Variables
+                </p>
+                <div className="rounded-lg border bg-muted/20 p-3 text-sm font-mono whitespace-pre-wrap break-all max-h-40 overflow-y-auto custom-scrollbar">
+                  {((previewTarget?.bodyHtml || previewTarget?.bodyText) ?? '').replace(/\{\{(\w+)\}\}/g, (_match, varName) => {
+                    const sampleValues: Record<string, string> = {
+                      user_name: 'Juan Pérez',
+                      user_email: 'juan@ejemplo.com',
+                      amount: '$1,250.00',
+                      date: new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' }),
+                      asset_name: 'Torre Santiago 502',
+                      platform_name: '3GSP',
+                      company_name: 'GALAXY LLC',
+                      transaction_id: 'TXN-2024-ABC123',
+                      plan_name: 'Plan Premium',
+                      status: 'Completado',
+                      link: 'https://3gsp.galaxylabs.site/verify',
+                    }
+                    return sampleValues[varName] || `[${varName}]`
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setPreviewTarget(null) }}>Cerrar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

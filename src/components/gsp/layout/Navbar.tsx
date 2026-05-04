@@ -117,8 +117,8 @@ export function Navbar() {
       className={cn(
         'sticky top-0 z-50 w-full transition-all duration-300 ease-out',
         isScrolled
-          ? 'gsp-glass border-b border-border/50 shadow-[0_1px_3px_oklch(0.45_0.155_162/0.06)]'
-          : 'bg-background/60 backdrop-blur-md'
+          ? 'gsp-glass border-b-0'
+          : 'bg-background/60 backdrop-blur-md border-b border-transparent'
       )}
     >
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -367,48 +367,52 @@ export function Navbar() {
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[360px]">
-              <SheetHeader>
-                <SheetTitle className="flex items-center gap-2 text-left">
-                  <div className="flex size-7 items-center justify-center rounded-md gsp-gradient">
-                    <span className="text-xs font-bold text-white">G</span>
+            <SheetContent side="right" className="w-[300px] sm:w-[360px] px-0">
+              <SheetHeader className="px-6">
+                <SheetTitle className="flex items-center gap-2.5 text-left">
+                  <div className="flex size-8 items-center justify-center rounded-lg gsp-gradient shadow-[0_2px_8px_oklch(0.45_0.155_162/0.25)]">
+                    <span className="text-sm font-bold text-white">G</span>
                   </div>
-                  <span className="gsp-gradient-text text-lg font-bold">3GSP</span>
+                  <span className="gsp-gradient-text text-xl font-bold">3GSP</span>
                 </SheetTitle>
-                <SheetDescription className="text-left text-muted-foreground">
+                <SheetDescription className="text-left text-muted-foreground text-xs font-light">
                   Inversión Inmobiliaria Fraccionada
                 </SheetDescription>
               </SheetHeader>
 
-              <Separator className="my-3" />
+              <div className="mt-2 px-6">
+                <Separator className="bg-border/50" />
+              </div>
 
               {user && (
-                <div className="flex items-center gap-3 rounded-xl bg-secondary/50 p-3">
-                  <Avatar className="size-10 ring-2 ring-primary/10">
+                <div className="mx-4 mt-4 flex items-center gap-3 rounded-xl bg-secondary/60 border border-border/30 p-3">
+                  <Avatar className="size-10 ring-2 ring-primary/15">
                     <AvatarImage src={user.avatarUrl} alt={user.name} />
                     <AvatarFallback className="bg-primary text-sm font-semibold text-primary-foreground">
                       {getInitials(user.name)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium">{user.name}</span>
-                    <span className="text-xs text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-semibold block truncate">{user.name}</span>
+                    <span className="text-xs text-muted-foreground block truncate">
                       {user.role === 'admin' || user.role === 'superadmin' ? t('nav.admin') : t('nav.portfolio').replace('Mi ', '')}
                     </span>
                   </div>
                 </div>
               )}
               {!user && (
-                <SheetClose asChild>
-                  <Button onClick={() => navigate('login')} className="w-full gap-2 gsp-gradient text-white hover:shadow-lg">
-                    <LogIn className="size-4" />
-                    {t('nav.login')}
-                  </Button>
-                </SheetClose>
+                <div className="mx-4 mt-4">
+                  <SheetClose asChild>
+                    <Button onClick={() => navigate('login')} className="w-full gap-2 gsp-gradient text-white hover:shadow-lg hover:shadow-emerald-500/20 h-11">
+                      <LogIn className="size-4" />
+                      {t('nav.login')}
+                    </Button>
+                  </SheetClose>
+                </div>
               )}
 
-              <div className="flex flex-col gap-1 px-2 pt-3">
-                <span className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+              <div className="flex flex-col gap-0.5 px-4 pt-4">
+                <span className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/70">
                   {t('nav.menu')}
                 </span>
                 {navLinks.map((link) => {
@@ -418,24 +422,24 @@ export function Navbar() {
                       <Button
                         variant={isActive ? 'secondary' : 'ghost'}
                         className={cn(
-                          'w-full justify-start gap-3 px-3 py-5 rounded-xl transition-colors duration-200 cursor-pointer',
+                          'w-full justify-start gap-3 px-3 h-11 rounded-lg transition-colors duration-200 cursor-pointer',
                           isActive
-                            ? 'bg-primary/8 text-primary font-medium'
-                            : 'text-muted-foreground hover:text-foreground'
+                            ? 'bg-primary/8 text-primary font-semibold'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
                         )}
                         onClick={() => navigate(link.page)}
                       >
                         <span
                           className={cn(
-                            'flex size-9 items-center justify-center rounded-lg transition-colors duration-200',
+                            'flex size-8 items-center justify-center rounded-lg transition-colors duration-200 shrink-0',
                             isActive
                               ? 'bg-primary/12 text-primary'
-                              : 'bg-muted text-muted-foreground'
+                              : 'bg-muted/60 text-muted-foreground'
                           )}
                         >
                           {link.icon}
                         </span>
-                        {t(link.labelKey)}
+                        <span className="text-sm">{t(link.labelKey)}</span>
                       </Button>
                     </SheetClose>
                   )
@@ -447,118 +451,125 @@ export function Navbar() {
                     <Button
                       variant={currentPage === 'reports' ? 'secondary' : 'ghost'}
                       className={cn(
-                        'w-full justify-start gap-3 px-3 py-5 rounded-xl transition-colors duration-200 cursor-pointer',
+                        'w-full justify-start gap-3 px-3 h-11 rounded-lg transition-colors duration-200 cursor-pointer',
                         currentPage === 'reports'
-                          ? 'bg-primary/8 text-primary font-medium'
-                          : 'text-muted-foreground hover:text-foreground'
+                          ? 'bg-primary/8 text-primary font-semibold'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
                       )}
                       onClick={() => navigate('reports')}
                     >
                       <span
                         className={cn(
-                          'flex size-9 items-center justify-center rounded-lg transition-colors duration-200',
+                          'flex size-8 items-center justify-center rounded-lg transition-colors duration-200 shrink-0',
                           currentPage === 'reports'
                             ? 'bg-primary/12 text-primary'
-                            : 'bg-muted text-muted-foreground'
+                            : 'bg-muted/60 text-muted-foreground'
                         )}
                       >
                         <FileText className="size-4" />
                       </span>
-                      {t('nav.reports')}
+                      <span className="text-sm">{t('nav.reports')}</span>
                     </Button>
                   </SheetClose>
                 )}
 
-                <Separator className="my-2" />
+                <div className="my-2 px-3"><Separator className="bg-border/40" /></div>
 
                 {isAdmin && (
                 <>
-                <span className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                <span className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/70">
                   {t('nav.admin')}
                 </span>
                 <SheetClose asChild>
                   <Button
                     variant={currentPage === 'admin' ? 'secondary' : 'ghost'}
                     className={cn(
-                      'w-full justify-start gap-3 px-3 py-5 rounded-xl transition-colors duration-200 cursor-pointer',
+                      'w-full justify-start gap-3 px-3 h-11 rounded-lg transition-colors duration-200 cursor-pointer',
                       currentPage === 'admin'
-                        ? 'bg-primary/8 text-primary font-medium'
-                        : 'text-muted-foreground hover:text-foreground'
+                        ? 'bg-primary/8 text-primary font-semibold'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
                     )}
                     onClick={() => navigate('admin')}
                   >
                     <span
                       className={cn(
-                        'flex size-9 items-center justify-center rounded-lg transition-colors duration-200',
+                        'flex size-8 items-center justify-center rounded-lg transition-colors duration-200 shrink-0',
                         currentPage === 'admin'
                           ? 'bg-primary/12 text-primary'
-                          : 'bg-muted text-muted-foreground'
+                          : 'bg-muted/60 text-muted-foreground'
                       )}
                     >
                       <ShieldCheck className="size-4" />
                     </span>
-                    {t('nav.adminPanel')}
+                    <span className="text-sm">{t('nav.adminPanel')}</span>
                   </Button>
                 </SheetClose>
                 </>
                 )}
 
-                <Separator className="my-3" />
+                <div className="my-2 px-3"><Separator className="bg-border/40" /></div>
 
                 {/* Mobile: Theme, Language, Currency Controls */}
-                <div className="flex flex-col gap-1 px-2">
-                  <span className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                <div className="flex flex-col gap-0.5">
+                  <span className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/70">
                     {t('nav.settings')}
                   </span>
 
                   {/* Theme Toggle */}
                   <Button
                     variant="ghost"
-                    className="w-full justify-start gap-3 px-3 py-3 rounded-xl transition-colors duration-200 cursor-pointer text-muted-foreground hover:text-foreground"
+                    className="w-full justify-start gap-3 px-3 h-11 rounded-lg transition-colors duration-200 cursor-pointer text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                     onClick={() => setAppTheme(appTheme === 'dark' ? 'light' : 'dark')}
                   >
-                    <span className="flex size-9 items-center justify-center rounded-lg bg-muted">
+                    <span className="flex size-8 items-center justify-center rounded-lg bg-muted/60 shrink-0">
                       {appTheme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
                     </span>
-                    {appTheme === 'dark' ? t('settings.theme.light') : t('settings.theme.dark')}
+                    <span className="text-sm">{appTheme === 'dark' ? t('settings.theme.light') : t('settings.theme.dark')}</span>
                   </Button>
 
                   {/* Language Selector */}
-                  <div className="flex items-center gap-1 px-3 py-2">
-                    <Globe className="size-4 text-muted-foreground" />
-                    <span className="mr-auto text-sm text-muted-foreground">{t('settings.language')}</span>
-                    <Button
-                      variant={language === 'es' ? 'secondary' : 'ghost'}
-                      size="sm"
-                      className="h-7 px-2.5 text-xs"
-                      onClick={() => setLanguage('es')}
-                    >
-                      🇨🇱 ES
-                    </Button>
-                    <Button
-                      variant={language === 'en' ? 'secondary' : 'ghost'}
-                      size="sm"
-                      className="h-7 px-2.5 text-xs"
-                      onClick={() => setLanguage('en')}
-                    >
-                      🇺🇸 EN
-                    </Button>
+                  <div className="flex items-center gap-1 px-3 h-11">
+                    <span className="flex size-8 items-center justify-center rounded-lg bg-muted/60 shrink-0">
+                      <Globe className="size-4 text-muted-foreground" />
+                    </span>
+                    <span className="text-sm text-muted-foreground mr-auto">{t('settings.language')}</span>
+                    <div className="flex gap-1">
+                      <Button
+                        variant={language === 'es' ? 'secondary' : 'ghost'}
+                        size="sm"
+                        className="h-7 w-8 px-0 text-[11px] font-semibold"
+                        onClick={() => setLanguage('es')}
+                      >
+                        ES
+                      </Button>
+                      <Button
+                        variant={language === 'en' ? 'secondary' : 'ghost'}
+                        size="sm"
+                        className="h-7 w-8 px-0 text-[11px] font-semibold"
+                        onClick={() => setLanguage('en')}
+                      >
+                        EN
+                      </Button>
+                    </div>
                   </div>
 
                   {/* Currency Selector */}
-                  <div className="flex items-center gap-1 px-3 py-2">
-                    <DollarSign className="size-4 text-muted-foreground" />
-                    <span className="mr-auto text-sm text-muted-foreground">{t('common.currency')}</span>
+                  <div className="flex items-center gap-1 px-3 h-11">
+                    <span className="flex size-8 items-center justify-center rounded-lg bg-muted/60 shrink-0">
+                      <DollarSign className="size-4 text-muted-foreground" />
+                    </span>
+                    <span className="text-sm text-muted-foreground mr-auto">{t('common.currency')}</span>
                     <select
                       value={currency}
                       onChange={(e) => setCurrency(e.target.value)}
-                      className="h-7 rounded-md border border-input bg-background px-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-ring"
+                      className="h-7 rounded-lg border border-input bg-background px-2 text-[11px] font-semibold focus:outline-none focus:ring-2 focus:ring-ring"
                     >
                       {(dbCurrencies.length > 0 ? dbCurrencies : [
-                        { code: 'CLP', flag: '🇨🇱' }, { code: 'USD', flag: '🇺🇸' },
+                        { code: 'USD', flag: '🇺🇸' },
                         { code: 'EUR', flag: '🇪🇺' }, { code: 'MXN', flag: '🇲🇽' },
                         { code: 'COP', flag: '🇨🇴' }, { code: 'ARS', flag: '🇦🇷' },
                         { code: 'PEN', flag: '🇵🇪' }, { code: 'BRL', flag: '🇧🇷' },
+                        { code: 'CLP', flag: '🇨🇱' },
                       ]).map((c) => (
                         <option key={c.code} value={c.code}>{c.flag} {c.code}</option>
                       ))}
@@ -571,6 +582,10 @@ export function Navbar() {
         </div>
       </nav>
       <ChangePasswordDialog open={showChangePassword} onOpenChange={setShowChangePassword} />
+      {/* Gradient border bottom when scrolled */}
+      {isScrolled && (
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+      )}
     </header>
   )
 }

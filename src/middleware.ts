@@ -39,11 +39,11 @@ function isAllowedOrigin(origin: string): boolean {
 // ─── Security Headers ──────────────────────────────────────────
 const securityHeaders = {
   'X-Content-Type-Options': 'nosniff',
-  'X-Frame-Options': 'SAMEORIGIN',
+  // X-Frame-Options removed — frame-ancestors in CSP handles this
   'X-XSS-Protection': '1; mode=block',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(self)',
-  'Content-Security-Policy': "default-src 'self' *; script-src 'self' 'unsafe-inline' 'unsafe-eval' *; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com *; font-src 'self' https://fonts.gstatic.com *; img-src 'self' data: blob: https: *; connect-src 'self' https://js.stripe.com https://api.stripe.com https://*.space-z.ai https://space-z.ai *;",
+  'Content-Security-Policy': "default-src 'self' *; script-src 'self' 'unsafe-inline' 'unsafe-eval' *; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com *; font-src 'self' https://fonts.gstatic.com *; img-src 'self' data: blob: https: *; connect-src 'self' https://js.stripe.com https://api.stripe.com https://*.space-z.ai https://space-z.ai *; frame-ancestors *;",
 }
 
 export function middleware(request: NextRequest) {

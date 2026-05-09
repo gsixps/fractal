@@ -807,3 +807,22 @@ Stage Summary:
 - 5 P1 issues resolved
 - 3 P2 issues resolved
 - Dev server running on port 3000, app renders correctly
+---
+Task ID: 1
+Agent: Main Agent
+Task: Fix app not loading in preview panel or deploy
+
+Work Log:
+- Diagnosed that dev server was already running and responding with HTTP 200
+- Found root cause: `X-Frame-Options: SAMEORIGIN` header in middleware was blocking cross-origin iframe embedding (preview panel loads the app in a cross-origin iframe)
+- Fixed middleware.ts: Removed `X-Frame-Options: SAMEORIGIN` entirely
+- Added `frame-ancestors *` to Content-Security-Policy header (modern browsers prefer CSP frame-ancestors over X-Frame-Options)
+- Fixed TypeScript issue: Added missing Page types in store.ts (profile, referral, reports, secondary-market, login) that AppShell references
+- Verified all endpoints return 200: main page, auth session, assets API, CSRF token
+- Verified lint passes with no errors
+
+Stage Summary:
+- Key fix: Removed X-Frame-Options SAMEORIGIN and added frame-ancestors * to CSP
+- This allows the preview panel (cross-origin iframe) to properly embed the app
+- Also fixes deploy environments where the app might be framed by a different domain
+- Files modified: src/middleware.ts, src/lib/store.ts

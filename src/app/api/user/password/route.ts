@@ -1,3 +1,4 @@
+// TODO: Add rate limiting to prevent brute-force password change attempts (e.g., max 5 attempts per hour per user)
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { getServerSession } from 'next-auth'

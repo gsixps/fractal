@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect, lazy, Suspense, useState, useCallback } from 'react'
+import React, { useEffect, lazy, Suspense, useState } from 'react'
 import { useSession } from 'next-auth/react'
-import { signIn } from 'next-auth/react'
 import { useAppStore } from '@/lib/store'
 import { Navbar } from '@/components/gsp/layout/Navbar'
 import { Footer } from '@/components/gsp/layout/Footer'
@@ -10,8 +9,7 @@ import { LoginPage } from '@/components/gsp/auth/LoginPage'
 import { ChangePasswordDialog } from '@/components/gsp/auth/ChangePasswordDialog'
 import { OnboardingModal } from '@/components/gsp/shared/OnboardingModal'
 import { ChatWidget } from '@/components/gsp/shared/ChatWidget'
-import { Loader2, LogIn } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Loader2 } from 'lucide-react'
 import { useT } from '@/lib/i18n-utils'
 import { useAnalytics } from '@/hooks/use-analytics'
 
@@ -35,6 +33,42 @@ function PageLoader() {
   )
 }
 
+// Per-page error boundary so one failing component doesn't crash the whole app
+class PageErrorBoundary extends React.Component<
+  { children: React.ReactNode; fallback?: React.ReactNode },
+  { hasError: boolean; error?: Error }
+> {
+  constructor(props: { children: React.ReactNode; fallback?: React.ReactNode }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error }
+  }
+  render() {
+    if (this.state.hasError) {
+      if (this.props.fallback) return this.props.fallback
+      return (
+        <div className="flex flex-col items-center justify-center min-h-[40vh] gap-3 p-6">
+          <p className="text-sm text-muted-foreground">
+            Error loading page: {this.state.error?.message}
+          </p>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
+// Wraps each lazy component with its own error boundary + Suspense
+function SafeSuspense({ children }: { children: React.ReactNode }) {
+  return (
+    <PageErrorBoundary fallback={<PageLoader />}>
+      <Suspense fallback={<PageLoader />}>{children}</Suspense>
+    </PageErrorBoundary>
+  )
+}
+
 // Pages that require authentication
 const PROTECTED_PAGES = new Set(['dashboard', 'admin', 'admin-assets', 'admin-users', 'admin-financial', 'admin-liquidity', 'kyc', 'liquidity', 'profile', 'referral', 'reports'])
 
@@ -42,7 +76,6 @@ export default function AppShell() {
   const currentPage = useAppStore((s) => s.currentPage)
   const user = useAppStore((s) => s.user)
   const setUser = useAppStore((s) => s.setUser)
-  const navigate = useAppStore((s) => s.navigate)
   const { data: session, status } = useSession()
   const t = useT()
   const [showChangePassword, setShowChangePassword] = useState(false)
@@ -84,19 +117,19 @@ export default function AppShell() {
 
   const renderPage = () => {
     switch (currentPage) {
-      case 'home': return <HomePage />
-      case 'marketplace': return <MarketplacePage />
-      case 'asset-detail': return <AssetDetailPage />
-      case 'dashboard': return user ? <DashboardPage /> : <LoginPage />
+      case 'home': return <SafeSuspense><HomePage /></SafeSuspense>
+      case 'marketplace': return <SafeSuspense><MarketplacePage /></SafeSuspense>
+      case 'asset-detail': return <SafeSuspense><AssetDetailPage /></SafeSuspense>
+      case 'dashboard': return user ? <SafeSuspense><DashboardPage /></SafeSuspense> : <LoginPage />
       case 'admin': case 'admin-assets': case 'admin-users': case 'admin-financial': case 'admin-liquidity':
-        return user ? <AdminPage /> : <LoginPage />
-      case 'kyc': return user ? <KYCPage /> : <LoginPage />
-      case 'profile': return user ? <ProfilePage /> : <LoginPage />
-      case 'liquidity': return user ? <LiquidityPage /> : <LoginPage />
-      case 'reports': return user ? <ReportsPage /> : <LoginPage />
-      case 'referral': return user ? <ReferralPage /> : <LoginPage />
-      case 'secondary-market': return <SecondaryMarketPage />
-      default: return <HomePage />
+        return user ? <SafeSuspense><AdminPage /></SafeSuspense> : <LoginPage />
+      case 'kyc': return user ? <SafeSuspense><KYCPage /></SafeSuspense> : <LoginPage />
+      case 'profile': return user ? <SafeSuspense><ProfilePage /></SafeSuspense> : <LoginPage />
+      case 'liquidity': return user ? <SafeSuspense><LiquidityPage /></SafeSuspense> : <LoginPage />
+      case 'reports': return user ? <SafeSuspense><ReportsPage /></SafeSuspense> : <LoginPage />
+      case 'referral': return user ? <SafeSuspense><ReferralPage /></SafeSuspense> : <LoginPage />
+      case 'secondary-market': return <SafeSuspense><SecondaryMarketPage /></SafeSuspense>
+      default: return <SafeSuspense><HomePage /></SafeSuspense>
     }
   }
 
@@ -104,7 +137,7 @@ export default function AppShell() {
     <>
       <Navbar />
       <main className="flex-1">
-        <Suspense fallback={<PageLoader />}>{renderPage()}</Suspense>
+        {renderPage()}
       </main>
       <Footer />
       <ChangePasswordDialog open={showChangePassword} onOpenChange={setShowChangePassword} />

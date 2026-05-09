@@ -307,6 +307,7 @@ interface AssetFormState {
   projectedAppreciation: string
   totalProjectedReturn: string
   shortDescription: string
+  fullDescription: string
   status: string
 }
 
@@ -314,7 +315,7 @@ const emptyAssetForm: AssetFormState = {
   name: '', type: 'real_estate', address: '', city: '', region: '',
   totalValue: '', pricePerFraction: '', totalFractions: '', availableFractions: '',
   minimumInvestment: '', annualYield: '', projectedAppreciation: '',
-  totalProjectedReturn: '', shortDescription: '', status: 'draft',
+  totalProjectedReturn: '', shortDescription: '', fullDescription: '', status: 'draft',
 }
 
 // ─── User Form State ────────────────────────────────────────────────────────
@@ -823,6 +824,7 @@ function ActivosView() {
       projectedAppreciation: asset.projectedAppreciation.toString(),
       totalProjectedReturn: asset.totalProjectedReturn.toString(),
       shortDescription: asset.shortDescription,
+      fullDescription: asset.fullDescription,
       status: asset.status,
     })
     setFormOpen(true)
@@ -850,7 +852,7 @@ function ActivosView() {
         projectedAppreciation: parseFloat(form.projectedAppreciation) || 0,
         totalProjectedReturn: parseFloat(form.totalProjectedReturn) || 0,
         shortDescription: form.shortDescription,
-        fullDescription: form.shortDescription,
+        fullDescription: form.fullDescription,
         status: form.status,
       }
 
@@ -1141,6 +1143,10 @@ function ActivosView() {
             <div className="space-y-2">
               <Label htmlFor="a-desc">Descripción Corta</Label>
               <Textarea id="a-desc" value={form.shortDescription} onChange={(e) => setForm({ ...form, shortDescription: e.target.value })} rows={3} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="a-fulldesc">Descripción Completa</Label>
+              <Textarea id="a-fulldesc" value={form.fullDescription} onChange={(e) => setForm({ ...form, fullDescription: e.target.value })} rows={5} />
             </div>
           </div>
           <DialogFooter>

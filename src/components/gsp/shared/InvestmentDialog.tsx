@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import {
   Building2, TrendingUp, Percent, ChevronDown, ChevronUp,
-  Loader2, CheckCircle2, PartyPopper, ArrowLeft,
+  Loader2, CheckCircle2, PartyPopper,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -17,8 +17,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
-import { StripeProvider } from './StripeProvider'
-import { PaymentForm } from './PaymentForm'
+import { useAppStore } from '@/lib/store'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -43,7 +42,7 @@ interface InvestmentDialogUser {
   email: string
 }
 
-type DialogStep = 'review' | 'payment' | 'success'
+type DialogStep = 'review' | 'success'
 
 interface InvestmentDialogProps {
   open: boolean
@@ -74,13 +73,23 @@ export function InvestmentDialog({
 }: InvestmentDialogProps) {
   const [step, setStep] = useState<DialogStep>('review')
   const [quantity, setQuantity] = useState(1)
-  const [clientSecret, setClientSecret] = useState<string | null>(null)
-  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null)
-  const [investmentId, setInvestmentId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const navigate = useAppStore((s) => s.navigate)
   const coverImage = asset?.images.find((img) => img.isCover)?.url || asset?.images[0]?.url
+
+  // Detect payment success from Stripe Checkout redirect
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('payment') === 'success') {
+        setStep('success')
+        // Clean URL
+        window.history.replaceState({}, '', window.location.pathname)
+      }
+    }
+  }, [])
 
   // Reset state when dialog opens/closes
   const handleOpenChange = useCallback(
@@ -89,9 +98,6 @@ export function InvestmentDialog({
         // Reset on close
         setStep('review')
         setQuantity(1)
-        setClientSecret(null)
-        setPaymentIntentId(null)
-        setInvestmentId(null)
         setLoading(false)
         setError(null)
       }
@@ -118,10 +124,8 @@ export function InvestmentDialog({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amount: totalAmount,
-          currency: 'usd',
           assetId: asset.id,
-          fractions: quantity,
+          fractionCount: quantity,
         }),
       })
 
@@ -133,25 +137,18 @@ export function InvestmentDialog({
         return
       }
 
-      setClientSecret(data.clientSecret)
-      setPaymentIntentId(data.paymentIntentId)
-      setInvestmentId(data.investmentId)
-      setStep('payment')
-    } catch (err) {
+      // Redirect to Stripe Checkout
+      if (data.url) {
+        window.location.href = data.url
+        return
+      }
+
+      setError('No se recibió la URL de pago. Intenta de nuevo.')
+    } catch {
       setError('Error de conexión. Verifica tu internet e intenta de nuevo.')
     } finally {
       setLoading(false)
     }
-  }
-
-  // ── Payment success handler ───────────────────────────────────────────────
-  function handlePaymentSuccess(_piId: string) {
-    setStep('success')
-  }
-
-  // ── Payment error handler ─────────────────────────────────────────────────
-  function handlePaymentError(message: string) {
-    setError(message)
   }
 
   // ── Guard: no asset or user ───────────────────────────────────────────────
@@ -317,40 +314,6 @@ export function InvestmentDialog({
           </>
         )}
 
-        {/* ── PAYMENT STEP ─────────────────────────────────────────────── */}
-        {step === 'payment' && clientSecret && (
-          <>
-            <DialogHeader>
-              <DialogTitle className="text-lg">Método de Pago</DialogTitle>
-              <DialogDescription>
-                Completa el pago de <span className="font-semibold text-foreground">{formatUSD(totalAmount)}</span> para tu inversión en {asset.name}.
-              </DialogDescription>
-            </DialogHeader>
-
-            <StripeProvider clientSecret={clientSecret}>
-              <PaymentForm
-                submitLabel={`Pagar ${formatUSD(totalAmount)}`}
-                onSuccess={handlePaymentSuccess}
-                onError={handlePaymentError}
-              />
-            </StripeProvider>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full text-muted-foreground cursor-pointer"
-              onClick={() => {
-                setStep('review')
-                setClientSecret(null)
-                setError(null)
-              }}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Volver al resumen
-            </Button>
-          </>
-        )}
-
         {/* ── SUCCESS STEP ─────────────────────────────────────────────── */}
         {step === 'success' && (
           <>
@@ -411,7 +374,7 @@ export function InvestmentDialog({
               </Button>
               <Button
                 className="flex-1 font-bold bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer"
-                onClick={() => handleOpenChange(false)}
+                onClick={() => { handleOpenChange(false); navigate('dashboard') }}
               >
                 Ver Mi Portafolio
               </Button>

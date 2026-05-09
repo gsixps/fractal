@@ -15,18 +15,21 @@ export async function POST(request: Request) {
       )
     }
 
-    if (!email.includes('@') || !email.includes('.')) {
-      return NextResponse.json(
-        { error: 'Email inválido' },
-        { status: 400 }
-      )
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return NextResponse.json({ error: 'Email inválido' }, { status: 400 })
     }
 
-    if (password.length < 6) {
-      return NextResponse.json(
-        { error: 'La contraseña debe tener al menos 6 caracteres' },
-        { status: 400 }
-      )
+    // Password validation
+    if (password.length < 8) {
+      return NextResponse.json({ error: 'La contraseña debe tener al menos 8 caracteres' }, { status: 400 })
+    }
+    if (!/[A-Z]/.test(password)) {
+      return NextResponse.json({ error: 'La contraseña debe tener al menos una letra mayúscula' }, { status: 400 })
+    }
+    if (!/[0-9]/.test(password)) {
+      return NextResponse.json({ error: 'La contraseña debe tener al menos un número' }, { status: 400 })
     }
 
     // Check email uniqueness

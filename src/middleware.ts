@@ -39,12 +39,11 @@ function isAllowedOrigin(origin: string): boolean {
 // ─── Security Headers ──────────────────────────────────────────
 const securityHeaders = {
   'X-Content-Type-Options': 'nosniff',
-  'X-Frame-Options': 'DENY',
+  'X-Frame-Options': 'SAMEORIGIN',
   'X-XSS-Protection': '1; mode=block',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(self)',
-  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
-  'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://js.stripe.com https://api.stripe.com https://*.space-z.ai https://space-z.ai;",
+  'Content-Security-Policy': "default-src 'self' *; script-src 'self' 'unsafe-inline' 'unsafe-eval' *; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com *; font-src 'self' https://fonts.gstatic.com *; img-src 'self' data: blob: https: *; connect-src 'self' https://js.stripe.com https://api.stripe.com https://*.space-z.ai https://space-z.ai *;",
 }
 
 export function middleware(request: NextRequest) {

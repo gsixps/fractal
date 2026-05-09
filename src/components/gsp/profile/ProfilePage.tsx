@@ -106,7 +106,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user) {
       setEditName(user.name || '')
-      setEditPhone((user as Record<string, unknown>).phone as string || '')
+      setEditPhone((user?.phone as string) || '')
     }
   }, [user])
 
@@ -152,7 +152,7 @@ export default function ProfilePage() {
   const handleCancelEdit = () => {
     setIsEditing(false)
     setEditName(user?.name || '')
-    setEditPhone((user as Record<string, unknown>).phone as string || '')
+    setEditPhone((user?.phone as string) || '')
   }
 
   if (!user) {

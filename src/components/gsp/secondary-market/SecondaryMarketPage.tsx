@@ -435,19 +435,11 @@ function ExploreTab({ format, user }: { format: (a: number) => string; user: { i
               </div>
 
               <div className="rounded-lg border border-border p-3 space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-medium">{format(buyFractionCount * buyDialog.listing.pricePerFraction)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Comisión plataforma (1.5%)</span>
-                  <span className="text-red-500 font-medium">-{format(buyFractionCount * buyDialog.listing.pricePerFraction * 0.015)}</span>
-                </div>
-                <div className="my-1 border-t border-border" />
                 <div className="flex justify-between text-base font-semibold">
                   <span>Total</span>
-                  <span className="text-emerald-700">{format(buyFractionCount * buyDialog.listing.pricePerFraction * 1.015)}</span>
+                  <span className="text-emerald-700">{format(buyFractionCount * buyDialog.listing.pricePerFraction)}</span>
                 </div>
+                <p className="text-xs text-muted-foreground mt-1">Comisión incluida</p>
               </div>
 
               {buyError && (

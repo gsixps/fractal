@@ -1,3 +1,4 @@
+// TODO: Integrate Stripe payment before marking as completed
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireAuth } from '@/lib/api-auth'
@@ -101,8 +102,7 @@ export async function POST(
         quantity: fractionCount,
         pricePerUnit: listing.pricePerFraction,
         totalAmount: gross,
-        status: 'completed',
-        completedAt: new Date(),
+        status: 'pending',
       },
     })
 
@@ -114,7 +114,7 @@ export async function POST(
         type: 'purchase',
         amount: gross,
         currency: 'USD',
-        status: 'completed',
+        status: 'pending',
         feeAmount: platformFee,
         netAmount,
         description: `Compra de ${fractionCount} fracciones – ${listing.asset.name} (Mercado Secundario)`,
@@ -129,7 +129,7 @@ export async function POST(
         type: 'sale',
         amount: gross,
         currency: 'USD',
-        status: 'completed',
+        status: 'pending',
         feeAmount: platformFee,
         netAmount,
         description: `Venta de ${fractionCount} fracciones – ${listing.asset.name} (Mercado Secundario)`,
@@ -146,7 +146,10 @@ export async function POST(
       })
     }
 
-    return NextResponse.json(updatedListing)
+    return NextResponse.json({
+      ...updatedListing,
+      message: 'Purchase created. Payment integration pending.',
+    })
   } catch (err) {
     console.error('[SecondaryMarket Buy POST]', err)
     return NextResponse.json({ error: 'Failed to buy fractions' }, { status: 500 })

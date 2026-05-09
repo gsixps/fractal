@@ -458,6 +458,19 @@ const translations: LocaleMap = {
       'Regístrate para empezar a invertir en activos inmobiliarios fraccionados.',
     'auth.name': 'Nombre completo',
     'auth.phone': 'Teléfono',
+
+    // ── HOW IT WORKS ─────────────────────────────────────────────────────────
+    'home.howItWorks.label': 'Cómo Funciona',
+    'home.howItWorks.title': 'Cómo Invertir en 4 Pasos',
+    'home.howItWorks.subtitle': 'Proceso simple y seguro para comenzar a invertir en activos inmobiliarios fraccionados.',
+    'home.howItWorks.step1.title': 'Elige tu Activo',
+    'home.howItWorks.step1.description': 'Explora nuestro marketplace y selecciona activos inmobiliarios verificados que se ajusten a tus objetivos.',
+    'home.howItWorks.step2.title': 'Define tu Inversión',
+    'home.howItWorks.step2.description': 'Elige la cantidad de fracciones y el monto a invertir. Desde $50 USD por fracción.',
+    'home.howItWorks.step3.title': 'Confirma y Paga',
+    'home.howItWorks.step3.description': 'Procesa tu pago de forma segura con Stripe. Recibirás confirmación inmediata.',
+    'home.howItWorks.step4.title': 'Recibe Dividendos',
+    'home.howItWorks.step4.description': 'Gana dividendos trimestrales y sigue el rendimiento de tu inversión en tiempo real.',
   },
 
   en: {
@@ -894,6 +907,19 @@ const translations: LocaleMap = {
       'Sign up to start investing in fractional real estate assets.',
     'auth.name': 'Full name',
     'auth.phone': 'Phone',
+
+    // ── HOW IT WORKS ─────────────────────────────────────────────────────────
+    'home.howItWorks.label': 'How It Works',
+    'home.howItWorks.title': 'How to Invest in 4 Steps',
+    'home.howItWorks.subtitle': 'Simple and secure process to start investing in fractional real estate assets.',
+    'home.howItWorks.step1.title': 'Choose Your Asset',
+    'home.howItWorks.step1.description': 'Explore our marketplace and select verified real estate assets that match your goals.',
+    'home.howItWorks.step2.title': 'Define Your Investment',
+    'home.howItWorks.step2.description': 'Choose the number of fractions and the amount to invest. From $50 USD per fraction.',
+    'home.howItWorks.step3.title': 'Confirm and Pay',
+    'home.howItWorks.step3.description': 'Process your payment securely with Stripe. Receive instant confirmation.',
+    'home.howItWorks.step4.title': 'Receive Dividends',
+    'home.howItWorks.step4.description': 'Earn quarterly dividends and track your investment performance in real time.',
   },
 }
 

@@ -2,19 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireAdmin } from '@/lib/api-auth'
 
-// ─── In-memory store for recent analyses ─────────────────────────────────────
-interface StoredAnalysis {
-  id: string
-  assetId: string
-  assetName: string
-  analysis: string
-  generatedAt: string
-  investorCountry?: string
-}
-
-const analysisStore = new Map<string, StoredAnalysis[]>()
-const MAX_STORED_PER_ASSET = 5
-
 // ─── Core Logic Engine System Prompt ─────────────────────────────────────────
 const CORE_LOGIC_SYSTEM_PROMPT = `# Role
 Eres el Core Logic Engine de una plataforma global de crowdfunding inmobiliario. Tu expertise es orquestar relaciones técnicas y financieras complejas entre entidades captadoras de capital, inversores validados internacionalmente, y activos inmobiliarios constituidos como vehículos legales locales.
@@ -162,7 +149,7 @@ ${asset.highlights ? `## Highlights\n${asset.highlights}` : ''}
 - **Nivel**: ${asset.riskLevel || 'medium'}
 ${asset.riskDescription ? `- **Descripción**: ${asset.riskDescription}` : ''}
 
-Genera el análisis completo con los 4 módulos obligatorios. Sé específico con las cifras proporcionadas y menciona explícitamente el país del activo (${asset.country}) en cada módulo.`
+Genera el análisis completo con los 4 módulos obligigatorios. Sé específico con las cifras proporcionadas y menciona explícitamente el país del activo (${asset.country}) en cada módulo.`
 
     // Use z-ai-web-dev-sdk to generate analysis
     const ZAI = (await import('z-ai-web-dev-sdk')).default
@@ -177,21 +164,18 @@ Genera el análisis completo con los 4 módulos obligatorios. Sé específico co
     })
 
     const analysis = completion?.choices?.[0]?.message?.content || 'No se pudo generar el análisis. Por favor, intente nuevamente.'
-    const generatedAt = new Date().toISOString()
 
-    // Store in memory
-    const existing = analysisStore.get(assetId) || []
-    const record: StoredAnalysis = {
-      id: crypto.randomUUID(),
-      assetId,
-      assetName: asset.name,
-      analysis,
-      generatedAt,
-      investorCountry: investorCountry || undefined,
-    }
-    existing.unshift(record)
-    if (existing.length > MAX_STORED_PER_ASSET) existing.pop()
-    analysisStore.set(assetId, existing)
+    // Store in database
+    const record = await db.investmentAnalysis.create({
+      data: {
+        assetId,
+        assetName: asset.name,
+        analysis,
+        investorCountry: investorCountry || null,
+      },
+    })
+
+    const generatedAt = record.generatedAt.toISOString()
 
     return NextResponse.json({
       analysis,
@@ -213,16 +197,21 @@ export async function GET() {
   if (error) return error
 
   try {
-    // Collect all stored analyses, sorted by date
-    const allAnalyses: StoredAnalysis[] = []
-    analysisStore.forEach((records) => {
-      allAnalyses.push(...records)
+    const analyses = await db.investmentAnalysis.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 20,
     })
-    allAnalyses.sort((a, b) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime())
 
     return NextResponse.json({
-      analyses: allAnalyses.slice(0, 20),
-      total: allAnalyses.length,
+      analyses: analyses.map((a) => ({
+        id: a.id,
+        assetId: a.assetId,
+        assetName: a.assetName,
+        analysis: a.analysis,
+        generatedAt: a.generatedAt.toISOString(),
+        investorCountry: a.investorCountry || undefined,
+      })),
+      total: await db.investmentAnalysis.count(),
     })
   } catch (err) {
     console.error('Error listing analyses:', err)

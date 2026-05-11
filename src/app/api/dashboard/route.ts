@@ -36,12 +36,26 @@ export async function GET() {
         }),
       ])
 
-    const totalDividends = await db.dividendPayment.aggregate({
+    const totalDividendsResult = await db.dividendPayment.aggregate({
       where: { userId, status: 'paid' },
       _sum: { amount: true },
     })
+    const totalDividends = totalDividendsResult._sum.amount || 0
 
-    const unreadNotifications = notifications.filter(n => !n.read).length
+    // Calculate total invested from completed/active investments
+    const totalInvested = investments
+      .filter((inv) => inv.status === 'active' || inv.status === 'completed')
+      .reduce((sum, inv) => sum + inv.totalAmount, 0)
+
+    // Calculate current value of held fractions: quantity × current pricePerFraction per asset
+    const currentValue = investments
+      .filter((inv) => inv.status === 'active')
+      .reduce((sum, inv) => sum + inv.quantity * inv.asset.pricePerFraction, 0)
+
+    // Total return = current value + dividends - total invested
+    const totalReturn = currentValue + totalDividends - totalInvested
+
+    const unreadNotifications = notifications.filter((n) => !n.read).length
 
     return NextResponse.json({
       user,
@@ -50,7 +64,10 @@ export async function GET() {
       dividendPayments,
       liquidityPool,
       notifications,
-      totalDividends: totalDividends._sum.amount || 0,
+      totalDividends,
+      totalInvested,
+      currentValue,
+      totalReturn,
       unreadNotifications,
     })
   } catch (error) {

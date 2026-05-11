@@ -1,7 +1,7 @@
-// TODO: Integrate Stripe payment before marking as completed
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireAuth } from '@/lib/api-auth'
+import { stripe } from '@/lib/stripe'
 
 const PLATFORM_FEE_RATE = 0.015 // 1.5%
 
@@ -23,135 +23,200 @@ export async function POST(
       return NextResponse.json({ error: 'fractionCount must be positive' }, { status: 400 })
     }
 
-    // Get the listing
-    const listing = await db.secondaryMarketListing.findUnique({
-      where: { id },
-      include: {
-        seller: true,
-        asset: true,
-        investment: true,
-      },
-    })
-
-    if (!listing) {
-      return NextResponse.json({ error: 'Listing not found' }, { status: 404 })
-    }
-
-    if (listing.status !== 'active') {
-      return NextResponse.json({ error: 'Listing is not active' }, { status: 400 })
-    }
-
-    // Check expiration
-    if (listing.expiresAt && new Date() > listing.expiresAt) {
-      return NextResponse.json({ error: 'Listing has expired' }, { status: 400 })
-    }
-
-    // Buyer cannot be the seller
-    if (listing.sellerId === buyerId) {
-      return NextResponse.json({ error: 'You cannot buy your own listing' }, { status: 400 })
-    }
-
-    // Buyer must have KYC verified
-    const buyer = await db.user.findUnique({ where: { id: buyerId } })
-    if (!buyer || buyer.kycStatus !== 'verified') {
-      return NextResponse.json({ error: 'KYC verification required to buy' }, { status: 400 })
-    }
-
-    const availableFractions = listing.fractionCount - listing.soldFractionCount
-
-    if (fractionCount > availableFractions) {
-      return NextResponse.json(
-        { error: `Only ${availableFractions} fractions available` },
-        { status: 400 }
-      )
-    }
-
-    // Calculate amounts
-    const gross = fractionCount * listing.pricePerFraction
-    const platformFee = gross * PLATFORM_FEE_RATE
-    const netAmount = gross - platformFee
-
-    // Determine if this is a full or partial purchase
-    const isFullPurchase = fractionCount === availableFractions
-
-    // Update listing
-    const updatedListing = await db.secondaryMarketListing.update({
-      where: { id },
-      data: {
-        soldFractionCount: listing.soldFractionCount + fractionCount,
-        platformFee: listing.platformFee + platformFee,
-        ...(isFullPurchase
-          ? {
-              status: 'sold',
-              buyerId,
-              netAmount,
-              soldAt: new Date(),
-            }
-          : {
-              // Keep active for partial sales
-              netAmount: (listing.netAmount || 0) + netAmount,
-            }),
-      },
-    })
-
-    // Create a new Investment for the buyer
-    await db.investment.create({
-      data: {
-        userId: buyerId,
-        assetId: listing.assetId,
-        quantity: fractionCount,
-        pricePerUnit: listing.pricePerFraction,
-        totalAmount: gross,
-        status: 'pending',
-      },
-    })
-
-    // Create transaction for buyer
-    await db.transaction.create({
-      data: {
-        userId: buyerId,
-        investmentId: listing.investmentId,
-        type: 'purchase',
-        amount: gross,
-        currency: 'USD',
-        status: 'pending',
-        feeAmount: platformFee,
-        netAmount,
-        description: `Compra de ${fractionCount} fracciones – ${listing.asset.name} (Mercado Secundario)`,
-      },
-    })
-
-    // Create transaction for seller
-    await db.transaction.create({
-      data: {
-        userId: listing.sellerId,
-        investmentId: listing.investmentId,
-        type: 'sale',
-        amount: gross,
-        currency: 'USD',
-        status: 'pending',
-        feeAmount: platformFee,
-        netAmount,
-        description: `Venta de ${fractionCount} fracciones – ${listing.asset.name} (Mercado Secundario)`,
-      },
-    })
-
-    // If fully sold, update seller's investment quantity
-    if (isFullPurchase) {
-      await db.investment.update({
-        where: { id: listing.investmentId },
-        data: {
-          quantity: listing.investment.quantity - listing.fractionCount,
+    // ─── Wrap entire buy operation in an interactive transaction to prevent race conditions ───
+    const result = await db.$transaction(async (tx) => {
+      // Lock the listing row for update (Prisma interactive tx serializes access)
+      const listing = await tx.secondaryMarketListing.findUnique({
+        where: { id },
+        include: {
+          seller: true,
+          asset: true,
+          investment: true,
         },
       })
-    }
+
+      if (!listing) {
+        throw new Error('Listing not found')
+      }
+
+      if (listing.status !== 'active') {
+        throw new Error('Listing is not active')
+      }
+
+      // Check expiration
+      if (listing.expiresAt && new Date() > listing.expiresAt) {
+        throw new Error('Listing has expired')
+      }
+
+      // Buyer cannot be the seller
+      if (listing.sellerId === buyerId) {
+        throw new Error('You cannot buy your own listing')
+      }
+
+      // Buyer must have KYC verified
+      const buyer = await tx.user.findUnique({ where: { id: buyerId } })
+      if (!buyer || buyer.kycStatus !== 'verified') {
+        throw new Error('KYC verification required to buy')
+      }
+
+      const availableFractions = listing.fractionCount - listing.soldFractionCount
+
+      if (fractionCount > availableFractions) {
+        throw new Error(`Only ${availableFractions} fractions available`)
+      }
+
+      // Calculate amounts
+      const gross = fractionCount * listing.pricePerFraction
+      const platformFee = gross * PLATFORM_FEE_RATE
+      const netAmount = gross - platformFee
+
+      // Determine if this is a full or partial purchase
+      const isFullPurchase = fractionCount === availableFractions
+
+      // Create a Stripe Checkout Session for payment
+      const amountPerFractionCents = Math.round(listing.pricePerFraction * 100) // Stripe needs cents
+      const totalAmountCents = amountPerFractionCents * fractionCount
+
+      const checkoutSession = await stripe.checkout.sessions.create({
+        mode: 'payment',
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: `${listing.asset.name} - Mercado Secundario`,
+                description: `${fractionCount} fracción(es) de ${listing.asset.name} (Mercado Secundario)`,
+              },
+              unit_amount: amountPerFractionCents,
+            },
+            quantity: fractionCount,
+          },
+        ],
+        metadata: {
+          assetId: listing.assetId,
+          userId: buyerId,
+          fractionCount: fractionCount.toString(),
+          assetName: listing.asset.name,
+          pricePerFraction: listing.pricePerFraction.toString(),
+          listingId: id,
+          sellerId: listing.sellerId,
+          type: 'secondary_market',
+        },
+        success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}?payment=cancelled`,
+      })
+
+      if (!checkoutSession.url) {
+        throw new Error('Failed to create Stripe checkout session')
+      }
+
+      // Update listing (reserve fractions)
+      const updatedListing = await tx.secondaryMarketListing.update({
+        where: { id },
+        data: {
+          soldFractionCount: listing.soldFractionCount + fractionCount,
+          platformFee: listing.platformFee + platformFee,
+          ...(isFullPurchase
+            ? {
+                status: 'sold',
+                buyerId,
+                netAmount,
+                soldAt: new Date(),
+              }
+            : {
+                // Keep active for partial sales
+                netAmount: (listing.netAmount || 0) + netAmount,
+              }),
+        },
+      })
+
+      // Create a new Investment for the buyer (pending until payment completes)
+      const investment = await tx.investment.create({
+        data: {
+          userId: buyerId,
+          assetId: listing.assetId,
+          quantity: fractionCount,
+          pricePerUnit: listing.pricePerFraction,
+          totalAmount: gross,
+          status: 'pending',
+          stripePaymentId: checkoutSession.id,
+        },
+      })
+
+      // Create transaction for buyer (pending)
+      await tx.transaction.create({
+        data: {
+          userId: buyerId,
+          investmentId: investment.id,
+          type: 'purchase',
+          amount: gross,
+          currency: 'USD',
+          status: 'pending',
+          feeAmount: platformFee,
+          netAmount,
+          description: `Compra de ${fractionCount} fracciones – ${listing.asset.name} (Mercado Secundario)`,
+          referenceId: checkoutSession.id,
+        },
+      })
+
+      // Create transaction for seller (pending)
+      await tx.transaction.create({
+        data: {
+          userId: listing.sellerId,
+          investmentId: listing.investmentId,
+          type: 'sale',
+          amount: gross,
+          currency: 'USD',
+          status: 'pending',
+          feeAmount: platformFee,
+          netAmount,
+          description: `Venta de ${fractionCount} fracciones – ${listing.asset.name} (Mercado Secundario)`,
+          referenceId: checkoutSession.id,
+        },
+      })
+
+      // If fully sold, update seller's investment quantity
+      if (isFullPurchase) {
+        await tx.investment.update({
+          where: { id: listing.investmentId },
+          data: {
+            quantity: listing.investment.quantity - listing.fractionCount,
+          },
+        })
+      }
+
+      return {
+        updatedListing,
+        checkoutUrl: checkoutSession.url,
+        sessionId: checkoutSession.id,
+        investmentId: investment.id,
+      }
+    })
 
     return NextResponse.json({
-      ...updatedListing,
-      message: 'Purchase created. Payment integration pending.',
+      ...result.updatedListing,
+      checkoutUrl: result.checkoutUrl,
+      sessionId: result.sessionId,
+      investmentId: result.investmentId,
+      message: 'Purchase created. Redirect to checkout URL to complete payment.',
     })
   } catch (err) {
     console.error('[SecondaryMarket Buy POST]', err)
-    return NextResponse.json({ error: 'Failed to buy fractions' }, { status: 500 })
+
+    // Return appropriate status for known validation errors
+    const message = err instanceof Error ? err.message : 'Failed to buy fractions'
+    if (
+      message.includes('not found') ||
+      message.includes('not active') ||
+      message.includes('expired') ||
+      message.includes('own listing') ||
+      message.includes('KYC') ||
+      message.includes('fractions available')
+    ) {
+      return NextResponse.json({ error: message }, { status: 400 })
+    }
+
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

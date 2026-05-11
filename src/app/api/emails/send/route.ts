@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
 import { sendEmail } from '@/lib/email'
+import { requireAuth } from '@/lib/api-auth'
 
 /**
  * POST /api/emails/send
  *
- * Main email sending endpoint.
+ * Main email sending endpoint. Requires authentication.
  *
  * Body:
  *   to: string          – Recipient email address
@@ -15,6 +16,10 @@ import { sendEmail } from '@/lib/email'
  *   bodyText: string    – Custom text body (optional, overrides template)
  */
 export async function POST(request: Request) {
+  // SECURITY: Require authentication to send emails
+  const { error } = await requireAuth()
+  if (error) return error
+
   try {
     const body = await request.json()
     const { to, subject, templateName, variables, bodyHtml, bodyText } = body

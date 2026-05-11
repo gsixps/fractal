@@ -41,6 +41,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Separator } from '@/components/ui/separator'
+import AIInsightsPanel from '@/components/gsp/dashboard/AIInsightsPanel'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -270,7 +271,9 @@ export default function DashboardPage() {
   useEffect(() => { fetchDashboard() }, [fetchDashboard])
 
   const user = dashboardData.user
-  const portfolioValue = (user?.totalInvested || 0) + dashboardData.totalDividends
+  const portfolioValue = dashboardData.currentValue
+  const totalInvested = dashboardData.totalInvested || user?.totalInvested || 0
+  const totalReturn = dashboardData.totalReturn
   const recentDividends = dashboardData.dividendPayments.slice(0, 10)
   const recentTransactions = dashboardData.transactions.slice(0, 10)
 
@@ -334,11 +337,15 @@ export default function DashboardPage() {
             <div className="mt-4 flex flex-wrap gap-4 text-sm text-white/70">
               <div>
                 <span className="text-white/50 font-light">Invertido: </span>
-                <span className="font-semibold text-white">{formatUSD(user?.totalInvested || 0)}</span>
+                <span className="font-semibold text-white">{formatUSD(totalInvested)}</span>
               </div>
               <div>
                 <span className="text-white/50 font-light">Dividendos: </span>
                 <span className="font-semibold text-emerald-200">{formatUSD(data.totalDividends)}</span>
+              </div>
+              <div>
+                <span className="text-white/50 font-light">Retorno Total: </span>
+                <span className={cn("font-semibold", totalReturn >= 0 ? "text-emerald-200" : "text-red-300")}>{totalReturn >= 0 ? '+' : ''}{formatUSD(totalReturn)}</span>
               </div>
               <div>
                 <span className="text-white/50 font-light">Activos: </span>
@@ -358,7 +365,7 @@ export default function DashboardPage() {
           />
           <StatCard
             title="Total Invertido"
-            value={formatUSD(user?.totalInvested || 0)}
+            value={formatUSD(totalInvested)}
             icon={TrendingUp}
             description="Capital invertido acumulado"
           />
@@ -374,9 +381,12 @@ export default function DashboardPage() {
             value={formatUSD(portfolioValue)}
             icon={PiggyBank}
             valueColorClass="text-primary"
-            description="Invertido + dividendos"
+            description={totalReturn >= 0 ? `Retorno total: +${formatUSD(totalReturn)}` : `Retorno total: ${formatUSD(totalReturn)}`}
           />
         </div>
+
+        {/* ── AI Insights Panel ── */}
+        <AIInsightsPanel />
 
         {/* ── 2. Investments Grid ── */}
         <section className="mb-8">

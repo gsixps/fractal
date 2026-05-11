@@ -563,6 +563,19 @@ model ReferralCode {
   referrals   Referral[]
 }
 
+// ==================== AI INVESTMENT ANALYSIS ====================
+
+model InvestmentAnalysis {
+  id              String   @id @default(cuid())
+  assetId         String
+  assetName       String
+  analysis        String
+  investorCountry String?
+  generatedAt     DateTime @default(now())
+
+  createdAt       DateTime @default(now())
+}
+
 // ==================== SECONDARY MARKET ====================
 
 model SecondaryMarketListing {
@@ -605,4 +618,15 @@ model Referral {
   bonusCurrency   String        @default("USD")
   status          String        @default("pending") // pending, completed, paid
   createdAt       DateTime      @default(now())
+}
+
+// ==================== CMS: NEWSLETTER SUBSCRIPTIONS ====================
+
+model Newsletter {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  isActive  Boolean  @default(true)
+  source    String   @default("homepage")
+
+  createdAt DateTime @default(now())
 }

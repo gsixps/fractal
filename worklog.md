@@ -826,3 +826,138 @@ Stage Summary:
 - This allows the preview panel (cross-origin iframe) to properly embed the app
 - Also fixes deploy environments where the app might be framed by a different domain
 - Files modified: src/middleware.ts, src/lib/store.ts
+
+---
+Task ID: 1-a
+Agent: Security Fix Agent
+Task: Fix P0 critical security issues
+
+Work Log:
+- Protected /api/seed with requireAdmin() — was open to anyone
+- Protected /api/emails/send with requireAuth() — was open to anyone
+- Fixed race condition in secondary market buy with Prisma $transaction
+- Fixed Stripe webhook hardcoded fraction count (1000 → asset.totalFractions)
+- Implemented Stripe Checkout in secondary market buy (creates pending investment → redirects to Stripe → webhook confirms)
+
+Stage Summary:
+- 5 critical security fixes applied
+- Secondary market now requires actual payment
+- All endpoints properly authenticated
+
+---
+Task ID: 1-b
+Agent: Features Agent
+Task: Create missing endpoints + fix fake implementations
+
+Work Log:
+- Created /api/upload/route.ts with auth, file validation (type+size), unique filenames
+- Created /api/newsletter/subscribe/route.ts with Zod validation, duplicate handling
+- Created /api/stats/route.ts with real DB queries (totalInvested, investors, yield, etc.)
+- Added Newsletter model to Prisma schema, ran db:push
+- Fixed HomePage stats to fetch from /api/stats with animated counters
+- Fixed HomePage CTA email form and Footer newsletter to POST to real API
+
+Stage Summary:
+- 4 new endpoints created
+- Newsletter now stores emails in database
+- Homepage shows real platform statistics
+- File upload infrastructure ready
+
+---
+Task ID: 1-c
+Agent: Data Fix Agent
+Task: Fix dashboard, AI persistence, referral, portfolio calculation
+
+Work Log:
+- Fixed /api/dashboard to return currentValue and totalReturn calculations
+- Fixed portfolio value = sum(quantity × currentPrice) + dividends
+- Replaced in-memory Map with InvestmentAnalysis model in Prisma
+- Ran db:push for new schema
+- Changed referral bonus from 'completed' to 'pending'
+- Added referral completion logic in Stripe webhook when first investment succeeds
+
+Stage Summary:
+- Dashboard shows real-time portfolio value with appreciation
+- AI analyses persist across server restarts
+- Referral bonuses only credit after actual investment
+
+---
+Task ID: 4-a
+Agent: AI Integration Agent
+Task: AI Recommendations, Fraud Detection, KYC Analysis
+
+Work Log:
+- Created /api/recommendations with personalized LLM scoring + 1hr cache
+- Created /api/fraud/check with risk scoring (0-100) + audit logging
+- Created /api/kyc/analyze with VLM document analysis + auto-status update
+- All endpoints use z-ai-web-dev-sdk with rule-based fallbacks
+
+Stage Summary:
+- 3 AI endpoints with full authentication and caching
+- Fraud detection auto-logs high-risk events
+- KYC analysis uses computer vision for document verification
+
+---
+Task ID: 4-b
+Agent: AI Integration Agent
+Task: AI Insights, Semantic Search, Compliance Reports
+
+Work Log:
+- Created /api/insights with personalized portfolio insights + 30min cache
+- Created /api/assets/search with semantic NLP matching + 10min cache
+- Created /api/compliance/report with 6-section regulatory report + 1hr cache
+- All use z-ai-web-dev-sdk with robust fallbacks
+
+Stage Summary:
+- 3 AI endpoints covering insights, search, and compliance
+- Compliance report references Chilean regulations (CMF, Ley 19.913)
+
+---
+Task ID: 4-c
+Agent: AI Integration Agent
+Task: Enhanced Chatbot, Predictions, Valuation
+
+Work Log:
+- Enhanced /api/chat with portfolio context injection and 4 slash commands
+- Created /api/predictions with quarterly dividend forecasts + 24hr cache
+- Created /api/ai/valuation with fair market value estimation
+
+Stage Summary:
+- Chatbot now has /portafolio, /recomendar, /mercado, /ayuda commands
+- Predictions show 4-quarter outlook with confidence levels
+- Valuation provides gap analysis and comparable metrics
+
+---
+Task ID: 7-a
+Agent: Frontend UI Agent
+Task: Add AI UI to dashboard, marketplace, asset detail
+
+Work Log:
+- Created AIInsightsPanel component for dashboard
+- Created AIRecommendations horizontal scroll for marketplace
+- Created AIPredictionsCard for asset detail financials
+- Integrated all 3 into their respective parent components
+
+Stage Summary:
+- 3 new AI UI components with loading skeletons and error states
+- Dashboard shows personalized insights
+- Marketplace shows AI recommendations for logged-in users
+- Asset detail shows AI dividend predictions
+
+---
+Task ID: 7-b
+Agent: Frontend UI Agent
+Task: AI search bar, chat commands, admin compliance/valuation UI
+
+Work Log:
+- Added AI search button in marketplace with "Powered by IA" badge
+- Enhanced ChatWidget with 3 quick-action buttons + /ayuda hint
+- Created ComplianceView admin tab with 6-section report display
+- Created AssetValuationAI component for admin asset edit dialog
+- Integrated both into AdminPage.tsx
+
+Stage Summary:
+- Marketplace search enhanced with AI semantic matching
+- Chat widget has portfolio/recommend/market quick actions
+- Admin panel has new "Cumplimiento" (Compliance) tab
+- Admin asset editing shows AI valuation analysis

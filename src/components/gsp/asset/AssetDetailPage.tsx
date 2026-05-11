@@ -15,6 +15,7 @@ import { Separator } from '@/components/ui/separator'
 import { Slider } from '@/components/ui/slider'
 import { Skeleton } from '@/components/ui/skeleton'
 import { InvestmentDialog } from '@/components/gsp/shared/InvestmentDialog'
+import AIPredictionsCard from '@/components/gsp/asset/AIPredictionsCard'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
@@ -280,6 +281,11 @@ export default function AssetDetailPage() {
             </Card>
           </section>
         )}
+
+        {/* 5b. AI Predictions Card */}
+        <section>
+          <AIPredictionsCard assetId={selectedAssetId} />
+        </section>
 
         {/* 6. Documents (KYC Gated) */}
         {asset.documents.length > 0 && (

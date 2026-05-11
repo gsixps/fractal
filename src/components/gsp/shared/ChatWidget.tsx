@@ -1,11 +1,10 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { MessageCircle, X, Send, Bot, Loader2, Sparkles } from 'lucide-react'
+import { MessageCircle, X, Send, Bot, Loader2, Sparkles, Wallet, TrendingUp, ShoppingBag } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -14,6 +13,27 @@ interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
   timestamp: Date
+}
+
+// ─── Portfolio Data Formatter ───────────────────────────────────────────────
+function formatPortfolioContent(content: string): React.ReactNode {
+  // Split by lines and apply formatting
+  const lines = content.split('\n')
+  return lines.map((line, i) => {
+    // Bold patterns: **text**
+    const boldFormatted = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    // Currency patterns: $X,XXX or USD
+    const colorFormatted = boldFormatted.replace(/(\$[\d,.]+(?:K|M|B)?(?:\s*USD)?)/g, '<span class="text-primary font-semibold">$1</span>')
+    // Percentage patterns: X.X%
+    const pctFormatted = colorFormatted.replace(/(\d+\.?\d*%)/g, '<span class="text-primary font-semibold">$1</span>')
+
+    if (pctFormatted.includes('<strong>') || pctFormatted.includes('<span')) {
+      return (
+        <span key={i} className="block" dangerouslySetInnerHTML={{ __html: pctFormatted }} />
+      )
+    }
+    return <span key={i} className="block">{line || '\u00A0'}</span>
+  })
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -54,14 +74,14 @@ export function ChatWidget() {
     }
   }, [isOpen, messages.length])
 
-  const sendMessage = useCallback(async () => {
-    const text = input.trim()
-    if (!text || isLoading) return
+  const sendMessage = useCallback(async (text?: string) => {
+    const messageText = (text || input).trim()
+    if (!messageText || isLoading) return
 
     const userMsg: ChatMessage = {
       id: `user-${Date.now()}`,
       role: 'user',
-      content: text,
+      content: messageText,
       timestamp: new Date(),
     }
 
@@ -117,6 +137,17 @@ export function ChatWidget() {
   }
 
   const toggleChat = () => setIsOpen((prev) => !prev)
+
+  const quickActions = [
+    { label: 'Mi Portafolio', command: '/portafolio', icon: <Wallet className="size-3.5" /> },
+    { label: 'Recomendar', command: '/recomendar', icon: <TrendingUp className="size-3.5" /> },
+    { label: 'Mercado', command: '/mercado', icon: <ShoppingBag className="size-3.5" /> },
+  ]
+
+  // Check if message content looks like portfolio data
+  const isPortfolioLike = (content: string) => {
+    return content.includes('**') || /\$[\d,.]+/.test(content) || /\d+\.?\d*%/.test(content)
+  }
 
   return (
     <>
@@ -213,7 +244,9 @@ export function ChatWidget() {
                         : 'bg-muted text-foreground rounded-bl-md'
                     )}
                   >
-                    {msg.content}
+                    {msg.role === 'assistant' && isPortfolioLike(msg.content)
+                      ? formatPortfolioContent(msg.content)
+                      : msg.content}
                   </div>
                 </div>
               </div>
@@ -238,8 +271,31 @@ export function ChatWidget() {
             )}
           </div>
 
+          {/* Quick Actions */}
+          <div className="px-3 pb-1">
+            <div className="flex gap-1.5">
+              {quickActions.map((action) => (
+                <Button
+                  key={action.command}
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    'flex-1 h-8 gap-1.5 text-xs rounded-lg border-border/40',
+                    'bg-muted/50 hover:bg-muted cursor-pointer',
+                    'text-muted-foreground hover:text-foreground'
+                  )}
+                  onClick={() => sendMessage(action.command)}
+                  disabled={isLoading}
+                >
+                  {action.icon}
+                  <span className="hidden sm:inline">{action.label}</span>
+                </Button>
+              ))}
+            </div>
+          </div>
+
           {/* Input */}
-          <div className="border-t border-border/50 p-3">
+          <div className="border-t border-border/50 p-3 pt-2">
             <form
               onSubmit={(e) => {
                 e.preventDefault()
@@ -269,7 +325,10 @@ export function ChatWidget() {
                 )}
               </Button>
             </form>
-            <p className="text-[10px] text-muted-foreground/60 mt-2 text-center font-light">
+            <p className="text-[10px] text-muted-foreground/60 mt-1.5 text-center font-light">
+              Escribe <span className="font-medium text-muted-foreground/80">/ayuda</span> para ver comandos
+            </p>
+            <p className="text-[10px] text-muted-foreground/40 mt-0.5 text-center font-light">
               GALAXY AI may produce inaccurate information
             </p>
           </div>

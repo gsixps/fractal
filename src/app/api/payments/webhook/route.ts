@@ -17,6 +17,17 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   const qty = parseInt(fractionCount, 10)
 
+  // Fetch the asset to get the actual totalFractions for accurate fundedPercentage
+  const asset = await db.asset.findUnique({ where: { id: assetId } })
+  if (!asset) {
+    console.error('[Webhook] Asset not found:', assetId)
+    return
+  }
+
+  // Calculate funded percentage increment based on actual totalFractions (fallback to 1 to avoid division by zero)
+  const totalFractions = asset.totalFractions > 0 ? asset.totalFractions : 1
+  const fundedIncrement = Math.round((qty / totalFractions) * 10000) / 100
+
   // Update investment to active
   await db.investment.updateMany({
     where: {
@@ -41,14 +52,12 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     data: { status: 'completed' },
   })
 
-  // Decrement available fractions
+  // Decrement available fractions and update funded percentage
   await db.asset.update({
     where: { id: assetId },
     data: {
       availableFractions: { decrement: qty },
-      fundedPercentage: {
-        increment: Math.round((qty / 1000) * 10000) / 100, // Assuming 1000 total fractions
-      },
+      fundedPercentage: { increment: fundedIncrement },
     },
   })
 
@@ -70,6 +79,34 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       message: `Tu inversión de ${qty} fracción(es) de ${assetName || 'activos'} ha sido procesada exitosamente.`,
     },
   })
+
+  // Check if this user was referred — if so, complete the pending referral bonus
+  const pendingReferral = await db.referral.findFirst({
+    where: { referredId: userId, status: 'pending' },
+  })
+
+  if (pendingReferral) {
+    await db.referral.update({
+      where: { id: pendingReferral.id },
+      data: { status: 'completed' },
+    })
+
+    // Credit the referrer's bonus
+    await db.user.update({
+      where: { id: pendingReferral.referrerId },
+      data: { balance: { increment: pendingReferral.bonusAmount } },
+    })
+
+    // Notify referrer
+    await db.notification.create({
+      data: {
+        userId: pendingReferral.referrerId,
+        type: 'referral_bonus',
+        title: '¡Bono de referido completado!',
+        message: `Tu referido ha completado su primera inversión. Se han acreditado $${pendingReferral.bonusAmount} ${pendingReferral.bonusCurrency} a tu saldo.`,
+      },
+    })
+  }
 
   // Audit log
   await db.auditLog.create({

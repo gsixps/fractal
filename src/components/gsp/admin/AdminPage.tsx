@@ -36,6 +36,7 @@ import {
   Languages,
   Coins,
   Brain,
+  Shield,
   Download,
   Bell,
   CircleDot,
@@ -57,6 +58,8 @@ import { TranslationsView } from './sections/TranslationsView'
 import { CurrenciesView } from './sections/CurrenciesView'
 import { AnalyticsView } from './sections/AnalyticsView'
 import { InvestmentAnalysisView } from './sections/InvestmentAnalysisView'
+import { ComplianceView } from './sections/ComplianceView'
+import { AssetValuationAI } from './sections/AssetValuationAI'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -449,6 +452,7 @@ const navItems: Array<{ id: string; label: string; icon: React.ElementType | nul
   { id: 'liquidity', label: 'Liquidez', icon: Droplets },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   { id: 'investment-analysis', label: 'Análisis IA', icon: Brain },
+  { id: 'compliance', label: 'Cumplimiento', icon: Shield },
   { id: '_sep_cms', label: '', icon: null, isSeparator: true, section: 'Contenido' },
   { id: 'settings', label: 'Configuración', icon: Settings },
   { id: 'blog', label: 'Blog', icon: FileText },
@@ -1148,6 +1152,16 @@ function ActivosView() {
               <Label htmlFor="a-fulldesc">Descripción Completa</Label>
               <Textarea id="a-fulldesc" value={form.fullDescription} onChange={(e) => setForm({ ...form, fullDescription: e.target.value })} rows={5} />
             </div>
+            {editingAsset && (
+              <>
+                <Separator />
+                <p className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+                    <Brain className="size-4 text-primary" />
+                    Valoración Inteligente
+                  </p>
+                <AssetValuationAI assetId={editingAsset.id} assetName={editingAsset.name} />
+              </>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setFormOpen(false)}>Cancelar</Button>
@@ -2131,6 +2145,7 @@ export default function AdminPage() {
       case 'liquidity': return <LiquidezView />
       case 'analytics': return <AnalyticsView />
       case 'investment-analysis': return <InvestmentAnalysisView />
+      case 'compliance': return <ComplianceView />
       case 'settings': return <SettingsView />
       case 'blog': return <BlogView />
       case 'faq': return <FAQView />

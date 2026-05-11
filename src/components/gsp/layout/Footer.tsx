@@ -5,6 +5,7 @@ import { useAppStore } from '@/lib/store'
 import { useT } from '@/lib/i18n-utils'
 import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
+import { useToast } from '@/hooks/use-toast'
 import {
   Sun,
   Moon,
@@ -21,6 +22,56 @@ import {
   Users,
   BookOpen,
 } from 'lucide-react'
+
+function NewsletterForm() {
+  const [email, setEmail] = useState('')
+  const [loading, setLoading] = useState(false)
+  const { toast } = useToast()
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email.trim()) return
+    setLoading(true)
+    try {
+      const res = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        toast({ title: '¡Suscrito!', description: data.message || 'Recibirás nuestro newsletter pronto.' })
+        setEmail('')
+      } else {
+        toast({ title: 'Error', description: data.error || 'Intenta de nuevo.', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Error', description: 'No se pudo conectar al servidor.', variant: 'destructive' })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex gap-2">
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="tu@email.com"
+        required
+        className="flex-1 h-9 rounded-lg bg-white/5 border border-white/10 px-3 text-xs text-white placeholder:text-white/25 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 focus:border-emerald-500/30"
+      />
+      <button
+        type="submit"
+        disabled={loading}
+        className="h-9 px-3 rounded-lg gsp-gradient text-white text-xs font-semibold hover:opacity-90 transition-opacity duration-200 shrink-0 disabled:opacity-60"
+      >
+        {loading ? '...' : 'OK'}
+      </button>
+    </form>
+  )
+}
 
 export function Footer() {
   const t = useT()
@@ -147,16 +198,7 @@ export function Footer() {
               <p className="text-sm text-white/45 font-light mb-3">
                 Recibe oportunidades de inversión cada semana.
               </p>
-              <div className="flex gap-2">
-                <input
-                  type="email"
-                  placeholder="tu@email.com"
-                  className="flex-1 h-9 rounded-lg bg-white/5 border border-white/10 px-3 text-xs text-white placeholder:text-white/25 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 focus:border-emerald-500/30"
-                />
-                <button className="h-9 px-3 rounded-lg gsp-gradient text-white text-xs font-semibold hover:opacity-90 transition-opacity duration-200 shrink-0">
-                  OK
-                </button>
-              </div>
+              <NewsletterForm />
             </div>
           </div>
         </div>

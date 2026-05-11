@@ -75,18 +75,46 @@ const typeIcons: Record<string, React.ReactNode> = {
   mining: <Pickaxe className="size-3.5" />,
 }
 
+/* ── Type for stats from /api/stats ── */
+interface PlatformStats {
+  totalInvested: number
+  totalInvestors: number
+  averageYield: number
+  platformFee: number
+  totalAssets: number
+  totalDividends: number
+}
+
 /* ══════════════════════════════════════════════════════════════════
    HERO — Serif heading + gradient + soft radial glow
    ══════════════════════════════════════════════════════════════════ */
 function HeroSection() {
   const t = useT()
   const navigate = useAppStore((s) => s.navigate)
-  const stats = [
-    { value: 2100000, display: '$2.1M+', label: t('home.stats.invested'), prefix: '$', suffix: 'M+', rawValue: 2.1 },
-    { value: 340, display: '340+', label: t('home.stats.investors'), prefix: '', suffix: '+' },
-    { value: 128, display: '12.8%', label: t('home.annualYield'), prefix: '', suffix: '.', isDecimal: true, rawValue: 12.8 },
-    { value: 3, display: '3%', label: t('home.whyGsp.lowCosts'), prefix: '', suffix: '%' },
-  ]
+  const [stats, setStats] = useState<PlatformStats | null>(null)
+
+  useEffect(() => {
+    fetch('/api/stats')
+      .then((r) => r.ok ? r.json() : null)
+      .then(setStats)
+      .catch(() => {})
+  }, [])
+
+  /* Format invested amount: e.g. $2.1M+ */
+  const formatInvested = (val: number) => {
+    if (val >= 1_000_000) {
+      const m = val / 1_000_000
+      return { prefix: '$', whole: Math.floor(m), decimal: Math.round((m % 1) * 10), suffix: 'M+' }
+    }
+    if (val >= 1_000) {
+      const k = val / 1_000
+      return { prefix: '$', whole: Math.floor(k), decimal: Math.round((k % 1) * 10), suffix: 'K+' }
+    }
+    return { prefix: '$', whole: Math.floor(val), decimal: 0, suffix: '' }
+  }
+
+  const investedData = stats ? formatInvested(stats.totalInvested) : null
+
   return (
     <section className="relative overflow-hidden">
       {/* Background glow + radial gradient overlay */}
@@ -131,24 +159,53 @@ function HeroSection() {
         {/* Stats Bar — Glass card with animated counters */}
         <motion.div custom={4} variants={fadeUp} initial="hidden" animate="visible" className="mt-16 sm:mt-20">
           <div className="gsp-glass rounded-2xl border border-primary/10 shadow-[0_4px_24px_oklch(0.45_0.155_162/0.06)]">
-            <div className="grid grid-cols-2 lg:grid-cols-4">
-              {stats.map((s, i) => (
-                <div key={i} className={`py-6 px-6 sm:px-8 text-center ${i < 3 ? 'lg:border-r lg:border-border/30' : ''} ${i < 2 ? 'border-b border-border/30 lg:border-b-0' : ''}`}>
-                  {s.isDecimal ? (
-                    <p className="text-2xl sm:text-3xl font-bold tracking-tight">
-                      <AnimatedCounter value={Math.round(s.rawValue * 10)} suffix={s.suffix} prefix={s.prefix} duration={1400} />
-                      <span className="text-lg sm:text-xl">{s.suffix}</span>
-                    </p>
-                  ) : (
-                    <p className="text-2xl sm:text-3xl font-bold tracking-tight">
-                      {s.prefix}<AnimatedCounter value={s.value === 2100000 ? 2 : s.value} suffix={s.suffix} duration={1400} />
-                      {s.value === 2100000 && <span className="text-lg sm:text-xl">.1M+</span>}
-                    </p>
-                  )}
-                  <p className="mt-1 text-sm text-muted-foreground font-light">{s.label}</p>
+            {stats ? (
+              <div className="grid grid-cols-2 lg:grid-cols-4">
+                {/* Total Invested */}
+                <div className="py-6 px-6 sm:px-8 text-center lg:border-r lg:border-border/30 border-b border-border/30 lg:border-b-0">
+                  <p className="text-2xl sm:text-3xl font-bold tracking-tight">
+                    {investedData && <>
+                      {investedData.prefix}{investedData.whole}
+                      {investedData.decimal > 0 && <span className="text-lg sm:text-xl">.{investedData.decimal}</span>}
+                      <span className="text-lg sm:text-xl">{investedData.suffix}</span>
+                    </>}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground font-light">{t('home.stats.invested')}</p>
                 </div>
-              ))}
-            </div>
+                {/* Total Investors */}
+                <div className="py-6 px-6 sm:px-8 text-center lg:border-r lg:border-border/30 border-b border-border/30 lg:border-b-0">
+                  <p className="text-2xl sm:text-3xl font-bold tracking-tight">
+                    <AnimatedCounter value={stats.totalInvestors} suffix="+" duration={1400} />
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground font-light">{t('home.stats.investors')}</p>
+                </div>
+                {/* Average Yield */}
+                <div className="py-6 px-6 sm:px-8 text-center lg:border-r lg:border-border/30">
+                  <p className="text-2xl sm:text-3xl font-bold tracking-tight">
+                    <AnimatedCounter value={Math.round(stats.averageYield * 10)} duration={1400} />
+                    <span className="text-lg sm:text-xl">%</span>
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground font-light">{t('home.annualYield')}</p>
+                </div>
+                {/* Platform Fee */}
+                <div className="py-6 px-6 sm:px-8 text-center">
+                  <p className="text-2xl sm:text-3xl font-bold tracking-tight">
+                    {stats.platformFee}<span className="text-lg sm:text-xl">%</span>
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground font-light">{t('home.whyGsp.lowCosts')}</p>
+                </div>
+              </div>
+            ) : (
+              /* Skeleton loading fallback */
+              <div className="grid grid-cols-2 lg:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className={`py-6 px-6 sm:px-8 text-center ${i < 3 ? 'lg:border-r lg:border-border/30' : ''} ${i < 2 ? 'border-b border-border/30 lg:border-b-0' : ''}`}>
+                    <Skeleton className="h-9 w-20 mx-auto mb-2" />
+                    <Skeleton className="h-4 w-24 mx-auto" />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <p className="mt-4 text-xs text-muted-foreground/60 flex items-center justify-center gap-1.5">
             Powered by <span className="font-semibold text-foreground/40">GALAXY LLC</span>
@@ -671,13 +728,31 @@ function RegulatedSection() {
 function CTASection() {
   const t = useT()
   const [ctaEmail, setCtaEmail] = useState('')
+  const [ctaLoading, setCtaLoading] = useState(false)
   const { toast } = useToast()
 
-  const handleCTASubmit = (e: React.FormEvent) => {
+  const handleCTASubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!ctaEmail.trim()) return
-    toast({ title: '¡Registrado!', description: 'Te contactaremos pronto con las mejores oportunidades.' })
-    setCtaEmail('')
+    setCtaLoading(true)
+    try {
+      const res = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: ctaEmail.trim() }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        toast({ title: '¡Registrado!', description: data.message || 'Te contactaremos pronto con las mejores oportunidades.' })
+        setCtaEmail('')
+      } else {
+        toast({ title: 'Error', description: data.error || 'Intenta de nuevo.', variant: 'destructive' })
+      }
+    } catch {
+      toast({ title: 'Error', description: 'No se pudo conectar al servidor.', variant: 'destructive' })
+    } finally {
+      setCtaLoading(false)
+    }
   }
 
   return (
@@ -711,9 +786,9 @@ function CTASection() {
                 onChange={(e) => setCtaEmail(e.target.value)}
                 className="h-12 bg-white/15 backdrop-blur-md border-white/20 text-white placeholder:text-white/50 focus:border-white/40 focus:ring-white/20"
               />
-              <Button type="submit" size="lg"
-                className="bg-white text-emerald-800 hover:bg-white/90 gap-2 h-12 px-6 shrink-0 font-medium shadow-lg transition-all duration-200 cursor-pointer hover:shadow-xl">
-                {t('home.cta.button')} <ArrowRight className="size-4" />
+              <Button type="submit" size="lg" disabled={ctaLoading}
+                className="bg-white text-emerald-800 hover:bg-white/90 gap-2 h-12 px-6 shrink-0 font-medium shadow-lg transition-all duration-200 cursor-pointer hover:shadow-xl disabled:opacity-60 disabled:cursor-not-allowed">
+                {ctaLoading ? 'Registrando...' : t('home.cta.button')} <ArrowRight className="size-4" />
               </Button>
             </form>
             <p className="mt-5 text-xs text-white/40 font-light">

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -9,9 +9,10 @@ import { Input } from '@/components/ui/input'
 import { useAppStore } from '@/lib/store'
 import {
   Search, Building2, FlaskConical, Truck, Sun, Pickaxe,
-  ArrowUpDown, MapPin, SlidersHorizontal, Globe,
+  ArrowUpDown, MapPin, SlidersHorizontal, Globe, Sparkles, Loader2,
 } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
+import AIRecommendations from '@/components/gsp/marketplace/AIRecommendations'
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger,
 } from '@/components/ui/sheet'
@@ -62,6 +63,29 @@ function formatCurrency(v: number) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v)
 }
 
+// Type for AI search results (partial asset shape)
+interface AISearchResult {
+  id: string
+  name: string
+  type: string
+  status: string
+  city: string
+  region: string
+  country: string
+  totalValue: number
+  pricePerFraction: number
+  totalFractions: number
+  availableFractions: number
+  minimumInvestment: number
+  annualYield: number
+  projectedAppreciation: number
+  totalProjectedReturn: number
+  shortDescription: string | null
+  fundedPercentage: number
+  badge: string | null
+  images?: Array<{ url: string; alt: string | null }>
+}
+
 export default function MarketplacePage() {
   const selectAsset = useAppStore((s) => s.selectAsset)
   const storeAssets = useAppStore((s) => s.assets)
@@ -72,13 +96,18 @@ export default function MarketplacePage() {
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState('yield')
 
+  // AI search state
+  const [aiSearching, setAiSearching] = useState(false)
+  const [aiResults, setAiResults] = useState<AISearchResult[] | null>(null)
+  const [aiSearchQuery, setAiSearchQuery] = useState('')
+
   useEffect(() => { fetchAssets() }, [fetchAssets])
 
   const sorted = useMemo(() => {
     let arr = storeAssets.filter(a => a.status === 'active')
     if (typeFilter !== 'all') arr = arr.filter(a => a.type === typeFilter)
     if (countryFilter !== 'all') arr = arr.filter(a => a.country === countryFilter)
-    if (search) {
+    if (search && !aiResults) {
       const q = search.toLowerCase()
       arr = arr.filter(a => a.name.toLowerCase().includes(q) || a.city.toLowerCase().includes(q))
     }
@@ -89,7 +118,57 @@ export default function MarketplacePage() {
       case 'funded': return [...arr].sort((a, b) => b.fundedPercentage - a.fundedPercentage)
       default: return arr
     }
-  }, [storeAssets, typeFilter, countryFilter, search, sortBy])
+  }, [storeAssets, typeFilter, countryFilter, search, sortBy, aiResults])
+
+  const performAISearch = useCallback(async (query: string) => {
+    if (!query.trim()) return
+    setAiSearching(true)
+    setAiSearchQuery(query.trim())
+    try {
+      const res = await fetch(`/api/assets/search?q=${encodeURIComponent(query.trim())}&limit=10`)
+      if (res.ok) {
+        const data = await res.json()
+        if (data.results && data.results.length > 0) {
+          setAiResults(data.results)
+          return
+        }
+      }
+      // If API fails or no results, fall back to client-side filtering
+      setAiResults(null)
+    } catch {
+      // Fall back to client-side filtering on error
+      setAiResults(null)
+    } finally {
+      setAiSearching(false)
+    }
+  }, [])
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      performAISearch(search)
+    }
+  }
+
+  const handleSearchClick = () => {
+    performAISearch(search)
+  }
+
+  // Clear AI results when filters change or search is cleared
+  const handleFilterChange = (setter: (v: string) => void, value: string) => {
+    setter(value)
+    setAiResults(null)
+    setAiSearchQuery('')
+  }
+
+  const handleClearSearch = () => {
+    setSearch('')
+    setAiResults(null)
+    setAiSearchQuery('')
+  }
+
+  // Determine which assets to display
+  const displayAssets = aiResults || sorted
+  const isAISearch = aiResults !== null && aiSearchQuery !== ''
 
   return (
     <div className="min-h-screen bg-background">
@@ -106,7 +185,33 @@ export default function MarketplacePage() {
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
               <Input placeholder="Buscar por nombre o ciudad..." value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 h-11 bg-card/60 backdrop-blur-sm border-border/50" />
+                onKeyDown={handleSearchKeyDown}
+                className="pl-10 pr-20 h-11 bg-card/60 backdrop-blur-sm border-border/50" />
+              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                {aiSearching && (
+                  <Loader2 className="size-4 text-primary animate-spin mr-1" />
+                )}
+                {search && !aiSearching && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2 text-muted-foreground hover:text-foreground cursor-pointer"
+                    onClick={handleClearSearch}
+                  >
+                    ✕
+                  </Button>
+                )}
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="h-8 gap-1 bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer rounded-lg text-xs"
+                  onClick={handleSearchClick}
+                  disabled={aiSearching || !search.trim()}
+                >
+                  <Sparkles className="size-3" />
+                  <span className="hidden sm:inline">Buscar IA</span>
+                </Button>
+              </div>
             </div>
             {/* Mobile filter button */}
             <Sheet>
@@ -120,7 +225,7 @@ export default function MarketplacePage() {
                 <div className="flex flex-wrap gap-2 mt-4">
                   {TYPES.map(t => (
                     <Button key={t.key} variant={typeFilter === t.key ? 'default' : 'outline'}
-                      size="sm" onClick={() => setTypeFilter(t.key)}
+                      size="sm" onClick={() => handleFilterChange(setTypeFilter, t.key)}
                       className={typeFilter === t.key ? 'bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer' : 'border-border/50 cursor-pointer'}>
                       {t.icon} {t.label}
                     </Button>
@@ -130,7 +235,7 @@ export default function MarketplacePage() {
                   <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">País</span>
                   {COUNTRIES.map(c => (
                     <Button key={c.key} variant={countryFilter === c.key ? 'default' : 'outline'}
-                      size="sm" onClick={() => setCountryFilter(c.key)}
+                      size="sm" onClick={() => handleFilterChange(setCountryFilter, c.key)}
                       className={countryFilter === c.key ? 'bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 cursor-pointer' : 'gap-1.5 border-border/50 cursor-pointer'}>
                       {c.flag} {c.label}
                     </Button>
@@ -156,7 +261,7 @@ export default function MarketplacePage() {
               <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">Tipo</span>
               {TYPES.map(t => (
                 <Button key={t.key} variant={typeFilter === t.key ? 'default' : 'ghost'} size="sm"
-                  onClick={() => setTypeFilter(t.key)}
+                  onClick={() => handleFilterChange(setTypeFilter, t.key)}
                   className={
                     typeFilter === t.key
                       ? 'bg-primary hover:bg-primary/90 text-primary-foreground gap-1 shadow-sm cursor-pointer h-8 rounded-full text-xs'
@@ -170,7 +275,7 @@ export default function MarketplacePage() {
               <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground px-1">País</span>
               {COUNTRIES.map(c => (
                 <Button key={c.key} variant={countryFilter === c.key ? 'default' : 'ghost'} size="sm"
-                  onClick={() => setCountryFilter(c.key)}
+                  onClick={() => handleFilterChange(setCountryFilter, c.key)}
                   className={
                     countryFilter === c.key
                       ? 'bg-primary hover:bg-primary/90 text-primary-foreground gap-1 shadow-sm cursor-pointer h-8 rounded-full text-xs'
@@ -198,15 +303,33 @@ export default function MarketplacePage() {
         </div>
       </div>
 
+      {/* AI Recommendations (top, before grid) */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <AIRecommendations />
+      </div>
+
       {/* Results */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20">
         <div className="flex items-center justify-between mb-6">
-          <p className="text-sm text-muted-foreground font-light">
-            {assetsLoading ? 'Cargando...' : `${sorted.length} activo${sorted.length !== 1 ? 's' : ''} encontrado${sorted.length !== 1 ? 's' : ''}`}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-muted-foreground font-light">
+              {aiSearching ? 'Buscando con IA...' : assetsLoading ? 'Cargando...' : `${displayAssets.length} activo${displayAssets.length !== 1 ? 's' : ''} encontrado${displayAssets.length !== 1 ? 's' : ''}`}
+            </p>
+            {isAISearch && (
+              <Badge variant="outline" className="gap-1 bg-primary/5 border-primary/20 text-primary text-xs">
+                <Sparkles className="size-3" />
+                Powered by IA
+              </Badge>
+            )}
+          </div>
+          {isAISearch && (
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground cursor-pointer" onClick={handleClearSearch}>
+              Limpiar búsqueda IA
+            </Button>
+          )}
         </div>
 
-        {assetsLoading ? (
+        {(assetsLoading && !aiSearching) ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {Array.from({ length: 6 }).map((_, i) => (
               <Card key={i} className="overflow-hidden border-border/40">
@@ -223,7 +346,13 @@ export default function MarketplacePage() {
               </Card>
             ))}
           </div>
-        ) : sorted.length === 0 ? (
+        ) : aiSearching ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="size-10 text-primary animate-spin mb-4" />
+            <p className="text-lg font-medium">Buscando con IA</p>
+            <p className="text-muted-foreground mt-1 text-sm font-light">Analizando tu consulta con inteligencia artificial...</p>
+          </div>
+        ) : displayAssets.length === 0 ? (
           <div className="text-center py-20">
             <Search className="size-12 text-muted-foreground/40 mx-auto mb-4" />
             <h3 className="text-lg font-semibold">No se encontraron activos</h3>
@@ -231,7 +360,7 @@ export default function MarketplacePage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {sorted.map((asset) => (
+            {displayAssets.map((asset) => (
               <Card key={asset.id}
                 className="overflow-hidden gsp-card-hover gsp-shine border-border/40 group h-full flex flex-col"
                 onClick={() => selectAsset(asset.id)}

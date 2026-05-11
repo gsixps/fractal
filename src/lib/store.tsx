@@ -182,6 +182,9 @@ export interface DashboardData {
   liquidityPool: DashboardLiquidityPool | null
   notifications: DashboardNotification[]
   totalDividends: number
+  totalInvested: number
+  currentValue: number
+  totalReturn: number
   unreadNotifications: number
 }
 
@@ -195,6 +198,9 @@ const EMPTY_DASHBOARD_DATA: DashboardData = {
   liquidityPool: null,
   notifications: [],
   totalDividends: 0,
+  totalInvested: 0,
+  currentValue: 0,
+  totalReturn: 0,
   unreadNotifications: 0,
 }
 

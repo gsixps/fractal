@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
         referralCodeId: referralCode.id,
         bonusAmount: 25,
         bonusCurrency: 'USD',
-        status: 'completed',
+        status: 'pending',
       },
       include: {
         referrer: { select: { id: true, name: true, email: true } },

@@ -17,6 +17,7 @@ export type Page =
   | 'reports'
   | 'secondary-market'
   | 'login'
+  | 'cms-page'
 
 // ─── Embedded Asset Data Types ────────────────────────────────────────────────
 
@@ -825,6 +826,7 @@ DASHBOARD_DATA.totalDividends = DASHBOARD_DATA.dividendPayments.reduce((sum, d) 
 export interface AppState {
   currentPage: Page
   selectedAssetId: string | null
+  cmsPageSlug: string | null
   user: {
     id: string
     name: string
@@ -843,6 +845,7 @@ export interface AppState {
 
   // Navigation
   navigate: (page: Page) => void
+  navigateCmsPage: (slug: string) => void
   selectAsset: (id: string) => void
   setUser: (user: AppState['user']) => void
   toggleSidebar: () => void
@@ -857,6 +860,7 @@ export interface AppState {
 export const useAppStore = create<AppState>((set, get) => ({
   currentPage: 'home',
   selectedAssetId: null,
+  cmsPageSlug: null,
   user: {
     id: 'usr_demo_001',
     name: 'María González',
@@ -873,6 +877,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   // Navigation
   navigate: (page) => set({ currentPage: page }),
+  navigateCmsPage: (slug) => set({ cmsPageSlug: slug, currentPage: 'cms-page' }),
   selectAsset: (id) => set({ selectedAssetId: id, currentPage: 'asset-detail' }),
   setUser: (user) => set({ user }),
   toggleSidebar: () => set((s) => ({ isSidebarOpen: !s.isSidebarOpen })),

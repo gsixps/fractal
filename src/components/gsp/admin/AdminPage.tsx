@@ -44,6 +44,7 @@ import {
   Eye,
   LogOut,
   CalendarDays,
+  Globe,
 } from 'lucide-react'
 import { SettingsView } from './sections/SettingsView'
 import { BlogView } from './sections/BlogView'
@@ -59,6 +60,7 @@ import { CurrenciesView } from './sections/CurrenciesView'
 import { AnalyticsView } from './sections/AnalyticsView'
 import { InvestmentAnalysisView } from './sections/InvestmentAnalysisView'
 import { ComplianceView } from './sections/ComplianceView'
+import { CmsPagesView } from './sections/CmsPagesView'
 import { AssetValuationAI } from './sections/AssetValuationAI'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -454,6 +456,7 @@ const navItems: Array<{ id: string; label: string; icon: React.ElementType | nul
   { id: 'investment-analysis', label: 'Análisis IA', icon: Brain },
   { id: 'compliance', label: 'Cumplimiento', icon: Shield },
   { id: '_sep_cms', label: '', icon: null, isSeparator: true, section: 'Contenido' },
+  { id: 'pages', label: 'Páginas', icon: Globe },
   { id: 'settings', label: 'Configuración', icon: Settings },
   { id: 'blog', label: 'Blog', icon: FileText },
   { id: 'faq', label: 'FAQ', icon: HelpCircle },
@@ -2146,6 +2149,7 @@ export default function AdminPage() {
       case 'analytics': return <AnalyticsView />
       case 'investment-analysis': return <InvestmentAnalysisView />
       case 'compliance': return <ComplianceView />
+      case 'pages': return <CmsPagesView />
       case 'settings': return <SettingsView />
       case 'blog': return <BlogView />
       case 'faq': return <FAQView />

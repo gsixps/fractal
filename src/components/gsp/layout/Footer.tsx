@@ -92,18 +92,20 @@ export function Footer() {
       .catch(() => {})
   }, [])
 
+  const navigateCmsPage = useAppStore((s) => s.navigateCmsPage)
+
   const companyLinks = [
-    { label: 'Sobre Nosotros', onClick: () => navigate('home') },
-    { label: 'Cómo Funciona', onClick: () => navigate('home') },
+    { label: 'Sobre Nosotros', onClick: () => navigateCmsPage('sobre-nosotros') },
+    { label: 'Cómo Funciona', onClick: () => navigateCmsPage('como-funciona') },
     { label: 'Marketplace', onClick: () => navigate('marketplace') },
     { label: 'Mercado Secundario', onClick: () => navigate('secondary-market') },
   ]
 
   const supportLinks = [
-    { label: 'Centro de Ayuda', onClick: () => {} },
-    { label: 'Términos y Condiciones', onClick: () => {} },
-    { label: 'Política de Privacidad', onClick: () => {} },
-    { label: 'Política de Cookies', onClick: () => {} },
+    { label: 'Centro de Ayuda', onClick: () => navigateCmsPage('centro-de-ayuda') },
+    { label: 'Términos y Condiciones', onClick: () => navigateCmsPage('terminos-y-condiciones') },
+    { label: 'Política de Privacidad', onClick: () => navigateCmsPage('politica-privacidad') },
+    { label: 'Política de Cookies', onClick: () => navigateCmsPage('politica-cookies') },
   ]
 
   return (

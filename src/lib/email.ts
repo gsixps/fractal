@@ -115,33 +115,3 @@ export async function sendEmail(params: SendEmailParams): Promise<SendEmailResul
   }
 }
 
-/**
- * Send a test email using a template by name.
- * Returns the rendered email content for verification.
- */
-export async function sendTestEmail(params: {
-  to: string
-  templateName: string
-  variables?: Record<string, string>
-}): Promise<SendEmailResult> {
-  const { to, templateName, variables = {} } = params
-
-  // Look up the template
-  const template = await db.emailTemplate.findUnique({
-    where: { name: templateName },
-  })
-
-  if (!template) {
-    throw new Error(`Email template "${templateName}" not found`)
-  }
-
-  // Send using the template's subject
-  return sendEmail({
-    to,
-    subject: template.subject,
-    templateName: template.name,
-    bodyHtml: template.bodyHtml,
-    bodyText: template.bodyText,
-    variables,
-  })
-}

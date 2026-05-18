@@ -35,22 +35,6 @@ const CURRENCY_CONFIG: Record<string, { symbol: string; locale: string; decimals
   VES: { symbol: 'Bs.', locale: 'es-VE', decimals: 2 },
 }
 
-// ─── Currency names for labels ─────────────────────────────────────────────
-
-export const CURRENCY_NAMES: Record<string, string> = {
-  USD: 'Dólar Estadounidense',
-  EUR: 'Euro',
-  CLP: 'Peso Chileno',
-  MXN: 'Peso Mexicano',
-  COP: 'Peso Colombiano',
-  ARS: 'Peso Argentino',
-  PEN: 'Sol Peruano',
-  BRL: 'Real Brasileño',
-  VES: 'Bolívar Venezolano',
-}
-
-export const SUPPORTED_CURRENCIES = Object.keys(CURRENCY_CONFIG)
-
 // ─── Rate fetcher ──────────────────────────────────────────────────────────
 
 async function fetchExchangeRates(): Promise<Record<string, number> | null> {

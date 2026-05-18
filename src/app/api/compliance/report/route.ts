@@ -123,7 +123,7 @@ export async function GET(request: Request) {
       db.user.count({ where: { riskProfile: null } }),
 
       // Recent KYC documents submitted (last 30 days)
-      db.kycDocument.count({
+      db.kYCDocument.count({
         where: { createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } },
       }),
 

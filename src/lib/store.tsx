@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useRef, useEffect, type ReactNode } from 'react'
 import { useTranslation, type Locale } from '@/lib/i18n'
 
 export type Page =
@@ -21,6 +21,7 @@ export type Page =
   | 'forgot-password'
   | 'reports'
   | 'secondary-market'
+  | 'cms-page'
 
 // ─── Embedded Asset Data Types ────────────────────────────────────────────────
 
@@ -228,11 +229,13 @@ interface AppState {
   theme: 'light' | 'dark'
   language: 'es' | 'en'
   currency: string
+  cmsPageSlug: string | null
   navigate: (page: Page) => void
   selectAsset: (id: string) => void
   setUser: (user: AppState['user']) => void
   toggleSidebar: () => void
   setAdminTab: (tab: string) => void
+  navigateCmsPage: (slug: string) => void
   getAssetById: (id: string) => Asset | undefined
   fetchAssets: () => Promise<void>
   fetchDashboard: () => Promise<void>
@@ -274,6 +277,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [dashboardData, setDashboardData] = useState<DashboardData>(EMPTY_DASHBOARD_DATA)
   const [dashboardLoading, setDashboardLoading] = useState(false)
   const [selectedAssetLoading, setSelectedAssetLoading] = useState(false)
+  const [cmsPageSlug, setCmsPageSlug] = useState<string | null>(null)
 
   const assetsFetched = useRef(false)
   const dashboardFetched = useRef(false)
@@ -312,6 +316,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const handleSetAdminTab = useCallback((tab: string) => {
     setAdminTab(tab)
     setCurrentPage('admin')
+  }, [])
+
+  const navigateCmsPage = useCallback((slug: string) => {
+    setCmsPageSlug(slug)
+    setCurrentPage('cms-page')
   }, [])
 
   const getAssetById = useCallback((id: string) => {
@@ -366,6 +375,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  // Pre-fetch assets on mount (with guard to avoid duplicate fetches)
+  useEffect(() => {
+    if (!assetsFetched.current) {
+      fetchAssets()
+    }
+  }, [fetchAssets])
+
   const value: AppState = {
     currentPage,
     selectedAssetId,
@@ -376,6 +392,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     theme,
     language,
     currency,
+    cmsPageSlug,
     assets,
     assetsLoading,
     dashboardData,
@@ -386,6 +403,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setUser,
     toggleSidebar,
     setAdminTab: handleSetAdminTab,
+    navigateCmsPage,
     getAssetById,
     fetchAssets,
     fetchDashboard,

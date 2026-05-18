@@ -1,3 +1,4 @@
+import { createHmac } from 'crypto'
 import { NextResponse } from 'next/server'
 
 // ─── Types ─────────────────────────────────────────────────────
@@ -39,8 +40,7 @@ function decodeJwtPayload(token: string): Record<string, unknown> | null {
 // ─── HMAC-SHA256 sign for JWT (lightweight, no deps) ───────────
 
 function createHmacSha256(key: Buffer, message: string): string {
-  const crypto = require('crypto')
-  return crypto.createHmac('sha256', key).update(message).digest('base64url')
+  return createHmac('sha256', key).update(message).digest('base64url')
 }
 
 function signJwt(payload: Record<string, unknown>, secret: string): string {

@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireAdmin } from '@/lib/api-auth'
 
 // GET /api/admin/translations — admin only, return all translations with optional filters
 // ?locale=es&search=key_prefix
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !['superadmin', 'admin'].includes(session.user.role)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const { error } = await requireAdmin(request.headers.get('cookie'))
+    if (error) return error
 
     const { searchParams } = new URL(request.url)
     const locale = searchParams.get('locale') || undefined
@@ -34,10 +31,8 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/translations — admin only, create or update a translation (upsert by key+locale)
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user || !['superadmin', 'admin'].includes(session.user.role)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const { error: authErr } = await requireAdmin(request.headers.get('cookie'))
+    if (authErr) return authErr
 
     const body = await request.json()
     const { key, locale, value } = body

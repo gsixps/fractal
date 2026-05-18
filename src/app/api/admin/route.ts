@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { requireAdmin } from '@/lib/api-auth'
 
-export async function GET() {
-  const { error } = await requireAdmin()
+export async function GET(request: NextRequest) {
+  const { error } = await requireAdmin(request.headers.get('cookie'))
   if (error) return error
 
 

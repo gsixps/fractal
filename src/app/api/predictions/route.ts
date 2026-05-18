@@ -46,7 +46,7 @@ function getNextQuarters(): string[] {
 // ─── GET /api/predictions?assetId=xxx ──────────────────────────────────────
 
 export async function GET(request: Request) {
-  const { error } = await requireAuth()
+  const { error } = await requireAuth(request.headers.get('cookie'))
   if (error) return error
 
   const { searchParams } = new URL(request.url)

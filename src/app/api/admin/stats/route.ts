@@ -3,8 +3,8 @@ import { db } from '@/lib/db';
 import { requireAdmin } from '@/lib/api-auth';
 
 // GET /api/admin/stats — Aggregate statistics
-export async function GET() {
-  const { error } = await requireAdmin()
+export async function GET(request: Request) {
+  const { error } = await requireAdmin(request.headers.get('cookie'))
   if (error) return error
 
   try {

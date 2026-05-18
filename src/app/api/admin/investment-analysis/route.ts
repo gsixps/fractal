@@ -62,7 +62,7 @@ Estructura tu respuesta con separadores claros entre módulos. Usa tablas para c
 
 // ─── POST: Generate Investment Analysis ──────────────────────────────────────
 export async function POST(request: NextRequest) {
-  const { error } = await requireAdmin()
+  const { error } = await requireAdmin(request.headers.get('cookie'))
   if (error) return error
 
   try {
@@ -193,7 +193,7 @@ Genera el análisis completo con los 4 módulos obligigatorios. Sé específico 
 
 // ─── GET: List Recent Analyses ────────────────────────────────────────────────
 export async function GET() {
-  const { error } = await requireAdmin()
+  const { error } = await requireAdmin(request.headers.get('cookie'))
   if (error) return error
 
   try {

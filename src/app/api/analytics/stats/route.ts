@@ -5,7 +5,7 @@ import { requireAdmin } from '@/lib/api-auth'
 // GET /api/analytics/stats — Analytics summary (admin only)
 export async function GET(request: Request) {
   try {
-    const { error } = await requireAdmin()
+    const { error } = await requireAdmin(request.headers.get('cookie'))
     if (error) return error
 
     const { searchParams } = new URL(request.url)

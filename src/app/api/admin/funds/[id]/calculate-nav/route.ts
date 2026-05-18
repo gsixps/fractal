@@ -3,7 +3,7 @@ import { db } from '@/lib/db'
 import { requireAdmin } from '@/lib/auth-api'
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await requireAdmin(request)
+  const auth = await requireAdmin(request.headers.get('cookie'))
   if (!auth.authenticated) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const { id } = await params

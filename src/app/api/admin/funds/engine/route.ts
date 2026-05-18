@@ -3,7 +3,7 @@ import { requireAdmin } from '@/lib/auth-api'
 import { calculateAllNAVs, distributeDividends, checkRebalance } from '@/lib/fund-engine'
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAdmin(request)
+  const auth = await requireAdmin(request.headers.get('cookie'))
   if (!auth.authenticated) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const body = await request.json()

@@ -3,8 +3,8 @@ import { db } from '@/lib/db'
 import { requireAuth } from '@/lib/api-auth'
 
 // GET: List current user's secondary market listings
-export async function GET() {
-  const { error, session } = await requireAuth()
+export async function GET(request: Request) {
+  const { error, session } = await requireAuth(request.headers.get('cookie'))
   if (error) return error
 
   try {

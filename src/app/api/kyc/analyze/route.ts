@@ -52,7 +52,7 @@ Verification rules:
 - recommendation: "approve" (confidence >= 80, no issues), "review" (confidence 50-79 or minor issues), "reject" (confidence < 50 or critical issues like tampering)`
 
 export async function POST(request: Request) {
-  const { error, session } = await requireAuth()
+  const { error, session } = await requireAuth(request.headers.get('cookie'))
   if (error) return error
 
   try {

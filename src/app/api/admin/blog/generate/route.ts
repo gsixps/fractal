@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api-auth'
 
 export async function POST(request: Request) {
-  const { error } = await requireAdmin()
+  const { error } = await requireAdmin(request.headers.get('cookie'))
   if (error) return error
 
   try {

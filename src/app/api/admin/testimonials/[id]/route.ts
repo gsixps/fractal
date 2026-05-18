@@ -7,7 +7,7 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { error } = await requireAdmin()
+  const { error } = await requireAdmin(request.headers.get('cookie'))
   if (error) return error
 
   try {
@@ -47,10 +47,10 @@ export async function PUT(
 
 // DELETE /api/admin/testimonials/[id] - Delete testimonial
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { error } = await requireAdmin()
+  const { error } = await requireAdmin(request.headers.get('cookie'))
   if (error) return error
 
   try {

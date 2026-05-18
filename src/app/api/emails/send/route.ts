@@ -17,7 +17,7 @@ import { requireAuth } from '@/lib/api-auth'
  */
 export async function POST(request: Request) {
   // SECURITY: Require authentication to send emails
-  const { error } = await requireAuth()
+  const { error } = await requireAuth(request.headers.get('cookie'))
   if (error) return error
 
   try {

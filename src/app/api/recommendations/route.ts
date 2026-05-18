@@ -39,8 +39,8 @@ Rules:
 - matchType should reflect the PRIMARY reason for the recommendation
 - reason should be specific to the user's situation, not generic`
 
-export async function GET() {
-  const { error, session } = await requireAuth()
+export async function GET(request: Request) {
+  const { error, session } = await requireAuth(request.headers.get('cookie'))
   if (error) return error
 
   const userId = session!.user!.id

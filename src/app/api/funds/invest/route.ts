@@ -3,7 +3,7 @@ import { db } from '@/lib/db'
 import { requireAuth } from '@/lib/auth-api'
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAuth(request)
+  const auth = await requireAuth(request.headers.get('cookie'))
   if (!auth.authenticated) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const body = await request.json()
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: Request) {
-  const auth = await requireAuth(request)
+  const auth = await requireAuth(request.headers.get('cookie'))
   if (!auth.authenticated) return NextResponse.json({ error: auth.error }, { status: auth.status })
 
   const investments = await db.fundInvestment.findMany({

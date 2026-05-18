@@ -3,8 +3,8 @@ import { db } from '@/lib/db'
 import { requireAdmin } from '@/lib/api-auth'
 
 // GET /api/admin/settings - Return all settings grouped by group
-export async function GET() {
-  const { error } = await requireAdmin()
+export async function GET(request: NextRequest) {
+  const { error } = await requireAdmin(request.headers.get('cookie'))
   if (error) return error
 
   try {
@@ -32,7 +32,7 @@ export async function GET() {
 
 // PUT /api/admin/settings - Bulk update settings
 export async function PUT(request: NextRequest) {
-  const { error } = await requireAdmin()
+  const { error } = await requireAdmin(request.headers.get('cookie'))
   if (error) return error
 
   try {

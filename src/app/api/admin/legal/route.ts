@@ -12,8 +12,8 @@ function generateSlug(title: string): string {
 }
 
 // GET /api/admin/legal - List all legal documents
-export async function GET() {
-  const { error } = await requireAdmin()
+export async function GET(request: Request) {
+  const { error } = await requireAdmin(request.headers.get('cookie'))
   if (error) return error
 
   try {
@@ -30,7 +30,7 @@ export async function GET() {
 
 // POST /api/admin/legal - Create new legal document
 export async function POST(request: Request) {
-  const { error } = await requireAdmin()
+  const { error } = await requireAdmin(request.headers.get('cookie'))
   if (error) return error
 
   try {

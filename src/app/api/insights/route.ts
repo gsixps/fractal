@@ -32,8 +32,8 @@ Generate exactly 4-5 insights covering these aspects:
 Types must be exactly: "performance", "diversification", "dividend", "recommendation", or "alert"
 Priority must be exactly: "high", "medium", or "low"`
 
-export async function GET() {
-  const { error, session } = await requireAuth()
+export async function GET(request: Request) {
+  const { error, session } = await requireAuth(request.headers.get('cookie'))
   if (error) return error
 
   try {

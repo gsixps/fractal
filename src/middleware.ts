@@ -18,23 +18,10 @@ function rateLimit(ip: string, windowMs = 60000, maxRequests = 100): boolean {
   return true
 }
 
-// Periodically clean up stale entries (every 5 min)
-if (typeof globalThis !== 'undefined') {
-  setInterval(() => {
-    const cutoff = Date.now() - 120_000
-    for (const [key, val] of rateLimitMap) {
-      if (val.lastReset < cutoff) rateLimitMap.delete(key)
-    }
-  }, 300_000)
-}
-
 // ─── Allowed CORS origins ──────────────────────────────────────
 function isAllowedOrigin(origin: string): boolean {
-  // Dev origins
   if (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) return true
-  // Preview panel
   if (/^https?:\/\/([a-zA-Z0-9-]+\.)?space-z\.ai(:\d+)?$/.test(origin)) return true
-  // Production: allow same-origin and configured domain
   if (process.env.NEXTAUTH_URL) {
     try {
       const url = new URL(process.env.NEXTAUTH_URL)
@@ -50,16 +37,7 @@ const securityHeaders = {
   'X-XSS-Protection': '1; mode=block',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=(self)',
-  // CSP: permissive for dev/preview iframe, tighten in production
-  ...(process.env.NODE_ENV === 'production'
-    ? {
-        'Content-Security-Policy':
-          "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://js.stripe.com https://api.stripe.com; frame-src https://js.stripe.com; frame-ancestors 'self';",
-      }
-    : {
-        'Content-Security-Policy':
-          "default-src 'self' *; script-src 'self' 'unsafe-inline' 'unsafe-eval' *; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com *; font-src 'self' https://fonts.gstatic.com *; img-src 'self' data: blob: https: *; connect-src 'self' https://js.stripe.com https://api.stripe.com *; frame-ancestors *;",
-      }),
+  'Content-Security-Policy': "default-src 'self' *; script-src 'self' 'unsafe-inline' 'unsafe-eval' *; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com *; font-src 'self' https://fonts.gstatic.com *; img-src 'self' data: blob: https: *; connect-src 'self' https://js.stripe.com https://api.stripe.com https://*.space-z.ai https://space-z.ai *; frame-ancestors *;",
 }
 
 export function middleware(request: NextRequest) {
@@ -78,14 +56,8 @@ export function middleware(request: NextRequest) {
     if (isAllowedOrigin(origin)) {
       response.headers.set('Access-Control-Allow-Origin', origin)
       response.headers.set('Access-Control-Allow-Credentials', 'true')
-      response.headers.set(
-        'Access-Control-Allow-Methods',
-        'GET,OPTIONS,PATCH,DELETE,POST,PUT'
-      )
-      response.headers.set(
-        'Access-Control-Allow-Headers',
-        'X-Requested-With, Content-Type, Authorization'
-      )
+      response.headers.set('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+      response.headers.set('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Authorization')
       response.headers.set('Vary', 'Origin')
       return new NextResponse(null, { status: 204, headers: response.headers })
     }

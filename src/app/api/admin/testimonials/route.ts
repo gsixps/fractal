@@ -4,7 +4,7 @@ import { requireAdmin } from '@/lib/api-auth'
 
 // GET /api/admin/testimonials - List all testimonials
 export async function GET(request: Request) {
-  const { error } = await requireAdmin()
+  const { error } = await requireAdmin(request.headers.get('cookie'))
   if (error) return error
 
   try {
@@ -28,7 +28,7 @@ export async function GET(request: Request) {
 
 // POST /api/admin/testimonials - Create new testimonial
 export async function POST(request: Request) {
-  const { error } = await requireAdmin()
+  const { error } = await requireAdmin(request.headers.get('cookie'))
   if (error) return error
 
   try {

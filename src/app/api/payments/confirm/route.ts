@@ -5,7 +5,7 @@ import { authenticate } from '@/lib/auth-api'
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = await authenticate(request)
+    const auth = await authenticate(request, undefined, request.headers.get('cookie'))
     if (!auth.authenticated || !auth.userId) {
       return NextResponse.json({ error: 'Authentication required' }, { status: auth.status })
     }

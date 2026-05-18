@@ -5,7 +5,7 @@ import { requireAdmin } from '@/lib/api-auth'
 
 export async function POST(request: NextRequest) {
   // SECURITY: Only admin/superadmin can seed the database
-  const { error } = await requireAdmin()
+  const { error } = await requireAdmin(request.headers.get('cookie'))
   if (error) return error
 
   try {

@@ -13,7 +13,7 @@ function generateSlug(title: string): string {
 
 // GET /api/admin/blog - List blog posts with filters and pagination
 export async function GET(request: Request) {
-  const { error } = await requireAdmin()
+  const { error } = await requireAdmin(request.headers.get('cookie'))
   if (error) return error
 
   try {
@@ -66,7 +66,7 @@ export async function GET(request: Request) {
 
 // POST /api/admin/blog - Create new blog post
 export async function POST(request: Request) {
-  const { error } = await requireAdmin()
+  const { error } = await requireAdmin(request.headers.get('cookie'))
   if (error) return error
 
   try {

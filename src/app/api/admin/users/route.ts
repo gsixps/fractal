@@ -4,7 +4,7 @@ import { requireAdmin } from '@/lib/api-auth';
 
 // GET /api/admin/users — List all users with filters
 export async function GET(request: NextRequest) {
-  const { error } = await requireAdmin()
+  const { error } = await requireAdmin(request.headers.get('cookie'))
   if (error) return error
 
   try {
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
 
 // POST /api/admin/users — Create a new user
 export async function POST(request: NextRequest) {
-  const { error } = await requireAdmin()
+  const { error } = await requireAdmin(request.headers.get('cookie'))
   if (error) return error
 
   try {

@@ -4,7 +4,7 @@ import { requireAdmin } from '@/lib/api-auth'
 
 // GET /api/admin/faq - List all FAQs with categories
 export async function GET(request: Request) {
-  const { error } = await requireAdmin()
+  const { error } = await requireAdmin(request.headers.get('cookie'))
   if (error) return error
 
   try {
@@ -35,7 +35,7 @@ export async function GET(request: Request) {
 
 // POST /api/admin/faq - Create new FAQ
 export async function POST(request: Request) {
-  const { error } = await requireAdmin()
+  const { error } = await requireAdmin(request.headers.get('cookie'))
   if (error) return error
 
   try {

@@ -42,8 +42,8 @@ For each section:
 - If there are critical issues, mark as "non-compliant"  
 - Generate the "report" field as an executive summary of all sections (2-3 paragraphs)`
 
-export async function GET() {
-  const { error } = await requireAdmin()
+export async function GET(request: Request) {
+  const { error } = await requireAdmin(request.headers.get('cookie'))
   if (error) return error
 
   try {

@@ -38,7 +38,7 @@ Consider these factors:
 Be specific in factors and recommendations. Keep factors concise (max 15 words each). Recommendation should be actionable.`
 
 export async function POST(request: Request) {
-  const { error, session } = await requireAuth()
+  const { error, session } = await requireAuth(request.headers.get('cookie'))
   if (error) return error
 
   try {

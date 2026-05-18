@@ -35,8 +35,8 @@ async function ensureReferralCode(userId: string) {
 }
 
 // GET: Return current user's referral code (generate if not exists)
-export async function GET() {
-  const { error, session } = await requireAuth()
+export async function GET(request: NextRequest) {
+  const { error, session } = await requireAuth(request.headers.get('cookie'))
   if (error) return error
 
   try {
@@ -56,7 +56,7 @@ export async function GET() {
 
 // POST: Generate a new referral code for the user
 export async function POST(request: NextRequest) {
-  const { error, session } = await requireAuth()
+  const { error, session } = await requireAuth(request.headers.get('cookie'))
   if (error) return error
 
   try {

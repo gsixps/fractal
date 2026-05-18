@@ -4,7 +4,7 @@ import { requireAuth } from '@/lib/api-auth'
 
 // POST: Apply a referral code
 export async function POST(request: NextRequest) {
-  const { error, session } = await requireAuth()
+  const { error, session } = await requireAuth(request.headers.get('cookie'))
   if (error) return error
 
   try {

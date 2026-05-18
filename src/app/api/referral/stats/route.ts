@@ -3,8 +3,8 @@ import { db } from '@/lib/db'
 import { requireAuth } from '@/lib/api-auth'
 
 // GET: Return referral stats for the current user
-export async function GET() {
-  const { error, session } = await requireAuth()
+export async function GET(request: Request) {
+  const { error, session } = await requireAuth(request.headers.get('cookie'))
   if (error) return error
 
   try {

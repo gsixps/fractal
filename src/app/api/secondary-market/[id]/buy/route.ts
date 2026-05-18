@@ -10,7 +10,7 @@ export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { error, session } = await requireAuth()
+  const { error, session } = await requireAuth(request.headers.get('cookie'))
   if (error) return error
 
   try {

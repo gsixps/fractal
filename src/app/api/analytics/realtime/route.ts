@@ -3,9 +3,9 @@ import { db } from '@/lib/db'
 import { requireAdmin } from '@/lib/api-auth'
 
 // GET /api/analytics/realtime — Real-time active users (admin only)
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const { error } = await requireAdmin()
+    const { error } = await requireAdmin(request.headers.get('cookie'))
     if (error) return error
 
     const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000)

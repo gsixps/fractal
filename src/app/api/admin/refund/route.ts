@@ -5,7 +5,7 @@ import { requireAdmin } from '@/lib/api-auth'
 
 export async function POST(request: NextRequest) {
   try {
-    const { error, session } = await requireAdmin()
+    const { error, session } = await requireAdmin(request.headers.get('cookie'))
     if (error) return error
 
     const adminUserId = session!.user.id

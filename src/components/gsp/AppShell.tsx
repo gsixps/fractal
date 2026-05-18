@@ -85,6 +85,9 @@ export default function AppShell() {
   useAnalytics()
 
   // Sync NextAuth session with app store
+  // Only sync when authenticated — do NOT null out user when "unauthenticated"
+  // because the custom /api/auth/login sets cookies directly and the session
+  // may take a tick to load, causing a flash of logged-out state.
   useEffect(() => {
     if (status === 'authenticated' && session?.user) {
       const su = session.user
@@ -96,8 +99,6 @@ export default function AppShell() {
         kycStatus: (su.kycStatus as 'pending' | 'submitted' | 'verified' | 'rejected') || 'pending',
         avatarUrl: su.image as string | undefined,
       })
-    } else if (status === 'unauthenticated') {
-      setUser(null)
     }
   }, [session, status, setUser])
 

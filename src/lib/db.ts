@@ -8,38 +8,39 @@ const globalForPrisma = globalThis as unknown as {
 
 /**
  * Database client initialization
- * 
+ *
  * Strategy:
- * - When TURSO_DATABASE_URL + TURSO_AUTH_TOKEN are set → use Turso (LibSQL) via adapter
- * - Otherwise → use local SQLite (dev mode with Turbopack)
- * 
- * Note: Turbopack (dev-only) has issues with driver adapter env vars.
- * Turso works perfectly in production (next start, no Turbopack).
+ * - Production (Vercel): Uses Turso (LibSQL) via adapter when TURSO_DATABASE_URL + TURSO_AUTH_TOKEN are set
+ * - Development (Turbopack): Uses local SQLite file — Turbopack has known issues with driver adapters
+ *
+ * In Vercel production, NEXTAUTH_URL is auto-set and NODE_ENV=production.
+ * The Turso adapter only activates in production to avoid Turbopack env var timing issues.
  */
 function createPrismaClient(): PrismaClient {
-  const tursoUrl = process.env.TURSO_DATABASE_URL
-  const tursoToken = process.env.TURSO_AUTH_TOKEN
+  // Only use Turso adapter in production — Turbopack has env var issues in dev
+  if (process.env.NODE_ENV === 'production') {
+    const tursoUrl = process.env.TURSO_DATABASE_URL
+    const tursoToken = process.env.TURSO_AUTH_TOKEN
 
-  // Use Turso adapter when credentials are available AND we're NOT in Turbopack dev
-  if (tursoUrl && tursoToken) {
-    try {
+    if (tursoUrl && tursoToken) {
       const libsql = createClient({
         url: tursoUrl,
         authToken: tursoToken,
       })
       const adapter = new PrismaLibSQL(libsql)
-      console.log('[DB] ✅ Connected to Turso (LibSQL)')
       return new PrismaClient({ adapter })
-    } catch (err) {
-      console.warn('[DB] ⚠️ Turso adapter failed, falling back to SQLite:', err)
     }
+
+    console.warn('[DB] ⚠️ Production mode but no Turso credentials found. Using default Prisma client.')
   }
 
-  // Default: Use standard Prisma SQLite client
-  console.log('[DB] 📁 Using SQLite (local file-based)')
+  // Dev / fallback: use local SQLite
   return new PrismaClient()
 }
 
 export const db = globalForPrisma.prisma ?? createPrismaClient()
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db
+// Prevent multiple Prisma instances in dev (hot reload)
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = db
+}

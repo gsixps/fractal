@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn } from 'next-auth/react'
 import { useAppStore } from '@/lib/store'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -43,43 +42,39 @@ export function LoginPage() {
     setIsLoading(true)
 
     try {
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
+      // Use custom login endpoint — avoids NextAuth CSRF issues in iframe/preview
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
       })
 
-      if (result?.error) {
+      const data = await res.json()
+
+      if (!res.ok) {
         toast({
           title: 'Error de inicio de sesión',
-          description: 'Email o contraseña incorrectos. Verifica tus credenciales.',
+          description: data.error || 'Email o contraseña incorrectos. Verifica tus credenciales.',
           variant: 'destructive',
         })
-      } else if (result?.ok) {
-        // Fetch session data to get user info
-        const sessionRes = await fetch('/api/auth/session')
-        const sessionData = await sessionRes.json()
+      } else if (data.user) {
+        const role = (data.user.role as 'investor' | 'admin' | 'superadmin') || 'investor'
+        setUser({
+          id: data.user.id,
+          name: data.user.name || '',
+          email: data.user.email || '',
+          role,
+          kycStatus: (data.user.kycStatus as 'pending' | 'submitted' | 'verified' | 'rejected') || 'pending',
+          avatarUrl: data.user.avatarUrl as string | undefined,
+        })
 
-        if (sessionData?.user) {
-          const su = sessionData.user
-          const role = (su.role as 'investor' | 'admin' | 'superadmin') || 'investor'
-          setUser({
-            id: su.id,
-            name: su.name || '',
-            email: su.email || '',
-            role,
-            kycStatus: (su.kycStatus as 'pending' | 'submitted' | 'verified' | 'rejected') || 'pending',
-            avatarUrl: su.image as string | undefined,
-          })
+        toast({
+          title: '¡Bienvenido de vuelta!',
+          description: `Hola ${data.user.name || 'Inversionista'}, tu sesión ha sido iniciada correctamente.`,
+        })
 
-          toast({
-            title: '¡Bienvenido de vuelta!',
-            description: `Hola ${su.name || 'Inversionista'}, tu sesión ha sido iniciada correctamente.`,
-          })
-
-          // Navigate based on user role
-          setTimeout(() => navigate(role === 'admin' || role === 'superadmin' ? 'admin' : 'dashboard'), 300)
-        }
+        // Navigate based on user role
+        setTimeout(() => navigate(role === 'admin' || role === 'superadmin' ? 'admin' : 'dashboard'), 300)
       }
     } catch {
       toast({

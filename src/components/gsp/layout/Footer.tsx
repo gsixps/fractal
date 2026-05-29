@@ -21,7 +21,29 @@ import {
   Scale,
   Users,
   BookOpen,
+  ChevronUp,
 } from 'lucide-react'
+
+function ScrollToTop() {
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const onScroll = () => setVisible(window.scrollY > 400)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+  return (
+    <button
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      className={cn(
+        'fixed bottom-24 right-6 z-50 flex size-10 items-center justify-center rounded-full gsp-gradient text-white shadow-lg shadow-emerald-500/20 transition-all duration-300 cursor-pointer',
+        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+      )}
+      aria-label="Scroll to top"
+    >
+      <ChevronUp className="size-5" />
+    </button>
+  )
+}
 
 function NewsletterForm() {
   const [email, setEmail] = useState('')
@@ -109,7 +131,7 @@ export function Footer() {
   ]
 
   return (
-    <footer className="mt-auto border-t border-border/40 bg-foreground text-background">
+    <footer className="mt-auto border-t border-border/40 bg-foreground dark:bg-foreground/95 text-background">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Main Footer Content */}
         <div className="py-12 sm:py-16">
@@ -289,6 +311,7 @@ export function Footer() {
           </p>
         </div>
       </div>
+      <ScrollToTop />
     </footer>
   )
 }

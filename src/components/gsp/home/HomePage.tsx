@@ -8,6 +8,7 @@ import {
   Shield, ShieldCheck, Sun, Truck,
   Zap, TrendingUp, ChevronRight, BadgePercent, Landmark, Eye,
   FileCheck2, MapPin, Award, Fingerprint, Scale,
+  Quote, Star,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -16,6 +17,7 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 
 import { useAppStore } from '@/lib/store'
+import { cn } from '@/lib/utils'
 import { useT } from '@/lib/i18n-utils'
 import { useCurrency } from '@/lib/currency'
 import { useToast } from '@/hooks/use-toast'
@@ -723,6 +725,92 @@ function RegulatedSection() {
 }
 
 /* ══════════════════════════════════════════════════════════════════
+   TESTIMONIALS — Investor reviews
+   ══════════════════════════════════════════════════════════════════ */
+function TestimonialsSection() {
+  const t = useT()
+  const [testimonials, setTestimonials] = useState<Array<{
+    id: string
+    name: string
+    role: string
+    quote: string
+    rating: number
+    avatarUrl: string | null
+    investmentAmount: number | null
+    assetName: string | null
+  }>>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/testimonials?limit=3')
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setTestimonials(Array.isArray(data) ? data : []))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  return (
+    <AnimatedSection className="gsp-section bg-secondary/30">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div custom={0} variants={fadeUp} className="text-center mb-14">
+          <Badge variant="outline" className="mb-4 border-primary/20 bg-primary/5 text-primary font-medium"><Quote className="size-3.5 mr-1" /> Testimonios</Badge>
+          <h2 className="gsp-serif text-3xl sm:text-4xl font-normal tracking-tight">Lo que Dicen Nuestros Inversores</h2>
+          <p className="mt-3 text-muted-foreground max-w-xl mx-auto text-lg font-light">
+            Miles de inversores confían en 3GSP para diversificar su portafolio.
+          </p>
+        </motion.div>
+
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i} className="border-border/40">
+                <CardContent className="p-6 space-y-4">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <div className="flex items-center gap-3 pt-2">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <Skeleton className="h-4 w-32" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : testimonials.length === 0 ? null : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {testimonials.map((t, i) => (
+              <motion.div key={t.id} custom={i + 1} variants={fadeUp}>
+                <Card className="h-full border-border/40 bg-card/60 backdrop-blur-sm">
+                  <CardContent className="p-6 flex flex-col">
+                    {/* Stars */}
+                    <div className="flex gap-0.5 mb-4">
+                      {Array.from({ length: 5 }).map((_, si) => (
+                        <Star key={si} className={cn("size-4", si < t.rating ? "fill-amber-400 text-amber-400" : "text-muted-foreground/30")} />
+                      ))}
+                    </div>
+                    {/* Quote */}
+                    <p className="text-sm text-muted-foreground leading-relaxed font-light flex-1">&ldquo;{t.quote}&rdquo;</p>
+                    {/* Author */}
+                    <div className="flex items-center gap-3 mt-6 pt-4 border-t border-border/30">
+                      <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm">
+                        {t.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold">{t.name}</p>
+                        <p className="text-xs text-muted-foreground">{t.role}{t.assetName ? ` · ${t.assetName}` : ''}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </div>
+    </AnimatedSection>
+  )
+}
+
+/* ══════════════════════════════════════════════════════════════════
    CTA — Gradient section with noise texture + compelling gradient
    ══════════════════════════════════════════════════════════════════ */
 function CTASection() {
@@ -867,6 +955,7 @@ export default function HomePage() {
         <LiquiditySection />
         <TransparencySection />
         <RegulatedSection />
+        <TestimonialsSection />
         <CTASection />
         <TrustSection />
       </main>

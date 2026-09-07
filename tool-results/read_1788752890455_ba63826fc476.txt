@@ -1,0 +1,592 @@
+     1→'use client'
+     2→
+     3→import { useState, useEffect, useCallback } from 'react'
+     4→import { signOut } from 'next-auth/react'
+     5→import { useAppStore, type Page } from '@/lib/store'
+     6→import { useT } from '@/lib/i18n-utils'
+     7→import { cn } from '@/lib/utils'
+     8→import { Button } from '@/components/ui/button'
+     9→import { Badge } from '@/components/ui/badge'
+    10→import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+    11→import { Separator } from '@/components/ui/separator'
+    12→import {
+    13→  Sheet,
+    14→  SheetContent,
+    15→  SheetHeader,
+    16→  SheetTitle,
+    17→  SheetDescription,
+    18→  SheetTrigger,
+    19→  SheetClose,
+    20→} from '@/components/ui/sheet'
+    21→import { ChangePasswordDialog } from '@/components/gsp/auth/ChangePasswordDialog'
+    22→import { NotificationPanel } from '@/components/gsp/shared/NotificationPanel'
+    23→import {
+    24→  DropdownMenu,
+    25→  DropdownMenuContent,
+    26→  DropdownMenuGroup,
+    27→  DropdownMenuItem,
+    28→  DropdownMenuLabel,
+    29→  DropdownMenuSeparator,
+    30→  DropdownMenuTrigger,
+    31→} from '@/components/ui/dropdown-menu'
+    32→import {
+    33→  Menu,
+    34→  ChevronDown,
+    35→  Home,
+    36→  Store,
+    37→  PieChart,
+    38→  ShieldCheck,
+    39→  LogOut,
+    40→  User,
+    41→  LayoutDashboard,
+    42→  Sun,
+    43→  Moon,
+    44→  Globe,
+    45→  DollarSign,
+    46→  LogIn,
+    47→  Lock,
+    48→  FileText,
+    49→} from 'lucide-react'
+    50→
+    51→interface NavLink {
+    52→  labelKey: string
+    53→  page: Page
+    54→  icon: React.ReactNode
+    55→}
+    56→
+    57→export function Navbar() {
+    58→  const t = useT()
+    59→  const navigate = useAppStore((s) => s.navigate)
+    60→  const currentPage = useAppStore((s) => s.currentPage)
+    61→  const user = useAppStore((s) => s.user)
+    62→  const appTheme = useAppStore((s) => s.theme)
+    63→  const setAppTheme = useAppStore((s) => s.setTheme)
+    64→  const language = useAppStore((s) => s.language)
+    65→  const setLanguage = useAppStore((s) => s.setLanguage)
+    66→  const currency = useAppStore((s) => s.currency)
+    67→  const setCurrency = useAppStore((s) => s.setCurrency)
+    68→  const [unreadCount, setUnreadCount] = useState(0)
+    69→  const [isScrolled, setIsScrolled] = useState(false)
+    70→  const [showChangePassword, setShowChangePassword] = useState(false)
+    71→  const [dbCurrencies, setDbCurrencies] = useState<Array<{ code: string; name: string; symbol: string; flag: string; isActive: boolean }>>([])
+    72→
+    73→  // Fetch currencies from database
+    74→  useEffect(() => {
+    75→    fetch('/api/currencies')
+    76→      .then(r => r.json())
+    77→      .then(data => { if (Array.isArray(data) && data.length > 0) setDbCurrencies(data.filter((c: { isActive: boolean }) => c.isActive)) })
+    78→      .catch(() => {})
+    79→  }, [])
+    80→
+    81→  // Dynamic nav links based on auth state
+    82→  const navLinks = user
+    83→    ? [
+    84→        { labelKey: 'nav.home', page: 'home' as Page, icon: <Home className="size-4" /> },
+    85→        { labelKey: 'nav.marketplace', page: 'marketplace' as Page, icon: <Store className="size-4" /> },
+    86→        { labelKey: 'nav.secondaryMarket', page: 'secondary-market' as Page, icon: <Store className="size-4" /> },
+    87→        { labelKey: 'nav.portfolio', page: 'dashboard' as Page, icon: <PieChart className="size-4" /> },
+    88→      ]
+    89→    : [
+    90→        { labelKey: 'nav.home', page: 'home' as Page, icon: <Home className="size-4" /> },
+    91→        { labelKey: 'nav.marketplace', page: 'marketplace' as Page, icon: <Store className="size-4" /> },
+    92→        { labelKey: 'nav.secondaryMarket', page: 'secondary-market' as Page, icon: <Store className="size-4" /> },
+    93→      ]
+    94→
+    95→  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin'
+    96→
+    97→  const handleScroll = useCallback(() => {
+    98→    setIsScrolled(window.scrollY > 8)
+    99→  }, [])
+   100→
+   101→  useEffect(() => {
+   102→    window.addEventListener('scroll', handleScroll, { passive: true })
+   103→    return () => window.removeEventListener('scroll', handleScroll)
+   104→  }, [handleScroll])
+   105→
+   106→  const getInitials = (name: string) => {
+   107→    return name
+   108→      .split(' ')
+   109→      .map((n) => n[0])
+   110→      .join('')
+   111→      .toUpperCase()
+   112→      .slice(0, 2)
+   113→  }
+   114→
+   115→  return (
+   116→    <header
+   117→      className={cn(
+   118→        'sticky top-0 z-50 w-full transition-all duration-300 ease-out',
+   119→        isScrolled
+   120→          ? 'gsp-glass border-b-0'
+   121→          : 'bg-background/60 backdrop-blur-md border-b border-transparent'
+   122→      )}
+   123→    >
+   124→      <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+   125→        {/* Logo */}
+   126→        <button
+   127→          onClick={() => navigate('home')}
+   128→          className="flex items-center gap-2.5 transition-opacity duration-200 hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+   129→          aria-label={t('nav.home')}
+   130→        >
+   131→          <div className="flex size-8 items-center justify-center rounded-lg gsp-gradient shadow-[0_2px_8px_oklch(0.45_0.155_162/0.25)]">
+   132→            <span className="text-sm font-bold text-white tracking-tight">G</span>
+   133→          </div>
+   134→          <span className="text-xl font-bold tracking-tight gsp-gradient-text">
+   135→            3GSP
+   136→          </span>
+   137→        </button>
+   138→
+   139→        {/* Desktop Navigation Links */}
+   140→        <div className="hidden items-center gap-1 md:flex">
+   141→          {navLinks.map((link) => {
+   142→            const isActive = currentPage === link.page
+   143→            return (
+   144→              <Button
+   145→                key={link.page}
+   146→                variant="ghost"
+   147→                size="sm"
+   148→                onClick={() => navigate(link.page)}
+   149→                className={cn(
+   150→                  'relative gap-2 font-medium transition-colors duration-200 rounded-md px-3',
+   151→                  isActive
+   152→                    ? 'text-foreground'
+   153→                    : 'text-muted-foreground hover:text-foreground'
+   154→                )}
+   155→              >
+   156→                {link.icon}
+   157→                {t(link.labelKey)}
+   158→                {/* Active underline indicator */}
+   159→                {isActive && (
+   160→                  <span className="absolute bottom-0 left-1/2 h-0.5 w-5 -translate-x-1/2 rounded-full bg-primary" />
+   161→                )}
+   162→              </Button>
+   163→            )
+   164→          })}
+   165→          {/* Reports Link - only for authenticated users */}
+   166→          {user && (
+   167→            <Button
+   168→              variant="ghost"
+   169→              size="sm"
+   170→              onClick={() => navigate('reports')}
+   171→              className={cn(
+   172→                'relative gap-2 font-medium transition-colors duration-200 rounded-md px-3',
+   173→                currentPage === 'reports'
+   174→                  ? 'text-foreground'
+   175→                  : 'text-muted-foreground hover:text-foreground'
+   176→              )}
+   177→            >
+   178→              <FileText className="size-4" />
+   179→              {t('nav.reports')}
+   180→              {currentPage === 'reports' && (
+   181→                <span className="absolute bottom-0 left-1/2 h-0.5 w-5 -translate-x-1/2 rounded-full bg-primary" />
+   182→              )}
+   183→            </Button>
+   184→          )}
+   185→          {/* Admin Link - only for admins */}
+   186→          {isAdmin && (
+   187→          <Button
+   188→            variant="ghost"
+   189→            size="sm"
+   190→            onClick={() => navigate('admin')}
+   191→            className={cn(
+   192→              'relative gap-2 font-medium transition-colors duration-200 rounded-md px-3',
+   193→              currentPage === 'admin'
+   194→                ? 'text-foreground'
+   195→                : 'text-muted-foreground hover:text-foreground'
+   196→            )}
+   197→          >
+   198→            <ShieldCheck className="size-4" />
+   199→            {t('nav.admin')}
+   200→            {currentPage === 'admin' && (
+   201→              <span className="absolute bottom-0 left-1/2 h-0.5 w-5 -translate-x-1/2 rounded-full bg-primary" />
+   202→            )}
+   203→          </Button>
+   204→          )}
+   205→        </div>
+   206→
+   207→        {/* Right Side Actions */}
+   208→        <div className="flex items-center gap-1.5">
+   209→          {/* Controls: Theme, Language, Currency */}
+   210→          <div className="hidden items-center gap-0.5 sm:flex">
+   211→            {/* Theme Toggle */}
+   212→            <Button
+   213→              variant="ghost"
+   214→              size="icon"
+   215→              className="size-9 transition-colors duration-200 hover:text-foreground"
+   216→              onClick={() => setAppTheme(appTheme === 'dark' ? 'light' : 'dark')}
+   217→              aria-label="Toggle theme"
+   218→            >
+   219→              {appTheme === 'dark' ? <Sun className="size-[18px]" /> : <Moon className="size-[18px]" />}
+   220→            </Button>
+   221→
+   222→            {/* Language Selector */}
+   223→            <DropdownMenu>
+   224→              <DropdownMenuTrigger asChild>
+   225→                <Button
+   226→                  variant="ghost"
+   227→                  size="sm"
+   228→                  className="h-9 gap-1.5 px-2 text-xs font-medium transition-colors duration-200 hover:text-foreground"
+   229→                >
+   230→                  <Globe className="size-3.5" />
+   231→                  {language === 'es' ? 'ES' : 'EN'}
+   232→                </Button>
+   233→              </DropdownMenuTrigger>
+   234→              <DropdownMenuContent align="end">
+   235→                <DropdownMenuItem onClick={() => setLanguage('es')} className={language === 'es' ? 'bg-secondary' : ''}>
+   236→                  🇨🇱 Español
+   237→                </DropdownMenuItem>
+   238→                <DropdownMenuItem onClick={() => setLanguage('en')} className={language === 'en' ? 'bg-secondary' : ''}>
+   239→                  🇺🇸 English
+   240→                </DropdownMenuItem>
+   241→              </DropdownMenuContent>
+   242→            </DropdownMenu>
+   243→
+   244→            {/* Currency Selector */}
+   245→            <DropdownMenu>
+   246→              <DropdownMenuTrigger asChild>
+   247→                <Button
+   248→                  variant="ghost"
+   249→                  size="sm"
+   250→                  className="h-9 gap-1.5 px-2 text-xs font-medium transition-colors duration-200 hover:text-foreground"
+   251→                >
+   252→                  <DollarSign className="size-3.5" />
+   253→                  {currency}
+   254→                </Button>
+   255→              </DropdownMenuTrigger>
+   256→              <DropdownMenuContent align="end">
+   257→                {(dbCurrencies.length > 0 ? dbCurrencies : [
+   258→                  { code: 'USD', name: 'Dólar Estadounidense', flag: '🇺🇸' },
+   259→                  { code: 'EUR', name: 'Euro', flag: '🇪🇺' },
+   260→                  { code: 'MXN', name: 'Peso Mexicano', flag: '🇲🇽' },
+   261→                  { code: 'COP', name: 'Peso Colombiano', flag: '🇨🇴' },
+   262→                  { code: 'ARS', name: 'Peso Argentino', flag: '🇦🇷' },
+   263→                  { code: 'PEN', name: 'Sol Peruano', flag: '🇵🇪' },
+   264→                  { code: 'BRL', name: 'Real Brasileño', flag: '🇧🇷' },
+   265→                ]).map((c) => (
+   266→                  <DropdownMenuItem
+   267→                    key={c.code}
+   268→                    onClick={() => setCurrency(c.code)}
+   269→                    className={currency === c.code ? 'bg-secondary' : ''}
+   270→                  >
+   271→                    {c.flag} {c.code} - {c.name}
+   272→                  </DropdownMenuItem>
+   273→                ))}
+   274→              </DropdownMenuContent>
+   275→            </DropdownMenu>
+   276→          </div>
+   277→
+   278→          {/* Notification Bell - only when logged in */}
+   279→          {user && (
+   280→          <NotificationPanel onCountChange={setUnreadCount} />
+   281→          )}
+   282→
+   283→          {/* User Dropdown or Login Button */}
+   284→          {user ? (
+   285→          <DropdownMenu>
+   286→            <DropdownMenuTrigger asChild>
+   287→              <Button
+   288→                variant="ghost"
+   289→                className="hidden gap-2 pl-1.5 pr-2 sm:flex transition-colors duration-200 hover:bg-secondary"
+   290→              >
+   291→                <Avatar className="size-7 ring-2 ring-primary/10">
+   292→                  <AvatarImage src={user?.avatarUrl} alt={user?.name} />
+   293→                  <AvatarFallback className="bg-primary text-[11px] font-semibold text-primary-foreground">
+   294→                    {user.name ? getInitials(user.name) : 'US'}
+   295→                  </AvatarFallback>
+   296→                </Avatar>
+   297→                <div className="hidden flex-col items-start text-left lg:flex">
+   298→                  <span className="text-sm font-medium leading-tight">
+   299→                    {user.name}
+   300→                  </span>
+   301→                  <span className="text-[11px] leading-tight text-muted-foreground">
+   302→                    {user.role === 'admin' || user.role === 'superadmin' ? t('nav.admin') : t('nav.portfolio').replace('Mi ', '')}
+   303→                  </span>
+   304→                </div>
+   305→                <ChevronDown className="size-3.5 text-muted-foreground" />
+   306→              </Button>
+   307→            </DropdownMenuTrigger>
+   308→            <DropdownMenuContent align="end" className="w-56">
+   309→              <DropdownMenuLabel className="font-normal">
+   310→                <div className="flex flex-col gap-1.5">
+   311→                  <p className="text-sm font-medium">{user?.name}</p>
+   312→                  <p className="text-xs text-muted-foreground">{user?.email}</p>
+   313→                  <Badge
+   314→                    variant="outline"
+   315→                    className="mt-0.5 w-fit bg-primary/5 text-[10px] font-medium text-primary border-primary/15"
+   316→                  >
+   317→                    {user?.role === 'admin' ? t('nav.admin') : t('nav.portfolio').replace('Mi ', '')}
+   318→                  </Badge>
+   319→                </div>
+   320→              </DropdownMenuLabel>
+   321→              <DropdownMenuSeparator />
+   322→              <DropdownMenuGroup>
+   323→                <DropdownMenuItem onClick={() => navigate('dashboard')} className="cursor-pointer">
+   324→                  <LayoutDashboard className="size-4" />
+   325→                  {t('nav.portfolio')}
+   326→                </DropdownMenuItem>
+   327→                <DropdownMenuItem onClick={() => navigate('profile')} className="cursor-pointer">
+   328→                  <User className="size-4" />
+   329→                  {t('nav.profile')}
+   330→                </DropdownMenuItem>
+   331→                <DropdownMenuItem onClick={() => setShowChangePassword(true)} className="cursor-pointer">
+   332→                  <Lock className="size-4" />
+   333→                  {t('settings.changePassword')}
+   334→                </DropdownMenuItem>
+   335→              </DropdownMenuGroup>
+   336→              {isAdmin && (
+   337→              <>
+   338→              <DropdownMenuSeparator />
+   339→              <DropdownMenuItem onClick={() => navigate('admin')} className="cursor-pointer">
+   340→                <ShieldCheck className="size-4" />
+   341→                {t('nav.adminPanel')}
+   342→              </DropdownMenuItem>
+   343→              </>
+   344→              )}
+   345→              <DropdownMenuSeparator />
+   346→              <DropdownMenuItem variant="destructive" className="text-destructive cursor-pointer" onClick={() => signOut({ callbackUrl: '/' })}>
+   347→                <LogOut className="size-4" />
+   348→                {t('nav.logout')}
+   349→              </DropdownMenuItem>
+   350→            </DropdownMenuContent>
+   351→          </DropdownMenu>
+   352→          ) : (
+   353→            <Button
+   354→              onClick={() => navigate('login')}
+   355→              className="gap-2 gsp-gradient text-white hover:shadow-lg hover:shadow-emerald-500/20 transition-all duration-200"
+   356→              size="sm"
+   357→            >
+   358→              <LogIn className="size-4" />
+   359→              <span className="hidden sm:inline">{t('nav.login')}</span>
+   360→            </Button>
+   361→          )}
+   362→
+   363→          {/* Mobile Menu */}
+   364→          <Sheet>
+   365→            <SheetTrigger asChild>
+   366→              <Button variant="ghost" size="icon" className="md:hidden transition-colors duration-200" aria-label={t('nav.menu')}>
+   367→                <Menu className="size-5" />
+   368→              </Button>
+   369→            </SheetTrigger>
+   370→            <SheetContent side="right" className="w-[300px] sm:w-[360px] px-0">
+   371→              <SheetHeader className="px-6">
+   372→                <SheetTitle className="flex items-center gap-2.5 text-left">
+   373→                  <div className="flex size-8 items-center justify-center rounded-lg gsp-gradient shadow-[0_2px_8px_oklch(0.45_0.155_162/0.25)]">
+   374→                    <span className="text-sm font-bold text-white">G</span>
+   375→                  </div>
+   376→                  <span className="gsp-gradient-text text-xl font-bold">3GSP</span>
+   377→                </SheetTitle>
+   378→                <SheetDescription className="text-left text-muted-foreground text-xs font-light">
+   379→                  Inversión Inmobiliaria Fraccionada
+   380→                </SheetDescription>
+   381→              </SheetHeader>
+   382→
+   383→              <div className="mt-2 px-6">
+   384→                <Separator className="bg-border/50" />
+   385→              </div>
+   386→
+   387→              {user && (
+   388→                <div className="mx-4 mt-4 flex items-center gap-3 rounded-xl bg-secondary/60 border border-border/30 p-3">
+   389→                  <Avatar className="size-10 ring-2 ring-primary/15">
+   390→                    <AvatarImage src={user.avatarUrl} alt={user.name} />
+   391→                    <AvatarFallback className="bg-primary text-sm font-semibold text-primary-foreground">
+   392→                      {getInitials(user.name)}
+   393→                    </AvatarFallback>
+   394→                  </Avatar>
+   395→                  <div className="flex-1 min-w-0">
+   396→                    <span className="text-sm font-semibold block truncate">{user.name}</span>
+   397→                    <span className="text-xs text-muted-foreground block truncate">
+   398→                      {user.role === 'admin' || user.role === 'superadmin' ? t('nav.admin') : t('nav.portfolio').replace('Mi ', '')}
+   399→                    </span>
+   400→                  </div>
+   401→                </div>
+   402→              )}
+   403→              {!user && (
+   404→                <div className="mx-4 mt-4">
+   405→                  <SheetClose asChild>
+   406→                    <Button onClick={() => navigate('login')} className="w-full gap-2 gsp-gradient text-white hover:shadow-lg hover:shadow-emerald-500/20 h-11">
+   407→                      <LogIn className="size-4" />
+   408→                      {t('nav.login')}
+   409→                    </Button>
+   410→                  </SheetClose>
+   411→                </div>
+   412→              )}
+   413→
+   414→              <div className="flex flex-col gap-0.5 px-4 pt-4">
+   415→                <span className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/70">
+   416→                  {t('nav.menu')}
+   417→                </span>
+   418→                {navLinks.map((link) => {
+   419→                  const isActive = currentPage === link.page
+   420→                  return (
+   421→                    <SheetClose asChild key={link.page}>
+   422→                      <Button
+   423→                        variant={isActive ? 'secondary' : 'ghost'}
+   424→                        className={cn(
+   425→                          'w-full justify-start gap-3 px-3 h-11 rounded-lg transition-colors duration-200 cursor-pointer',
+   426→                          isActive
+   427→                            ? 'bg-primary/8 text-primary font-semibold'
+   428→                            : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+   429→                        )}
+   430→                        onClick={() => navigate(link.page)}
+   431→                      >
+   432→                        <span
+   433→                          className={cn(
+   434→                            'flex size-8 items-center justify-center rounded-lg transition-colors duration-200 shrink-0',
+   435→                            isActive
+   436→                              ? 'bg-primary/12 text-primary'
+   437→                              : 'bg-muted/60 text-muted-foreground'
+   438→                          )}
+   439→                        >
+   440→                          {link.icon}
+   441→                        </span>
+   442→                        <span className="text-sm">{t(link.labelKey)}</span>
+   443→                      </Button>
+   444→                    </SheetClose>
+   445→                  )
+   446→                })}
+   447→
+   448→                {/* Reports Link - mobile, only for authenticated users */}
+   449→                {user && (
+   450→                  <SheetClose asChild>
+   451→                    <Button
+   452→                      variant={currentPage === 'reports' ? 'secondary' : 'ghost'}
+   453→                      className={cn(
+   454→                        'w-full justify-start gap-3 px-3 h-11 rounded-lg transition-colors duration-200 cursor-pointer',
+   455→                        currentPage === 'reports'
+   456→                          ? 'bg-primary/8 text-primary font-semibold'
+   457→                          : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+   458→                      )}
+   459→                      onClick={() => navigate('reports')}
+   460→                    >
+   461→                      <span
+   462→                        className={cn(
+   463→                          'flex size-8 items-center justify-center rounded-lg transition-colors duration-200 shrink-0',
+   464→                          currentPage === 'reports'
+   465→                            ? 'bg-primary/12 text-primary'
+   466→                            : 'bg-muted/60 text-muted-foreground'
+   467→                        )}
+   468→                      >
+   469→                        <FileText className="size-4" />
+   470→                      </span>
+   471→                      <span className="text-sm">{t('nav.reports')}</span>
+   472→                    </Button>
+   473→                  </SheetClose>
+   474→                )}
+   475→
+   476→                <div className="my-2 px-3"><Separator className="bg-border/40" /></div>
+   477→
+   478→                {isAdmin && (
+   479→                <>
+   480→                <span className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/70">
+   481→                  {t('nav.admin')}
+   482→                </span>
+   483→                <SheetClose asChild>
+   484→                  <Button
+   485→                    variant={currentPage === 'admin' ? 'secondary' : 'ghost'}
+   486→                    className={cn(
+   487→                      'w-full justify-start gap-3 px-3 h-11 rounded-lg transition-colors duration-200 cursor-pointer',
+   488→                      currentPage === 'admin'
+   489→                        ? 'bg-primary/8 text-primary font-semibold'
+   490→                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+   491→                    )}
+   492→                    onClick={() => navigate('admin')}
+   493→                  >
+   494→                    <span
+   495→                      className={cn(
+   496→                        'flex size-8 items-center justify-center rounded-lg transition-colors duration-200 shrink-0',
+   497→                        currentPage === 'admin'
+   498→                          ? 'bg-primary/12 text-primary'
+   499→                          : 'bg-muted/60 text-muted-foreground'
+   500→                      )}
+   501→                    >
+   502→                      <ShieldCheck className="size-4" />
+   503→                    </span>
+   504→                    <span className="text-sm">{t('nav.adminPanel')}</span>
+   505→                  </Button>
+   506→                </SheetClose>
+   507→                </>
+   508→                )}
+   509→
+   510→                <div className="my-2 px-3"><Separator className="bg-border/40" /></div>
+   511→
+   512→                {/* Mobile: Theme, Language, Currency Controls */}
+   513→                <div className="flex flex-col gap-0.5">
+   514→                  <span className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/70">
+   515→                    {t('nav.settings')}
+   516→                  </span>
+   517→
+   518→                  {/* Theme Toggle */}
+   519→                  <Button
+   520→                    variant="ghost"
+   521→                    className="w-full justify-start gap-3 px-3 h-11 rounded-lg transition-colors duration-200 cursor-pointer text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+   522→                    onClick={() => setAppTheme(appTheme === 'dark' ? 'light' : 'dark')}
+   523→                  >
+   524→                    <span className="flex size-8 items-center justify-center rounded-lg bg-muted/60 shrink-0">
+   525→                      {appTheme === 'dark' ? <Sun className="size-4" /> : <Moon className="size-4" />}
+   526→                    </span>
+   527→                    <span className="text-sm">{appTheme === 'dark' ? t('settings.theme.light') : t('settings.theme.dark')}</span>
+   528→                  </Button>
+   529→
+   530→                  {/* Language Selector */}
+   531→                  <div className="flex items-center gap-1 px-3 h-11">
+   532→                    <span className="flex size-8 items-center justify-center rounded-lg bg-muted/60 shrink-0">
+   533→                      <Globe className="size-4 text-muted-foreground" />
+   534→                    </span>
+   535→                    <span className="text-sm text-muted-foreground mr-auto">{t('settings.language')}</span>
+   536→                    <div className="flex gap-1">
+   537→                      <Button
+   538→                        variant={language === 'es' ? 'secondary' : 'ghost'}
+   539→                        size="sm"
+   540→                        className="h-7 w-8 px-0 text-[11px] font-semibold"
+   541→                        onClick={() => setLanguage('es')}
+   542→                      >
+   543→                        ES
+   544→                      </Button>
+   545→                      <Button
+   546→                        variant={language === 'en' ? 'secondary' : 'ghost'}
+   547→                        size="sm"
+   548→                        className="h-7 w-8 px-0 text-[11px] font-semibold"
+   549→                        onClick={() => setLanguage('en')}
+   550→                      >
+   551→                        EN
+   552→                      </Button>
+   553→                    </div>
+   554→                  </div>
+   555→
+   556→                  {/* Currency Selector */}
+   557→                  <div className="flex items-center gap-1 px-3 h-11">
+   558→                    <span className="flex size-8 items-center justify-center rounded-lg bg-muted/60 shrink-0">
+   559→                      <DollarSign className="size-4 text-muted-foreground" />
+   560→                    </span>
+   561→                    <span className="text-sm text-muted-foreground mr-auto">{t('common.currency')}</span>
+   562→                    <select
+   563→                      value={currency}
+   564→                      onChange={(e) => setCurrency(e.target.value)}
+   565→                      className="h-7 rounded-lg border border-input bg-background px-2 text-[11px] font-semibold focus:outline-none focus:ring-2 focus:ring-ring"
+   566→                    >
+   567→                      {(dbCurrencies.length > 0 ? dbCurrencies : [
+   568→                        { code: 'USD', flag: '🇺🇸' },
+   569→                        { code: 'EUR', flag: '🇪🇺' }, { code: 'MXN', flag: '🇲🇽' },
+   570→                        { code: 'COP', flag: '🇨🇴' }, { code: 'ARS', flag: '🇦🇷' },
+   571→                        { code: 'PEN', flag: '🇵🇪' }, { code: 'BRL', flag: '🇧🇷' },
+   572→                        { code: 'CLP', flag: '🇨🇱' },
+   573→                      ]).map((c) => (
+   574→                        <option key={c.code} value={c.code}>{c.flag} {c.code}</option>
+   575→                      ))}
+   576→                    </select>
+   577→                  </div>
+   578→                </div>
+   579→              </div>
+   580→            </SheetContent>
+   581→          </Sheet>
+   582→        </div>
+   583→      </nav>
+   584→      <ChangePasswordDialog open={showChangePassword} onOpenChange={setShowChangePassword} />
+   585→      {/* Gradient border bottom when scrolled */}
+   586→      {isScrolled && (
+   587→        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+   588→      )}
+   589→    </header>
+   590→  )
+   591→}
+   592→

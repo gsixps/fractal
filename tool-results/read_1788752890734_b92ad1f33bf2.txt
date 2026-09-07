@@ -1,0 +1,934 @@
+     1→'use client'
+     2→
+     3→import { useState, useEffect, useCallback } from 'react'
+     4→import { useAppStore } from '@/lib/store'
+     5→import { useCurrency } from '@/lib/currency'
+     6→import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+     7→import { Button } from '@/components/ui/button'
+     8→import { Badge } from '@/components/ui/badge'
+     9→import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+    10→import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+    11→import { Input } from '@/components/ui/input'
+    12→import { Label } from '@/components/ui/label'
+    13→import { Skeleton } from '@/components/ui/skeleton'
+    14→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+    15→import {
+    16→  Store,
+    17→  ShoppingBag,
+    18→  PlusCircle,
+    19→  Clock,
+    20→  TrendingUp,
+    21→  XCircle,
+    22→  CheckCircle2,
+    23→  AlertCircle,
+    24→  ArrowUpDown,
+    25→  ChevronDown,
+    26→  Search,
+    27→} from 'lucide-react'
+    28→
+    29→// ─── Types ────────────────────────────────────────────────────────────
+    30→
+    31→interface SecondaryListing {
+    32→  id: string
+    33→  sellerId: string
+    34→  investmentId: string
+    35→  assetId: string
+    36→  fractionCount: number
+    37→  pricePerFraction: number
+    38→  totalPrice: number
+    39→  status: string
+    40→  soldFractionCount: number
+    41→  platformFee: number
+    42→  netAmount: number | null
+    43→  expiresAt: string | null
+    44→  soldAt: string | null
+    45→  cancelledAt: string | null
+    46→  createdAt: string
+    47→  seller: { id: string; name: string | null; avatarUrl: string | null }
+    48→  asset: {
+    49→    id: string
+    50→    name: string
+    51→    type: string
+    52→    city: string
+    53→    pricePerFraction: number
+    54→    images: { id: string; url: string; alt: string | null; sortOrder: number; isCover: boolean }[]
+    55→  }
+    56→  buyer?: { id: string; name: string | null } | null
+    57→}
+    58→
+    59→interface AvailableInvestment {
+    60→  id: string
+    61→  userId: string
+    62→  assetId: string
+    63→  quantity: number
+    64→  pricePerUnit: number
+    65→  totalAmount: number
+    66→  status: string
+    67→  completedAt: string | null
+    68→  createdAt: string
+    69→  updatedAt: string
+    70→  availableFractions: number
+    71→  alreadyListed: number
+    72→  asset: {
+    73→    id: string
+    74→    name: string
+    75→    type: string
+    76→    city: string
+    77→    pricePerFraction: number
+    78→    images: { id: string; url: string; alt: string | null; sortOrder: number; isCover: boolean }[]
+    79→  }
+    80→}
+    81→
+    82→// ─── Helpers ──────────────────────────────────────────────────────────
+    83→
+    84→function getTimeRemaining(expiresAt: string | null): string {
+    85→  if (!expiresAt) return ''
+    86→  const now = new Date()
+    87→  const expiry = new Date(expiresAt)
+    88→  const diffMs = expiry.getTime() - now.getTime()
+    89→
+    90→  if (diffMs <= 0) return 'Expirada'
+    91→
+    92→  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+    93→  if (days > 0) return `${days}d restantes`
+    94→  const hours = Math.floor(diffMs / (1000 * 60 * 60))
+    95→  if (hours > 0) return `${hours}h restantes`
+    96→  const minutes = Math.floor(diffMs / (1000 * 60))
+    97→  return `${minutes}m restantes`
+    98→}
+    99→
+   100→function getStatusBadge(status: string) {
+   101→  switch (status) {
+   102→    case 'active':
+   103→      return <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100">Activa</Badge>
+   104→    case 'sold':
+   105→      return <Badge className="bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-100">Vendida</Badge>
+   106→    case 'cancelled':
+   107→      return <Badge className="bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-100">Cancelada</Badge>
+   108→    case 'partial':
+   109→      return <Badge className="bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100">Parcial</Badge>
+   110→    default:
+   111→      return <Badge variant="outline">{status}</Badge>
+   112→  }
+   113→}
+   114→
+   115→// ─── Component ────────────────────────────────────────────────────────
+   116→
+   117→export default function SecondaryMarketPage() {
+   118→  const user = useAppStore((s) => s.user)
+   119→  const { format } = useCurrency()
+   120→  const [activeTab, setActiveTab] = useState('explore')
+   121→
+   122→  return (
+   123→    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+   124→      {/* Hero Section */}
+   125→      <section className="relative overflow-hidden gsp-gradient-hero">
+   126→        <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/90 via-emerald-800/80 to-emerald-900/90" />
+   127→        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMyI+PHBhdGggZD0iTTM2IDM0djItSDI0di0yaDEyem0wLTRWMjhIMjR2Mmgxem0tMTItNmgydjJIMjR2LTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
+   128→        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+   129→          <div className="flex flex-col items-center text-center">
+   130→            <div className="mb-4 flex size-16 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm ring-1 ring-white/20">
+   131→              <Store className="size-8 text-white" />
+   132→            </div>
+   133→            <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
+   134→              Mercado Secundario
+   135→            </h1>
+   136→            <p className="mt-4 max-w-2xl text-lg text-emerald-100/90">
+   137→              Compra y vende fracciones de activos entre inversores. Liquidez inmediata para tus inversiones.
+   138→            </p>
+   139→          </div>
+   140→        </div>
+   141→      </section>
+   142→
+   143→      {/* Main Content */}
+   144→      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 -mt-8">
+   145→        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+   146→          <TabsList className="grid w-full grid-cols-3 h-auto p-1 bg-white/80 backdrop-blur-sm shadow-sm border border-border/50 rounded-xl">
+   147→            <TabsTrigger
+   148→              value="explore"
+   149→              className="flex items-center justify-center gap-2 rounded-lg py-3 text-sm font-medium data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700 data-[state=active]:shadow-sm transition-all"
+   150→            >
+   151→              <Search className="size-4" />
+   152→              <span className="hidden sm:inline">Explorar</span>
+   153→            </TabsTrigger>
+   154→            <TabsTrigger
+   155→              value="my-listings"
+   156→              className="flex items-center justify-center gap-2 rounded-lg py-3 text-sm font-medium data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700 data-[state=active]:shadow-sm transition-all"
+   157→            >
+   158→              <ShoppingBag className="size-4" />
+   159→              <span className="hidden sm:inline">Mis Listas</span>
+   160→            </TabsTrigger>
+   161→            <TabsTrigger
+   162→              value="sell"
+   163→              className="flex items-center justify-center gap-2 rounded-lg py-3 text-sm font-medium data-[state=active]:bg-emerald-50 data-[state=active]:text-emerald-700 data-[state=active]:shadow-sm transition-all"
+   164→            >
+   165→              <PlusCircle className="size-4" />
+   166→              <span className="hidden sm:inline">Vender</span>
+   167→            </TabsTrigger>
+   168→          </TabsList>
+   169→
+   170→          <TabsContent value="explore">
+   171→            <ExploreTab format={format} user={user} />
+   172→          </TabsContent>
+   173→          <TabsContent value="my-listings">
+   174→            <MyListingsTab format={format} user={user} />
+   175→          </TabsContent>
+   176→          <TabsContent value="sell">
+   177→            <SellTab format={format} user={user} onListingCreated={() => setActiveTab('my-listings')} />
+   178→          </TabsContent>
+   179→        </Tabs>
+   180→      </div>
+   181→      <div className="h-16" />
+   182→    </div>
+   183→  )
+   184→}
+   185→
+   186→// ─── Explore Tab ──────────────────────────────────────────────────────
+   187→
+   188→function ExploreTab({ format, user }: { format: (a: number) => string; user: { id: string; kycStatus: string } | null }) {
+   189→  const [listings, setListings] = useState<SecondaryListing[]>([])
+   190→  const [loading, setLoading] = useState(true)
+   191→  const [sort, setSort] = useState('newest')
+   192→  const [assetFilter, setAssetFilter] = useState('all')
+   193→  const [buyDialog, setBuyDialog] = useState<{ listing: SecondaryListing; maxFractions: number } | null>(null)
+   194→  const [buyFractionCount, setBuyFractionCount] = useState(1)
+   195→  const [buying, setBuying] = useState(false)
+   196→  const [buyError, setBuyError] = useState('')
+   197→
+   198→  const fetchListings = useCallback(async () => {
+   199→    setLoading(true)
+   200→    try {
+   201→      const params = new URLSearchParams({ sort, limit: '50' })
+   202→      if (assetFilter !== 'all') params.set('assetId', assetFilter)
+   203→      const res = await fetch(`/api/secondary-market?${params}`)
+   204→      if (res.ok) {
+   205→        const data = await res.json()
+   206→        setListings(data)
+   207→      }
+   208→    } catch {
+   209→      // silent
+   210→    } finally {
+   211→      setLoading(false)
+   212→    }
+   213→  }, [sort, assetFilter])
+   214→
+   215→  useEffect(() => { fetchListings() }, [fetchListings])
+   216→
+   217→  const handleBuy = async () => {
+   218→    if (!buyDialog) return
+   219→    setBuying(true)
+   220→    setBuyError('')
+   221→    try {
+   222→      const res = await fetch(`/api/secondary-market/${buyDialog.listing.id}/buy`, {
+   223→        method: 'POST',
+   224→        headers: { 'Content-Type': 'application/json' },
+   225→        body: JSON.stringify({ fractionCount: buyFractionCount }),
+   226→      })
+   227→      if (res.ok) {
+   228→        setBuyDialog(null)
+   229→        fetchListings()
+   230→      } else {
+   231→        const data = await res.json()
+   232→        setBuyError(data.error || 'Error al comprar')
+   233→      }
+   234→    } catch {
+   235→      setBuyError('Error de conexión')
+   236→    } finally {
+   237→      setBuying(false)
+   238→    }
+   239→  }
+   240→
+   241→  const filtered = listings
+   242→
+   243→  return (
+   244→    <>
+   245→      {/* Filters */}
+   246→      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+   247→        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+   248→          <Store className="size-4" />
+   249→          <span>{filtered.length} listados disponibles</span>
+   250→        </div>
+   251→        <div className="flex items-center gap-3">
+   252→          <Select value={assetFilter} onValueChange={setAssetFilter}>
+   253→            <SelectTrigger className="w-[180px] h-9 text-sm">
+   254→              <SelectValue placeholder="Tipo de activo" />
+   255→            </SelectTrigger>
+   256→            <SelectContent>
+   257→              <SelectItem value="all">Todos los activos</SelectItem>
+   258→              <SelectItem value="real_estate">Real Estate</SelectItem>
+   259→              <SelectItem value="micro_datacenter">Micro Datacenter</SelectItem>
+   260→              <SelectItem value="solar_energy">Solar Energy</SelectItem>
+   261→              <SelectItem value="last_mile_logistics">Last Mile Logistics</SelectItem>
+   262→              <SelectItem value="mining">Mining</SelectItem>
+   263→            </SelectContent>
+   264→          </Select>
+   265→          <Select value={sort} onValueChange={setSort}>
+   266→            <SelectTrigger className="w-[160px] h-9 text-sm">
+   267→              <ArrowUpDown className="mr-2 size-3.5" />
+   268→              <SelectValue />
+   269→            </SelectTrigger>
+   270→            <SelectContent>
+   271→              <SelectItem value="newest">Más recientes</SelectItem>
+   272→              <SelectItem value="price_asc">Precio ↑</SelectItem>
+   273→              <SelectItem value="price_desc">Precio ↓</SelectItem>
+   274→            </SelectContent>
+   275→          </Select>
+   276→        </div>
+   277→      </div>
+   278→
+   279→      {/* Listings Grid */}
+   280→      {loading ? (
+   281→        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+   282→          {[1, 2, 3, 4, 5, 6].map((i) => (
+   283→            <Card key={i} className="overflow-hidden">
+   284→              <Skeleton className="h-40 w-full" />
+   285→              <CardContent className="p-4 space-y-3">
+   286→                <Skeleton className="h-5 w-3/4" />
+   287→                <Skeleton className="h-4 w-1/2" />
+   288→                <Skeleton className="h-4 w-2/3" />
+   289→                <div className="flex justify-between pt-2">
+   290→                  <Skeleton className="h-8 w-24" />
+   291→                  <Skeleton className="h-9 w-24" />
+   292→                </div>
+   293→              </CardContent>
+   294→            </Card>
+   295→          ))}
+   296→        </div>
+   297→      ) : filtered.length === 0 ? (
+   298→        <Card className="p-12 text-center">
+   299→          <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-muted">
+   300→            <Store className="size-8 text-muted-foreground" />
+   301→          </div>
+   302→          <h3 className="text-lg font-semibold">No hay listados disponibles</h3>
+   303→          <p className="mt-2 text-sm text-muted-foreground">
+   304→            No hay fracciones en venta en este momento. Vuelve pronto.
+   305→          </p>
+   306→        </Card>
+   307→      ) : (
+   308→        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+   309→          {filtered.map((listing) => {
+   310→            const coverImage = listing.asset.images?.[0]?.url || '/placeholder.jpg'
+   311→            const available = listing.fractionCount - listing.soldFractionCount
+   312→            const timeRemaining = getTimeRemaining(listing.expiresAt)
+   313→            const priceGain = listing.asset.pricePerFraction > 0 
+   314→              ? ((listing.pricePerFraction - listing.asset.pricePerFraction) / listing.asset.pricePerFraction) * 100 
+   315→              : 0
+   316→
+   317→            return (
+   318→              <Card key={listing.id} className="overflow-hidden gsp-card-hover group">
+   319→                <div className="relative h-40 overflow-hidden bg-muted">
+   320→                  <img
+   321→                    src={coverImage}
+   322→                    alt={listing.asset.name}
+   323→                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+   324→                  />
+   325→                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+   326→                  <div className="absolute bottom-3 left-3 right-3">
+   327→                    <p className="text-sm font-semibold text-white truncate">{listing.asset.name}</p>
+   328→                    <p className="text-xs text-white/80">{listing.asset.city}</p>
+   329→                  </div>
+   330→                  <div className="absolute top-3 right-3">
+   331→                    <Badge variant="secondary" className="bg-white/90 text-xs backdrop-blur-sm">
+   332→                      {listing.asset.type.replace(/_/g, ' ')}
+   333→                    </Badge>
+   334→                  </div>
+   335→                </div>
+   336→                <CardContent className="p-4">
+   337→                  <div className="flex items-center gap-2 mb-3">
+   338→                    <div className="flex size-7 items-center justify-center rounded-full bg-emerald-100 text-xs font-semibold text-emerald-700">
+   339→                      {listing.seller.name?.charAt(0) || 'U'}
+   340→                    </div>
+   341→                    <span className="text-sm text-muted-foreground">{listing.seller.name || 'Usuario'}</span>
+   342→                    {timeRemaining && (
+   343→                      <span className="ml-auto flex items-center gap-1 text-xs text-amber-600">
+   344→                        <Clock className="size-3" />
+   345→                        {timeRemaining}
+   346→                      </span>
+   347→                    )}
+   348→                  </div>
+   349→
+   350→                  <div className="space-y-2">
+   351→                    <div className="flex items-baseline justify-between">
+   352→                      <span className="text-xs text-muted-foreground">Precio/fracción</span>
+   353→                      <span className="text-lg font-bold text-emerald-700">{format(listing.pricePerFraction)}</span>
+   354→                    </div>
+   355→                    {priceGain !== 0 && (
+   356→                      <div className={`flex items-baseline justify-between text-xs ${priceGain > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+   357→                        <span className="text-muted-foreground">Variación</span>
+   358→                        <span className="font-medium">{priceGain > 0 ? '+' : ''}{priceGain.toFixed(1)}%</span>
+   359→                      </div>
+   360→                    )}
+   361→                    <div className="flex items-baseline justify-between">
+   362→                      <span className="text-xs text-muted-foreground">Fracciones</span>
+   363→                      <span className="text-sm font-medium">{available} disponibles</span>
+   364→                    </div>
+   365→                    <div className="flex items-baseline justify-between">
+   366→                      <span className="text-xs text-muted-foreground">Total</span>
+   367→                      <span className="text-sm font-medium">{format(available * listing.pricePerFraction)}</span>
+   368→                    </div>
+   369→                  </div>
+   370→
+   371→                  <Button
+   372→                    className="mt-4 w-full gsp-gradient text-white hover:shadow-lg hover:shadow-emerald-500/20 transition-all"
+   373→                    onClick={() => {
+   374→                      if (!user) return
+   375→                      setBuyDialog({ listing, maxFractions: available })
+   376→                      setBuyFractionCount(1)
+   377→                      setBuyError('')
+   378→                    }}
+   379→                    disabled={!user}
+   380→                  >
+   381→                    {user ? 'Comprar' : 'Inicia sesión para comprar'}
+   382→                  </Button>
+   383→                </CardContent>
+   384→              </Card>
+   385→            )
+   386→          })}
+   387→        </div>
+   388→      )}
+   389→
+   390→      {/* Buy Dialog */}
+   391→      <Dialog open={!!buyDialog} onOpenChange={() => setBuyDialog(null)}>
+   392→        <DialogContent className="sm:max-w-md">
+   393→          <DialogHeader>
+   394→            <DialogTitle className="flex items-center gap-2">
+   395→              <ShoppingBag className="size-5 text-emerald-600" />
+   396→              Comprar Fracciones
+   397→            </DialogTitle>
+   398→            <DialogDescription>
+   399→              {buyDialog && (
+   400→                <>
+   401→                  <span className="font-medium">{buyDialog.listing.asset.name}</span> — Listado por{' '}
+   402→                  {buyDialog.listing.seller.name || 'Usuario'}
+   403→                </>
+   404→              )}
+   405→            </DialogDescription>
+   406→          </DialogHeader>
+   407→
+   408→          {buyDialog && (
+   409→            <div className="space-y-4 py-2">
+   410→              <div className="rounded-lg bg-muted/50 p-3 space-y-2">
+   411→                <div className="flex justify-between text-sm">
+   412→                  <span className="text-muted-foreground">Precio por fracción</span>
+   413→                  <span className="font-medium">{format(buyDialog.listing.pricePerFraction)}</span>
+   414→                </div>
+   415→                <div className="flex justify-between text-sm">
+   416→                  <span className="text-muted-foreground">Máximo disponible</span>
+   417→                  <span className="font-medium">{buyDialog.maxFractions} fracciones</span>
+   418→                </div>
+   419→              </div>
+   420→
+   421→              <div className="space-y-2">
+   422→                <Label htmlFor="buy-fractions">Fracciones a comprar</Label>
+   423→                <div className="flex items-center gap-2">
+   424→                  <Input
+   425→                    id="buy-fractions"
+   426→                    type="number"
+   427→                    min={1}
+   428→                    max={buyDialog.maxFractions}
+   429→                    value={buyFractionCount}
+   430→                    onChange={(e) => setBuyFractionCount(Math.max(1, Math.min(buyDialog.maxFractions, parseInt(e.target.value) || 1)))}
+   431→                    className="text-center font-semibold"
+   432→                  />
+   433→                  <span className="text-sm text-muted-foreground whitespace-nowrap">de {buyDialog.maxFractions}</span>
+   434→                </div>
+   435→              </div>
+   436→
+   437→              <div className="rounded-lg border border-border p-3 space-y-2">
+   438→                <div className="flex justify-between text-base font-semibold">
+   439→                  <span>Total</span>
+   440→                  <span className="text-emerald-700">{format(buyFractionCount * buyDialog.listing.pricePerFraction)}</span>
+   441→                </div>
+   442→                <p className="text-xs text-muted-foreground mt-1">Comisión incluida</p>
+   443→              </div>
+   444→
+   445→              {buyError && (
+   446→                <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700 border border-red-200">
+   447→                  <AlertCircle className="size-4 shrink-0" />
+   448→                  {buyError}
+   449→                </div>
+   450→              )}
+   451→
+   452→              {!user && (
+   453→                <div className="flex items-center gap-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-700 border border-amber-200">
+   454→                  <AlertCircle className="size-4 shrink-0" />
+   455→                  Debes iniciar sesión para comprar fracciones.
+   456→                </div>
+   457→              )}
+   458→              {user && user.kycStatus !== 'verified' && (
+   459→                <div className="flex items-center gap-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-700 border border-amber-200">
+   460→                  <AlertCircle className="size-4 shrink-0" />
+   461→                  Necesitas verificación KYC para comprar en el mercado secundario.
+   462→                </div>
+   463→              )}
+   464→            </div>
+   465→          )}
+   466→
+   467→          <DialogFooter>
+   468→            <Button variant="outline" onClick={() => setBuyDialog(null)}>Cancelar</Button>
+   469→            <Button
+   470→              className="gsp-gradient text-white hover:shadow-lg hover:shadow-emerald-500/20"
+   471→              onClick={handleBuy}
+   472→              disabled={buying || !user || (user && user.kycStatus !== 'verified')}
+   473→            >
+   474→              {buying ? 'Procesando...' : `Comprar ${buyFractionCount} fracción${buyFractionCount > 1 ? 'es' : ''}`}
+   475→            </Button>
+   476→          </DialogFooter>
+   477→        </DialogContent>
+   478→      </Dialog>
+   479→    </>
+   480→  )
+   481→}
+   482→
+   483→// ─── My Listings Tab ──────────────────────────────────────────────────
+   484→
+   485→function MyListingsTab({ format, user }: { format: (a: number) => string; user: { id: string } | null }) {
+   486→  const [listings, setListings] = useState<SecondaryListing[]>([])
+   487→  const [loading, setLoading] = useState(true)
+   488→  const [cancelling, setCancelling] = useState<string | null>(null)
+   489→
+   490→  const fetchListings = useCallback(async () => {
+   491→    if (!user) return
+   492→    setLoading(true)
+   493→    try {
+   494→      const res = await fetch('/api/secondary-market/my-listings')
+   495→      if (res.ok) setListings(await res.json())
+   496→    } catch {
+   497→      // silent
+   498→    } finally {
+   499→      setLoading(false)
+   500→    }
+   501→  }, [user])
+   502→
+   503→  useEffect(() => { fetchListings() }, [fetchListings])
+   504→
+   505→  const handleCancel = async (id: string) => {
+   506→    setCancelling(id)
+   507→    try {
+   508→      const res = await fetch(`/api/secondary-market/${id}/cancel`, { method: 'POST' })
+   509→      if (res.ok) fetchListings()
+   510→    } catch {
+   511→      // silent
+   512→    } finally {
+   513→      setCancelling(null)
+   514→    }
+   515→  }
+   516→
+   517→  if (!user) {
+   518→    return (
+   519→      <Card className="p-12 text-center">
+   520→        <AlertCircle className="mx-auto mb-4 size-12 text-muted-foreground" />
+   521→        <h3 className="text-lg font-semibold">Inicia sesión</h3>
+   522→        <p className="mt-2 text-sm text-muted-foreground">Debes iniciar sesión para ver tus listas.</p>
+   523→      </Card>
+   524→    )
+   525→  }
+   526→
+   527→  if (loading) {
+   528→    return (
+   529→      <div className="space-y-4">
+   530→        {[1, 2, 3].map((i) => (
+   531→          <Card key={i}>
+   532→            <CardContent className="p-4">
+   533→              <div className="flex items-center gap-4">
+   534→                <Skeleton className="h-16 w-16 rounded-lg" />
+   535→                <div className="flex-1 space-y-2">
+   536→                  <Skeleton className="h-5 w-2/3" />
+   537→                  <Skeleton className="h-4 w-1/3" />
+   538→                  <Skeleton className="h-4 w-1/2" />
+   539→                </div>
+   540→              </div>
+   541→            </CardContent>
+   542→          </Card>
+   543→        ))}
+   544→      </div>
+   545→    )
+   546→  }
+   547→
+   548→  if (listings.length === 0) {
+   549→    return (
+   550→      <Card className="p-12 text-center">
+   551→        <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-muted">
+   552→          <ShoppingBag className="size-8 text-muted-foreground" />
+   553→        </div>
+   554→        <h3 className="text-lg font-semibold">Sin listas aún</h3>
+   555→        <p className="mt-2 text-sm text-muted-foreground">
+   556→          No has publicado ninguna fracción en el mercado secundario.
+   557→        </p>
+   558→      </Card>
+   559→    )
+   560→  }
+   561→
+   562→  return (
+   563→    <div className="space-y-4">
+   564→      {listings.map((listing) => {
+   565→        const available = listing.fractionCount - listing.soldFractionCount
+   566→        const coverImage = listing.asset.images?.[0]?.url || '/placeholder.jpg'
+   567→        const isActive = listing.status === 'active' || listing.status === 'partial'
+   568→
+   569→        return (
+   570→          <Card key={listing.id} className="overflow-hidden gsp-card-hover">
+   571→            <CardContent className="p-4">
+   572→              <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+   573→                {/* Image */}
+   574→                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
+   575→                  <img src={coverImage} alt={listing.asset.name} className="h-full w-full object-cover" />
+   576→                </div>
+   577→
+   578→                {/* Info */}
+   579→                <div className="flex-1 min-w-0">
+   580→                  <div className="flex flex-wrap items-center gap-2 mb-1">
+   581→                    <h3 className="text-sm font-semibold truncate">{listing.asset.name}</h3>
+   582→                    {getStatusBadge(listing.status)}
+   583→                  </div>
+   584→                  <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs text-muted-foreground sm:grid-cols-4">
+   585→                    <span>Precio: <strong className="text-foreground">{format(listing.pricePerFraction)}</strong>/f</span>
+   586→                    <span>Listadas: <strong className="text-foreground">{listing.fractionCount}</strong></span>
+   587→                    <span>Vendidas: <strong className="text-foreground">{listing.soldFractionCount}</strong></span>
+   588→                    <span>Disponibles: <strong className="text-foreground">{available}</strong></span>
+   589→                  </div>
+   590→                  {listing.buyer && (
+   591→                    <p className="mt-1 text-xs text-muted-foreground">
+   592→                      Comprador: {listing.buyer.name || 'Usuario'}
+   593→                    </p>
+   594→                  )}
+   595→                </div>
+   596→
+   597→                {/* Actions */}
+   598→                <div className="flex items-center gap-2 shrink-0">
+   599→                  {isActive && available > 0 && (
+   600→                    <Button
+   601→                      variant="outline"
+   602→                      size="sm"
+   603→                      className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+   604→                      onClick={() => handleCancel(listing.id)}
+   605→                      disabled={cancelling === listing.id}
+   606→                    >
+   607→                      {cancelling === listing.id ? (
+   608→                        <span className="flex items-center gap-1"><XCircle className="size-3" /> Cancelando...</span>
+   609→                      ) : (
+   610→                        <span className="flex items-center gap-1"><XCircle className="size-3" /> Cancelar</span>
+   611→                      )}
+   612→                    </Button>
+   613→                  )}
+   614→                </div>
+   615→              </div>
+   616→
+   617→              {/* Progress bar for partial sales */}
+   618→              {listing.soldFractionCount > 0 && (
+   619→                <div className="mt-3">
+   620→                  <div className="flex justify-between text-xs text-muted-foreground mb-1">
+   621→                    <span>Progreso de venta</span>
+   622→                    <span>{listing.soldFractionCount}/{listing.fractionCount} vendidas</span>
+   623→                  </div>
+   624→                  <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+   625→                    <div
+   626→                      className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+   627→                      style={{ width: `${(listing.soldFractionCount / listing.fractionCount) * 100}%` }}
+   628→                    />
+   629→                  </div>
+   630→                </div>
+   631→              )}
+   632→            </CardContent>
+   633→          </Card>
+   634→        )
+   635→      })}
+   636→    </div>
+   637→  )
+   638→}
+   639→
+   640→// ─── Sell Tab ─────────────────────────────────────────────────────────
+   641→
+   642→function SellTab({ format, user, onListingCreated }: { format: (a: number) => string; user: { id: string } | null; onListingCreated: () => void }) {
+   643→  const [investments, setInvestments] = useState<AvailableInvestment[]>([])
+   644→  const [loading, setLoading] = useState(true)
+   645→  const [selectedInvestment, setSelectedInvestment] = useState<AvailableInvestment | null>(null)
+   646→  const [sellFractionCount, setSellFractionCount] = useState(1)
+   647→  const [sellPrice, setSellPrice] = useState('')
+   648→  const [submitting, setSubmitting] = useState(false)
+   649→  const [error, setError] = useState('')
+   650→
+   651→  useEffect(() => {
+   652→    if (!user) return
+   653→    setLoading(true)
+   654→    fetch('/api/secondary-market/my-investments')
+   655→      .then((r) => r.ok ? r.json() : [])
+   656→      .then(setInvestments)
+   657→      .catch(() => setInvestments([]))
+   658→      .finally(() => setLoading(false))
+   659→  }, [user])
+   660→
+   661→  useEffect(() => {
+   662→    if (selectedInvestment) {
+   663→      setSellFractionCount(1)
+   664→      setSellPrice(String(selectedInvestment.asset.pricePerFraction))
+   665→    }
+   666→  }, [selectedInvestment])
+   667→
+   668→  const totalPrice = sellFractionCount * parseFloat(sellPrice || '0')
+   669→  const platformFeeEst = totalPrice * 0.015
+   670→  const netAmountEst = totalPrice - platformFeeEst
+   671→
+   672→  const handleCreateListing = async () => {
+   673→    if (!selectedInvestment || !sellPrice || parseFloat(sellPrice) <= 0) {
+   674→      setError('Precio inválido')
+   675→      return
+   676→    }
+   677→    if (sellFractionCount <= 0 || sellFractionCount > selectedInvestment.availableFractions) {
+   678→      setError('Cantidad de fracciones inválida')
+   679→      return
+   680→    }
+   681→
+   682→    setSubmitting(true)
+   683→    setError('')
+   684→
+   685→    try {
+   686→      const res = await fetch('/api/secondary-market', {
+   687→        method: 'POST',
+   688→        headers: { 'Content-Type': 'application/json' },
+   689→        body: JSON.stringify({
+   690→          investmentId: selectedInvestment.id,
+   691→          fractionCount: sellFractionCount,
+   692→          pricePerFraction: parseFloat(sellPrice),
+   693→        }),
+   694→      })
+   695→
+   696→      if (res.ok) {
+   697→        onListingCreated()
+   698→      } else {
+   699→        const data = await res.json()
+   700→        setError(data.error || 'Error al crear listado')
+   701→      }
+   702→    } catch {
+   703→      setError('Error de conexión')
+   704→    } finally {
+   705→      setSubmitting(false)
+   706→    }
+   707→  }
+   708→
+   709→  if (!user) {
+   710→    return (
+   711→      <Card className="p-12 text-center">
+   712→        <AlertCircle className="mx-auto mb-4 size-12 text-muted-foreground" />
+   713→        <h3 className="text-lg font-semibold">Inicia sesión</h3>
+   714→        <p className="mt-2 text-sm text-muted-foreground">Debes iniciar sesión para vender fracciones.</p>
+   715→      </Card>
+   716→    )
+   717→  }
+   718→
+   719→  return (
+   720→    <div className="grid gap-6 lg:grid-cols-2">
+   721→      {/* Investment Selector */}
+   722→      <Card className="overflow-hidden">
+   723→        <CardHeader className="pb-3">
+   724→          <CardTitle className="text-base font-semibold flex items-center gap-2">
+   725→            <PlusCircle className="size-5 text-emerald-600" />
+   726→            Seleccionar Inversión
+   727→          </CardTitle>
+   728→        </CardHeader>
+   729→        <CardContent>
+   730→          {loading ? (
+   731→            <div className="space-y-3">
+   732→              {[1, 2, 3].map((i) => (
+   733→                <div key={i} className="flex items-center gap-3 p-3 rounded-lg border">
+   734→                  <Skeleton className="h-12 w-12 rounded-lg" />
+   735→                  <div className="flex-1 space-y-2">
+   736→                    <Skeleton className="h-4 w-2/3" />
+   737→                    <Skeleton className="h-3 w-1/2" />
+   738→                  </div>
+   739→                </div>
+   740→              ))}
+   741→            </div>
+   742→          ) : investments.length === 0 ? (
+   743→            <div className="py-8 text-center">
+   744→              <p className="text-sm text-muted-foreground">
+   745→                No tienes inversiones disponibles para vender.
+   746→              </p>
+   747→              <p className="mt-1 text-xs text-muted-foreground">
+   748→                Solo inversiones completadas con fracciones disponibles pueden ser listadas.
+   749→              </p>
+   750→            </div>
+   751→          ) : (
+   752→            <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+   753→              {investments.map((inv) => {
+   754→                const coverImage = inv.asset.images?.[0]?.url || '/placeholder.jpg'
+   755→                const isSelected = selectedInvestment?.id === inv.id
+   756→
+   757→                return (
+   758→                  <button
+   759→                    key={inv.id}
+   760→                    onClick={() => setSelectedInvestment(inv)}
+   761→                    className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${
+   762→                      isSelected
+   763→                        ? 'border-emerald-300 bg-emerald-50 ring-1 ring-emerald-200'
+   764→                        : 'border-border hover:border-emerald-200 hover:bg-muted/50'
+   765→                    }`}
+   766→                  >
+   767→                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">
+   768→                      <img src={coverImage} alt={inv.asset.name} className="h-full w-full object-cover" />
+   769→                    </div>
+   770→                    <div className="flex-1 min-w-0">
+   771→                      <p className="text-sm font-medium truncate">{inv.asset.name}</p>
+   772→                      <p className="text-xs text-muted-foreground">{inv.asset.city}</p>
+   773→                    </div>
+   774→                    <div className="text-right shrink-0">
+   775→                      <p className="text-sm font-semibold text-emerald-700">{inv.availableFractions}</p>
+   776→                      <p className="text-xs text-muted-foreground">fracciones</p>
+   777→                    </div>
+   778→                  </button>
+   779→                )
+   780→              })}
+   781→            </div>
+   782→          )}
+   783→        </CardContent>
+   784→      </Card>
+   785→
+   786→      {/* Listing Form */}
+   787→      <Card className="overflow-hidden">
+   788→        <CardHeader className="pb-3">
+   789→          <CardTitle className="text-base font-semibold flex items-center gap-2">
+   790→            <TrendingUp className="size-5 text-emerald-600" />
+   791→            Crear Listado
+   792→          </CardTitle>
+   793→        </CardHeader>
+   794→        <CardContent>
+   795→          {selectedInvestment ? (
+   796→            <div className="space-y-5">
+   797→              {/* Selected Investment Summary */}
+   798→              <div className="rounded-lg bg-muted/50 p-3 space-y-1">
+   799→                <p className="text-sm font-medium">{selectedInvestment.asset.name}</p>
+   800→                <div className="flex gap-4 text-xs text-muted-foreground">
+   801→                  <span>Precio compra: {format(selectedInvestment.pricePerUnit)}/f</span>
+   802→                  <span>Disponibles: {selectedInvestment.availableFractions}</span>
+   803→                </div>
+   804→              </div>
+   805→
+   806→              {/* Fraction Count */}
+   807→              <div className="space-y-2">
+   808→                <Label htmlFor="sell-fractions">Fracciones a vender</Label>
+   809→                <div className="flex items-center gap-3">
+   810→                  <Input
+   811→                    id="sell-fractions"
+   812→                    type="number"
+   813→                    min={1}
+   814→                    max={selectedInvestment.availableFractions}
+   815→                    value={sellFractionCount}
+   816→                    onChange={(e) => setSellFractionCount(Math.max(1, Math.min(selectedInvestment.availableFractions, parseInt(e.target.value) || 1)))}
+   817→                    className="max-w-[120px] text-center font-semibold"
+   818→                  />
+   819→                  <span className="text-sm text-muted-foreground">de {selectedInvestment.availableFractions}</span>
+   820→                </div>
+   821→                <div className="flex gap-1">
+   822→                  {[1, 5, 10, 25].map((n) => (
+   823→                    <Button
+   824→                      key={n}
+   825→                      variant="outline"
+   826→                      size="sm"
+   827→                      className="text-xs h-7 px-2"
+   828→                      disabled={n > selectedInvestment.availableFractions}
+   829→                      onClick={() => setSellFractionCount(Math.min(n, selectedInvestment.availableFractions))}
+   830→                    >
+   831→                      {n}
+   832→                    </Button>
+   833→                  ))}
+   834→                  <Button
+   835→                    variant="outline"
+   836→                    size="sm"
+   837→                    className="text-xs h-7 px-2"
+   838→                    onClick={() => setSellFractionCount(selectedInvestment.availableFractions)}
+   839→                  >
+   840→                    Todas
+   841→                  </Button>
+   842→                </div>
+   843→              </div>
+   844→
+   845→              {/* Price per Fraction */}
+   846→              <div className="space-y-2">
+   847→                <Label htmlFor="sell-price">Precio por fracción (USD)</Label>
+   848→                <Input
+   849→                  id="sell-price"
+   850→                  type="number"
+   851→                  min={0.01}
+   852→                  step={0.01}
+   853→                  value={sellPrice}
+   854→                  onChange={(e) => setSellPrice(e.target.value)}
+   855→                  placeholder="Ej: 250000"
+   856→                  className="font-semibold"
+   857→                />
+   858→                <p className="text-xs text-muted-foreground">
+   859→                  Precio sugerido: {format(selectedInvestment.asset.pricePerFraction)} (precio actual del activo)
+   860→                </p>
+   861→              </div>
+   862→
+   863→              {/* Summary */}
+   864→              <div className="rounded-lg border border-border p-4 space-y-2">
+   865→                <h4 className="text-sm font-semibold">Resumen</h4>
+   866→                <div className="flex justify-between text-sm">
+   867→                  <span className="text-muted-foreground">Fracciones</span>
+   868→                  <span className="font-medium">{sellFractionCount}</span>
+   869→                </div>
+   870→                <div className="flex justify-between text-sm">
+   871→                  <span className="text-muted-foreground">Precio por fracción</span>
+   872→                  <span className="font-medium">{format(parseFloat(sellPrice || '0'))}</span>
+   873→                </div>
+   874→                <div className="flex justify-between text-sm">
+   875→                  <span className="text-muted-foreground">Precio total</span>
+   876→                  <span className="font-semibold">{format(totalPrice)}</span>
+   877→                </div>
+   878→                <div className="flex justify-between text-sm">
+   879→                  <span className="text-muted-foreground">Comisión plataforma (1.5%)</span>
+   880→                  <span className="text-red-500 font-medium">-{format(platformFeeEst)}</span>
+   881→                </div>
+   882→                <div className="my-1 border-t border-border" />
+   883→                <div className="flex justify-between text-base font-bold">
+   884→                  <span>Estimado neto</span>
+   885→                  <span className="text-emerald-700">{format(netAmountEst)}</span>
+   886→                </div>
+   887→              </div>
+   888→
+   889→              {error && (
+   890→                <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-700 border border-red-200">
+   891→                  <AlertCircle className="size-4 shrink-0" />
+   892→                  {error}
+   893→                </div>
+   894→              )}
+   895→
+   896→              <Button
+   897→                className="w-full gsp-gradient text-white hover:shadow-lg hover:shadow-emerald-500/20 transition-all"
+   898→                onClick={handleCreateListing}
+   899→                disabled={submitting || !sellPrice || parseFloat(sellPrice) <= 0}
+   900→              >
+   901→                {submitting ? (
+   902→                  <span className="flex items-center gap-2">
+   903→                    <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+   904→                    Publicando...
+   905→                  </span>
+   906→                ) : (
+   907→                  <span className="flex items-center gap-2">
+   908→                    <PlusCircle className="size-4" />
+   909→                    Publicar Listado
+   910→                  </span>
+   911→                )}
+   912→              </Button>
+   913→
+   914→              <p className="text-center text-xs text-muted-foreground">
+   915→                El listado estará activo por 30 días. Puedes cancelarlo en cualquier momento.
+   916→              </p>
+   917→            </div>
+   918→          ) : (
+   919→            <div className="py-12 text-center">
+   920→              <div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-full bg-muted">
+   921→                <PlusCircle className="size-8 text-muted-foreground" />
+   922→              </div>
+   923→              <h3 className="text-base font-semibold">Selecciona una inversión</h3>
+   924→              <p className="mt-2 text-sm text-muted-foreground">
+   925→                Elige una inversión de la lista para comenzar a vender fracciones.
+   926→              </p>
+   927→            </div>
+   928→          )}
+   929→        </CardContent>
+   930→      </Card>
+   931→    </div>
+   932→  )
+   933→}
+   934→

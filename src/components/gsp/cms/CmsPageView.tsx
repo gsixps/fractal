@@ -14,6 +14,7 @@ interface CmsPageData {
   icon: string
   updatedAt: string
   lastEditedBy: string | null
+  lastEditedAt: string | null
 }
 
 export function CmsPageView() {

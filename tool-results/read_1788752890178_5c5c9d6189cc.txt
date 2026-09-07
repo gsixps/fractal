@@ -1,0 +1,891 @@
+     1→import { create } from 'zustand'
+     2→
+     3→export type Page =
+     4→  | 'home'
+     5→  | 'marketplace'
+     6→  | 'asset-detail'
+     7→  | 'dashboard'
+     8→  | 'admin'
+     9→  | 'admin-assets'
+    10→  | 'admin-users'
+    11→  | 'admin-financial'
+    12→  | 'admin-liquidity'
+    13→  | 'kyc'
+    14→  | 'liquidity'
+    15→  | 'profile'
+    16→  | 'referral'
+    17→  | 'reports'
+    18→  | 'secondary-market'
+    19→  | 'login'
+    20→  | 'cms-page'
+    21→
+    22→// ─── Embedded Asset Data Types ────────────────────────────────────────────────
+    23→
+    24→export interface AssetImage {
+    25→  id: string
+    26→  url: string
+    27→  alt?: string
+    28→  sortOrder: number
+    29→  isCover: boolean
+    30→}
+    31→
+    32→export interface AssetDocument {
+    33→  id: string
+    34→  title: string
+    35→  documentType: string
+    36→  fileUrl: string
+    37→  fileSize?: number
+    38→}
+    39→
+    40→export interface CashFlowProjection {
+    41→  id: string
+    42→  period: string
+    43→  periodType: string
+    44→  grossIncome: number
+    45→  operationalCost: number
+    46→  netIncome: number
+    47→  appreciation: number
+    48→  totalReturn: number
+    49→  cumulativeReturn: number
+    50→}
+    51→
+    52→export interface Asset {
+    53→  id: string
+    54→  name: string
+    55→  slug: string
+    56→  type: string
+    57→  status: string
+    58→  address: string
+    59→  city: string
+    60→  region: string
+    61→  country: string
+    62→  totalValue: number
+    63→  pricePerFraction: number
+    64→  totalFractions: number
+    65→  availableFractions: number
+    66→  minimumInvestment: number
+    67→  fundedPercentage: number
+    68→  annualYield: number
+    69→  projectedAppreciation: number
+    70→  totalProjectedReturn: number
+    71→  leaseStatus: string
+    72→  monthlyRent: number
+    73→  tenantName: string
+    74→  totalArea: number
+    75→  units: number
+    76→  constructionYear: number
+    77→  landUse: string
+    78→  shortDescription: string
+    79→  fullDescription: string
+    80→  highlights: string
+    81→  badge?: string
+    82→  operationalCostsPct: number
+    83→  images: AssetImage[]
+    84→  documents: AssetDocument[]
+    85→  cashFlowProjections: CashFlowProjection[]
+    86→  _count: { investments: number }
+    87→  createdAt: string
+    88→  updatedAt: string
+    89→}
+    90→
+    91→// ─── Dashboard Data Types ─────────────────────────────────────────────────────
+    92→
+    93→export interface DashboardUser {
+    94→  id: string
+    95→  name: string | null
+    96→  email: string
+    97→  role: string
+    98→  kycStatus: string
+    99→  balance: number
+   100→  totalInvested: number
+   101→  totalEarnings: number
+   102→}
+   103→
+   104→export interface DashboardInvestment {
+   105→  id: string
+   106→  userId: string
+   107→  assetId: string
+   108→  quantity: number
+   109→  pricePerUnit: number
+   110→  totalAmount: number
+   111→  status: string
+   112→  completedAt?: string
+   113→  createdAt: string
+   114→  updatedAt: string
+   115→  asset: {
+   116→    id: string
+   117→    name: string
+   118→    type: string
+   119→    status: string
+   120→    pricePerFraction: number
+   121→    annualYield: number
+   122→    images: AssetImage[]
+   123→  }
+   124→}
+   125→
+   126→export interface DashboardTransaction {
+   127→  id: string
+   128→  type: string
+   129→  amount: number
+   130→  currency: string
+   131→  status: string
+   132→  description?: string
+   133→  createdAt: string
+   134→}
+   135→
+   136→export interface DashboardDividend {
+   137→  id: string
+   138→  amount: number
+   139→  perFraction: number
+   140→  fractions: number
+   141→  periodStart: string
+   142→  periodEnd: string
+   143→  paymentDate?: string
+   144→  status: string
+   145→  createdAt: string
+   146→  investment: {
+   147→    id: string
+   148→    asset: {
+   149→      id: string
+   150→      name: string
+   151→    }
+   152→  }
+   153→}
+   154→
+   155→export interface DashboardLiquidityPool {
+   156→  id: string
+   157→  totalReserve: number
+   158→  totalAssets: number
+   159→  activeRequests: number
+   160→  utilizationRate: number
+   161→  monthlyContribution?: number
+   162→  autoReplenish: boolean
+   163→}
+   164→
+   165→export interface DashboardNotification {
+   166→  id: string
+   167→  type: string
+   168→  title: string
+   169→  message: string
+   170→  read: boolean
+   171→  createdAt: string
+   172→}
+   173→
+   174→export interface DashboardData {
+   175→  user: DashboardUser | null
+   176→  investments: DashboardInvestment[]
+   177→  transactions: DashboardTransaction[]
+   178→  dividendPayments: DashboardDividend[]
+   179→  liquidityPool: DashboardLiquidityPool | null
+   180→  notifications: DashboardNotification[]
+   181→  totalDividends: number
+   182→  unreadNotifications: number
+   183→}
+   184→
+   185→// ─── Embedded Seed Data ───────────────────────────────────────────────────────
+   186→
+   187→const ASSETS: Asset[] = [
+   188→  {
+   189→    id: 'centro-logistico-stgo-norte',
+   190→    name: 'Centro Logístico Santiago Norte',
+   191→    slug: 'centro-logistico-stgo-norte',
+   192→    type: 'last_mile_logistics',
+   193→    status: 'active',
+   194→    address: 'Av. Américo Vespucio 0450, Quilicura',
+   195→    city: 'Santiago',
+   196→    region: 'Metropolitana',
+   197→    country: 'Chile',
+   198→    totalValue: 2800000000,
+   199→    pricePerFraction: 250000,
+   200→    totalFractions: 11200,
+   201→    availableFractions: 3200,
+   202→    minimumInvestment: 250000,
+   203→    fundedPercentage: 71.4,
+   204→    annualYield: 11.2,
+   205→    projectedAppreciation: 5.8,
+   206→    totalProjectedReturn: 17.0,
+   207→    leaseStatus: 'leased',
+   208→    monthlyRent: 19800000,
+   209→    tenantName: 'LogiChile SpA',
+   210→    totalArea: 4500,
+   211→    units: 12,
+   212→    constructionYear: 2021,
+   213→    landUse: 'Industrial / Logístico',
+   214→    shortDescription: 'Centro de distribución de última milla en zona de alta demanda logística, con 12 módulos independientes y contratos de arriendo a 5 años.',
+   215→    fullDescription: `## Centro Logístico Santiago Norte
+   216→
+   217→Ubicado en el corazón del corredor industrial de Quilicura, este centro de distribución de última milla representa una oportunidad excepcional en el sector logístico chileno.
+   218→
+   219→### ¿Por qué invertir?
+   220→
+   221→El e-commerce en Chile creció un **340%** desde 2019, generando una demanda insatisfecha de espacios de última milla. Este activo está estratégicamente posicionado a minutos de la autopista Américo Vespucio y cuenta con acceso directo a las principales rutas de distribución.
+   222→
+   223→### Características del activo
+   224→
+   225→- **12 módulos independientes** de 375 m² cada uno
+   226→- **Certificación LEED Gold** en eficiencia energética
+   227→- **Sistema de seguridad** con vigilancia 24/7 y control de acceso biométrico
+   228→- **Andenes de carga** nivelados con Dock Levelers hidráulicos
+   229→- **Estacionamiento** para 40 vehículos y 6 espacios de carga pesada
+   230→
+   231→### Estructura del arriendo
+   232→
+   233→El contrato actual con LogiChile SpA extiende hasta febrero de 2029, con reajuste anual según IPC + 1%. El yielding neto considera todos los costos operativos ya deducidos, ofreciendo una renta pasiva verdaderamente transparente.
+   234→
+   235→### Nuestra ventaja operativa
+   236→
+   237→A diferencia del mercado que cobra entre **12% y 18%** en costos operativos, GSP mantiene una estructura de apenas **3%** gracias a nuestra automatización completa de gestión:
+   238→- Property management automatizado con IA
+   239→- Conciliación financiera en tiempo real
+   240→- Gestión documental 100% digital
+   241→- Reportes automáticos para inversores`,
+   242→    highlights: JSON.stringify([
+   243→      'Zona de mayor crecimiento logístico de Chile',
+   244→      'Contrato de arriendo a 5 años con empresa AAA',
+   245→      'Certificación LEED Gold',
+   246→      'Costos operativos del 3% vs 15% del mercado',
+   247→      'Retorno total estimado: 17% anual',
+   248→    ]),
+   249→    badge: 'En Arriendo',
+   250→    operationalCostsPct: 3.0,
+   251→    images: [
+   252→      { id: 'img_cls_1', url: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&h=600&fit=crop', alt: 'Centro logístico - Vista aérea', sortOrder: 0, isCover: true },
+   253→      { id: 'img_cls_2', url: 'https://images.unsplash.com/photo-1553413077-190dd305871c?w=800&h=600&fit=crop', alt: 'Interior bodega', sortOrder: 1, isCover: false },
+   254→      { id: 'img_cls_3', url: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=800&h=600&fit=crop', alt: 'Módulo logístico', sortOrder: 2, isCover: false },
+   255→      { id: 'img_cls_4', url: 'https://images.unsplash.com/photo-1565008576549-57569a49371d?w=800&h=600&fit=crop', alt: 'Andenes de carga', sortOrder: 3, isCover: false },
+   256→    ],
+   257→    documents: [
+   258→      { id: 'doc_cls_1', title: 'Escritura SpA', documentType: 'escritura_spa', fileUrl: '#' },
+   259→      { id: 'doc_cls_2', title: 'Informe de Tasación 2024', documentType: 'tasacion', fileUrl: '#' },
+   260→      { id: 'doc_cls_3', title: 'Estudio de Títulos', documentType: 'estudio_titulos', fileUrl: '#' },
+   261→      { id: 'doc_cls_4', title: 'Contrato de Administración', documentType: 'contrato_admin', fileUrl: '#' },
+   262→      { id: 'doc_cls_5', title: 'Estado Financiero Q1 2025', documentType: 'estado_financiero', fileUrl: '#' },
+   263→    ],
+   264→    cashFlowProjections: [
+   265→      { id: 'cf_cls_1', period: 'Año 1', periodType: 'yearly', grossIncome: 237600000, operationalCost: 7128000, netIncome: 230472000, appreciation: 162400000, totalReturn: 392872000, cumulativeReturn: 392872000 },
+   266→      { id: 'cf_cls_2', period: 'Año 2', periodType: 'yearly', grossIncome: 244928000, operationalCost: 7347840, netIncome: 237580160, appreciation: 171822400, totalReturn: 409402560, cumulativeReturn: 802274560 },
+   267→      { id: 'cf_cls_3', period: 'Año 3', periodType: 'yearly', grossIncome: 252275840, operationalCost: 7568275, netIncome: 244707565, appreciation: 181783520, totalReturn: 426491085, cumulativeReturn: 1228765645 },
+   268→      { id: 'cf_cls_4', period: 'Año 4', periodType: 'yearly', grossIncome: 259844115, operationalCost: 7795323, netIncome: 252048792, appreciation: 192325600, totalReturn: 444374392, cumulativeReturn: 1673139837 },
+   269→      { id: 'cf_cls_5', period: 'Año 5', periodType: 'yearly', grossIncome: 267639438, operationalCost: 8029183, netIncome: 259610255, appreciation: 203470400, totalReturn: 463080655, cumulativeReturn: 2136220492 },
+   270→    ],
+   271→    _count: { investments: 47 },
+   272→    createdAt: '2024-01-15T00:00:00.000Z',
+   273→    updatedAt: '2024-12-01T00:00:00.000Z',
+   274→  },
+   275→  {
+   276→    id: 'micro-datacenter-valparaiso',
+   277→    name: 'Micro Data Center Valparaíso',
+   278→    slug: 'micro-datacenter-valparaiso',
+   279→    type: 'micro_datacenter',
+   280→    status: 'active',
+   281→    address: 'Calle Condell 1520, Valparaíso',
+   282→    city: 'Valparaíso',
+   283→    region: 'Valparaíso',
+   284→    country: 'Chile',
+   285→    totalValue: 1850000000,
+   286→    pricePerFraction: 185000,
+   287→    totalFractions: 10000,
+   288→    availableFractions: 1500,
+   289→    minimumInvestment: 185000,
+   290→    fundedPercentage: 85.0,
+   291→    annualYield: 13.8,
+   292→    projectedAppreciation: 7.2,
+   293→    totalProjectedReturn: 21.0,
+   294→    leaseStatus: 'leased',
+   295→    monthlyRent: 15680000,
+   296→    tenantName: 'CloudSur SpA',
+   297→    totalArea: 800,
+   298→    units: 3,
+   299→    constructionYear: 2023,
+   300→    landUse: 'Tecnológico / Data Center',
+   301→    shortDescription: 'Micro data center Tier II con infraestructura redundante y contratos de hosting a 7 años. Demanda creciente por nube local.',
+   302→    fullDescription: `## Micro Data Center Valparaíso
+   303→
+   304→Un centro de datos de última generación ubicado estratégicamente en Valparaíso, el segundo hub tecnológico de Chile.
+   305→
+   306→### Oportunidad única
+   307→
+   308→La demanda de centros de datos en Chile crece un **25% anual** impulsada por la regulación de soberanía de datos. Este micro data center ofrece exposición al sector tecnológico con el respaldo de contratos de arriendo a largo plazo.
+   309→
+   310→### Infraestructura
+   311→
+   312→- **Tier II certificado** con uptime del 99.74%
+   313→- **Sistema de enfriamiento** N+1 con eficiencia PUE de 1.3
+   314→- **Energía redundante** con UPS y generador diésel
+   315→- **Conectividad** con múltiples proveedores de fibra óptica
+   316→- **Seguridad física** perimetral y biométrica`,
+   317→    highlights: JSON.stringify([
+   318→      'Sector tecnológico de mayor crecimiento en Chile',
+   319→      'Contrato de arriendo a 7 años',
+   320→      'Certificación Tier II',
+   321→      'ROI del 21% anual',
+   322→    ]),
+   323→    badge: 'Últimos cupos',
+   324→    operationalCostsPct: 3.0,
+   325→    images: [
+   326→      { id: 'img_mdc_1', url: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&h=600&fit=crop', alt: 'Data center - Vista exterior', sortOrder: 0, isCover: true },
+   327→      { id: 'img_mdc_2', url: 'https://images.unsplash.com/photo-1597852074816-d933c7d2b988?w=800&h=600&fit=crop', alt: 'Servidores', sortOrder: 1, isCover: false },
+   328→      { id: 'img_mdc_3', url: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&h=600&fit=crop', alt: 'Infraestructura', sortOrder: 2, isCover: false },
+   329→    ],
+   330→    documents: [
+   331→      { id: 'doc_mdc_1', title: 'Escritura SpA', documentType: 'escritura_spa', fileUrl: '#' },
+   332→      { id: 'doc_mdc_2', title: 'Informe de Tasación 2024', documentType: 'tasacion', fileUrl: '#' },
+   333→      { id: 'doc_mdc_3', title: 'Estudio de Títulos', documentType: 'estudio_titulos', fileUrl: '#' },
+   334→      { id: 'doc_mdc_4', title: 'Contrato de Administración', documentType: 'contrato_admin', fileUrl: '#' },
+   335→    ],
+   336→    cashFlowProjections: [
+   337→      { id: 'cf_mdc_1', period: 'Año 1', periodType: 'yearly', grossIncome: 188160000, operationalCost: 5644800, netIncome: 182515200, appreciation: 133200000, totalReturn: 315715200, cumulativeReturn: 315715200 },
+   338→      { id: 'cf_mdc_2', period: 'Año 2', periodType: 'yearly', grossIncome: 194582400, operationalCost: 5837472, netIncome: 188744928, appreciation: 142794240, totalReturn: 331539168, cumulativeReturn: 647254368 },
+   339→      { id: 'cf_mdc_3', period: 'Año 3', periodType: 'yearly', grossIncome: 201273379, operationalCost: 6038201, netIncome: 195235178, appreciation: 152954208, totalReturn: 348189386, cumulativeReturn: 995443754 },
+   340→      { id: 'cf_mdc_4', period: 'Año 4', periodType: 'yearly', grossIncome: 208243200, operationalCost: 6247296, netIncome: 201995904, appreciation: 163714080, totalReturn: 365709984, cumulativeReturn: 1361153738 },
+   341→      { id: 'cf_mdc_5', period: 'Año 5', periodType: 'yearly', grossIncome: 215504160, operationalCost: 6465125, netIncome: 209039035, appreciation: 175101760, totalReturn: 384140795, cumulativeReturn: 1745294533 },
+   342→    ],
+   343→    _count: { investments: 123 },
+   344→    createdAt: '2024-01-15T00:00:00.000Z',
+   345→    updatedAt: '2024-12-01T00:00:00.000Z',
+   346→  },
+   347→  {
+   348→    id: 'parque-solar-atacama-iii',
+   349→    name: 'Parque Solar Atacama III',
+   350→    slug: 'parque-solar-atacama-iii',
+   351→    type: 'solar_energy',
+   352→    status: 'active',
+   353→    address: 'Camino a Calama km 12, Antofagasta',
+   354→    city: 'Calama',
+   355→    region: 'Antofagasta',
+   356→    country: 'Chile',
+   357→    totalValue: 5200000000,
+   358→    pricePerFraction: 520000,
+   359→    totalFractions: 10000,
+   360→    availableFractions: 6800,
+   361→    minimumInvestment: 520000,
+   362→    fundedPercentage: 32.0,
+   363→    annualYield: 9.5,
+   364→    projectedAppreciation: 4.2,
+   365→    totalProjectedReturn: 13.7,
+   366→    leaseStatus: 'leased',
+   367→    monthlyRent: 28500000,
+   368→    tenantName: 'EnergíaPlus SpA',
+   369→    totalArea: 12000,
+   370→    units: 1,
+   371→    constructionYear: 2024,
+   372→    landUse: 'Energía Renovable',
+   373→    shortDescription: 'Parque solar de 2MW en el desierto de Atacama, el lugar con mayor radiación solar del mundo. Contrato PPA a 10 años.',
+   374→    fullDescription: `## Parque Solar Atacama III
+   375→
+   376→Ubicado en el desierto de Atacama — el lugar con la **mayor radiación solar del planeta** — este parque de 2MW ofrece exposición al boom de energías renovables en Chile.
+   377→
+   378→### Diferenciador
+   379→
+   380→Chile se comprometió a alcanzar el **100% de energía renovable** para 2040. Este activo se beneficia de contratos de compra de energía (PPA) a largo plazo con garantía estatal.
+   381→
+   382→### Especificaciones técnicas
+   383→
+   384→- **2MW de capacidad instalada** con paneles bifaciales
+   385→- **Irradiación solar** de 2,400 kWh/m²/año
+   386→- **Contrato PPA** a 10 años con EnergíaPlus SpA
+   387→- **Mantenimiento preventivo** incluido en contrato`,
+   388→    highlights: JSON.stringify([
+   389→      'Mayor radiación solar del mundo',
+   390→      'Contrato PPA a 10 años garantizado',
+   391→      'Sector con crecimiento obligatorio por ley',
+   392→      'Inversión en infraestructura crítica',
+   393→    ]),
+   394→    badge: 'Oportunidad',
+   395→    operationalCostsPct: 3.0,
+   396→    images: [
+   397→      { id: 'img_psa_1', url: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=800&h=600&fit=crop', alt: 'Paneles solares', sortOrder: 0, isCover: true },
+   398→      { id: 'img_psa_2', url: 'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=800&h=600&fit=crop', alt: 'Parque solar aéreo', sortOrder: 1, isCover: false },
+   399→      { id: 'img_psa_3', url: 'https://images.unsplash.com/photo-1611270629569-8b357cb88da9?w=800&h=600&fit=crop', alt: 'Instalación solar', sortOrder: 2, isCover: false },
+   400→    ],
+   401→    documents: [
+   402→      { id: 'doc_psa_1', title: 'Escritura SpA', documentType: 'escritura_spa', fileUrl: '#' },
+   403→      { id: 'doc_psa_2', title: 'Informe de Tasación 2024', documentType: 'tasacion', fileUrl: '#' },
+   404→      { id: 'doc_psa_3', title: 'Estudio de Títulos', documentType: 'estudio_titulos', fileUrl: '#' },
+   405→      { id: 'doc_psa_4', title: 'Contrato PPA', documentType: 'contrato_admin', fileUrl: '#' },
+   406→    ],
+   407→    cashFlowProjections: [
+   408→      { id: 'cf_psa_1', period: 'Año 1', periodType: 'yearly', grossIncome: 342000000, operationalCost: 10260000, netIncome: 331740000, appreciation: 218400000, totalReturn: 550140000, cumulativeReturn: 550140000 },
+   409→      { id: 'cf_psa_2', period: 'Año 2', periodType: 'yearly', grossIncome: 348840000, operationalCost: 10465200, netIncome: 338374800, appreciation: 227616000, totalReturn: 565990800, cumulativeReturn: 1116130800 },
+   410→      { id: 'cf_psa_3', period: 'Año 3', periodType: 'yearly', grossIncome: 355816800, operationalCost: 10674504, netIncome: 345142296, appreciation: 237175040, totalReturn: 582317336, cumulativeReturn: 1698448136 },
+   411→      { id: 'cf_psa_4', period: 'Año 4', periodType: 'yearly', grossIncome: 362933136, operationalCost: 10887994, netIncome: 352045142, appreciation: 247082320, totalReturn: 599127462, cumulativeReturn: 2297575598 },
+   412→      { id: 'cf_psa_5', period: 'Año 5', periodType: 'yearly', grossIncome: 370191799, operationalCost: 11105754, netIncome: 359086045, appreciation: 257346736, totalReturn: 616432781, cumulativeReturn: 2914008379 },
+   413→    ],
+   414→    _count: { investments: 18 },
+   415→    createdAt: '2024-01-15T00:00:00.000Z',
+   416→    updatedAt: '2024-12-01T00:00:00.000Z',
+   417→  },
+   418→  {
+   419→    id: 'residencial-providencia-sky',
+   420→    name: 'Residencial Providencia Sky',
+   421→    slug: 'residencial-providencia-sky',
+   422→    type: 'real_estate',
+   423→    status: 'active',
+   424→    address: 'Av. Providencia 2340, Providencia',
+   425→    city: 'Santiago',
+   426→    region: 'Metropolitana',
+   427→    country: 'Chile',
+   428→    totalValue: 1600000000,
+   429→    pricePerFraction: 160000,
+   430→    totalFractions: 10000,
+   431→    availableFractions: 4100,
+   432→    minimumInvestment: 160000,
+   433→    fundedPercentage: 59.0,
+   434→    annualYield: 8.4,
+   435→    projectedAppreciation: 6.5,
+   436→    totalProjectedReturn: 14.9,
+   437→    leaseStatus: 'leased',
+   438→    monthlyRent: 8900000,
+   439→    tenantName: 'Inmobiliaria Andes SpA',
+   440→    totalArea: 2200,
+   441→    units: 8,
+   442→    constructionYear: 2022,
+   443→    landUse: 'Residencial / Arriendo',
+   444→    shortDescription: 'Edificio residencial premium en Providencia con 8 departamentos de alto estándar. Ubicación inmejorable junto al metro Pedro Aguirre Cerda.',
+   445→    fullDescription: `## Residencial Providencia Sky
+   446→
+   447→Edificio residencial de lujo en una de las comunas más cotizadas de Santiago, con excelente conectividad y demanda de arriendo consistente.
+   448→
+   449→### Ubicación privilegiada
+   450→
+   451→A metros de la estación Pedro Aguirre Cerda del Metro, rodeado de universidades, comercio y servicios. Providencia mantiene una **tasa de ocupación del 97%** en el segmento residencial premium.
+   452→
+   453→### Características
+   454→
+   455→- **8 departamentos** de 1 y 2 dormitorios
+   456→- **Terminaciones premium**: piso flotante, cocina americana, balcones
+   457→- **Amenidades**: gimnasio, laundry, terraza comunitaria
+   458→- **Estacionamiento subterráneo** bicicletas`,
+   459→    highlights: JSON.stringify([
+   460→      'Ubicación premium en Providencia',
+   461→      'Tasa de ocupación del 97%',
+   462→      'Cerca del metro',
+   463→      'Plusvalía histórica del 6.5% anual',
+   464→    ]),
+   465→    badge: 'En Arriendo',
+   466→    operationalCostsPct: 3.0,
+   467→    images: [
+   468→      { id: 'img_rps_1', url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop', alt: 'Edificio residencial', sortOrder: 0, isCover: true },
+   469→      { id: 'img_rps_2', url: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop', alt: 'Interior apartamento', sortOrder: 1, isCover: false },
+   470→      { id: 'img_rps_3', url: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=600&fit=crop', alt: 'Vista panorámica', sortOrder: 2, isCover: false },
+   471→      { id: 'img_rps_4', url: 'https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=800&h=600&fit=crop', alt: 'Sala de estar', sortOrder: 3, isCover: false },
+   472→    ],
+   473→    documents: [
+   474→      { id: 'doc_rps_1', title: 'Escritura SpA', documentType: 'escritura_spa', fileUrl: '#' },
+   475→      { id: 'doc_rps_2', title: 'Informe de Tasación 2024', documentType: 'tasacion', fileUrl: '#' },
+   476→      { id: 'doc_rps_3', title: 'Estudio de Títulos', documentType: 'estudio_titulos', fileUrl: '#' },
+   477→      { id: 'doc_rps_4', title: 'Contrato de Administración', documentType: 'contrato_admin', fileUrl: '#' },
+   478→    ],
+   479→    cashFlowProjections: [
+   480→      { id: 'cf_rps_1', period: 'Año 1', periodType: 'yearly', grossIncome: 106800000, operationalCost: 3204000, netIncome: 103596000, appreciation: 104000000, totalReturn: 207596000, cumulativeReturn: 207596000 },
+   481→      { id: 'cf_rps_2', period: 'Año 2', periodType: 'yearly', grossIncome: 110004000, operationalCost: 3300120, netIncome: 106703880, appreciation: 110760000, totalReturn: 217463880, cumulativeReturn: 425059880 },
+   482→      { id: 'cf_rps_3', period: 'Año 3', periodType: 'yearly', grossIncome: 113304120, operationalCost: 3399124, netIncome: 109905000, appreciation: 117959000, totalReturn: 227864000, cumulativeReturn: 652923880 },
+   483→      { id: 'cf_rps_4', period: 'Año 4', periodType: 'yearly', grossIncome: 116703244, operationalCost: 3501097, netIncome: 113202147, appreciation: 125725280, totalReturn: 238927427, cumulativeReturn: 891851307 },
+   484→      { id: 'cf_rps_5', period: 'Año 5', periodType: 'yearly', grossIncome: 120204341, operationalCost: 3606130, netIncome: 116598211, appreciation: 133974422, totalReturn: 250572633, cumulativeReturn: 1142423940 },
+   485→    ],
+   486→    _count: { investments: 62 },
+   487→    createdAt: '2024-01-15T00:00:00.000Z',
+   488→    updatedAt: '2024-12-01T00:00:00.000Z',
+   489→  },
+   490→  {
+   491→    id: 'complejo-minero-atacama-norte',
+   492→    name: 'Complejo Minero Atacama Norte',
+   493→    slug: 'complejo-minero-atacama-norte',
+   494→    type: 'mining',
+   495→    status: 'active',
+   496→    address: 'Sector Sierra Gorda, Antofagasta',
+   497→    city: 'Sierra Gorda',
+   498→    region: 'Antofagasta',
+   499→    country: 'Chile',
+   500→    totalValue: 8500000000,
+   501→    pricePerFraction: 850000,
+   502→    totalFractions: 10000,
+   503→    availableFractions: 7200,
+   504→    minimumInvestment: 850000,
+   505→    fundedPercentage: 28.0,
+   506→    annualYield: 14.2,
+   507→    projectedAppreciation: 8.5,
+   508→    totalProjectedReturn: 22.7,
+   509→    leaseStatus: 'leased',
+   510→    monthlyRent: 63500000,
+   511→    tenantName: 'MineraAndina SpA',
+   512→    totalArea: 50000,
+   513→    units: 1,
+   514→    constructionYear: 2020,
+   515→    landUse: 'Minero / Extractivo',
+   516→    shortDescription: 'Complejo de apoyo minero con contratos de arriendo a 8 años. Exposición al boom del litio y cobre en el norte de Chile.',
+   517→    fullDescription: `## Complejo Minero Atacama Norte
+   518→
+   519→Complejo logístico-minero con infraestructura para apoyo a operaciones extractivas en el corredor del litio chileno.
+   520→
+   521→### Contexto de mercado
+   522→
+   523→Chile posee las **mayores reservas de litio del mundo** (41%) y es el segundo productor de cobre. La demanda global de minerales críticos para la transición energética impulsa una necesidad creciente de infraestructura de apoyo.
+   524→
+   525→### Infraestructura
+   526→
+   527→- **Campamento operativo** para 200 personas
+   528→- **Talleres mecánicos** y áreas de mantención
+   529→- **Almacenes** de materiales y equipos
+   530→- **Planta de tratamiento** de aguas
+   531→- **Conexión vial** directa a Ruta 5 Norte`,
+   532→    highlights: JSON.stringify([
+   533→      'Exposición al boom del litio y cobre',
+   534→      'Contrato de arriendo a 8 años',
+   535→      'Infraestructura para 200 personas',
+   536→      'Retorno total del 22.7% anual',
+   537→    ]),
+   538→    badge: 'Oportunidad',
+   539→    operationalCostsPct: 3.0,
+   540→    images: [
+   541→      { id: 'img_cma_1', url: 'https://images.unsplash.com/photo-1614680376573-df3480f0c6ff?w=800&h=600&fit=crop', alt: 'Operación minera', sortOrder: 0, isCover: true },
+   542→      { id: 'img_cma_2', url: 'https://images.unsplash.com/photo-1578496479531-32e296d5c6e8?w=800&h=600&fit=crop', alt: 'Maquinaria pesada', sortOrder: 1, isCover: false },
+   543→      { id: 'img_cma_3', url: 'https://images.unsplash.com/photo-1599894019799-8cf418a8fc4d?w=800&h=600&fit=crop', alt: 'Campamento', sortOrder: 2, isCover: false },
+   544→    ],
+   545→    documents: [
+   546→      { id: 'doc_cma_1', title: 'Escritura SpA', documentType: 'escritura_spa', fileUrl: '#' },
+   547→      { id: 'doc_cma_2', title: 'Informe de Tasación 2024', documentType: 'tasacion', fileUrl: '#' },
+   548→      { id: 'doc_cma_3', title: 'Estudio de Títulos', documentType: 'estudio_titulos', fileUrl: '#' },
+   549→      { id: 'doc_cma_4', title: 'Contrato de Arriendo', documentType: 'contrato_admin', fileUrl: '#' },
+   550→    ],
+   551→    cashFlowProjections: [
+   552→      { id: 'cf_cma_1', period: 'Año 1', periodType: 'yearly', grossIncome: 762000000, operationalCost: 22860000, netIncome: 739140000, appreciation: 722500000, totalReturn: 1461640000, cumulativeReturn: 1461640000 },
+   553→      { id: 'cf_cma_2', period: 'Año 2', periodType: 'yearly', grossIncome: 787380000, operationalCost: 23621400, netIncome: 763758600, appreciation: 783912500, totalReturn: 1547671100, cumulativeReturn: 3009311100 },
+   554→      { id: 'cf_cma_3', period: 'Año 3', periodType: 'yearly', grossIncome: 813435600, operationalCost: 24403068, netIncome: 789032532, appreciation: 850544062, totalReturn: 1639576594, cumulativeReturn: 4648887694 },
+   555→      { id: 'cf_cma_4', period: 'Año 4', periodType: 'yearly', grossIncome: 840185028, operationalCost: 25205551, netIncome: 814979477, appreciation: 922840308, totalReturn: 1737819785, cumulativeReturn: 6386707479 },
+   556→      { id: 'cf_cma_5', period: 'Año 5', periodType: 'yearly', grossIncome: 867653419, operationalCost: 26029603, netIncome: 841623816, appreciation: 1001381774, totalReturn: 1843005590, cumulativeReturn: 8229713069 },
+   557→    ],
+   558→    _count: { investments: 8 },
+   559→    createdAt: '2024-01-15T00:00:00.000Z',
+   560→    updatedAt: '2024-12-01T00:00:00.000Z',
+   561→  },
+   562→  {
+   563→    id: 'bodega-ecommerce-maipu',
+   564→    name: 'Bodega E-Commerce Maipú Hub',
+   565→    slug: 'bodega-ecommerce-maipu',
+   566→    type: 'last_mile_logistics',
+   567→    status: 'active',
+   568→    address: 'Av. Pajaritos 3345, Maipú',
+   569→    city: 'Santiago',
+   570→    region: 'Metropolitana',
+   571→    country: 'Chile',
+   572→    totalValue: 1200000000,
+   573→    pricePerFraction: 120000,
+   574→    totalFractions: 10000,
+   575→    availableFractions: 5600,
+   576→    minimumInvestment: 120000,
+   577→    fundedPercentage: 44.0,
+   578→    annualYield: 10.5,
+   579→    projectedAppreciation: 5.0,
+   580→    totalProjectedReturn: 15.5,
+   581→    leaseStatus: 'leased',
+   582→    monthlyRent: 7800000,
+   583→    tenantName: 'MercadoLibre Logistics',
+   584→    totalArea: 2800,
+   585→    units: 6,
+   586→    constructionYear: 2023,
+   587→    landUse: 'Logístico / Last Mile',
+   588→    shortDescription: 'Hub de fulfillment para e-commerce en Maipú. Contrato con operador logístico líder de la región.',
+   589→    fullDescription: `## Bodega E-Commerce Maipú Hub
+   590→
+   591→Hub logístico diseñado específicamente para operaciones de e-commerce y fulfillment, ubicado en la comuna de Maipú con acceso directo a las principales rutas de distribución.`,
+   592→    highlights: JSON.stringify([
+   593→      'Operador logístico líder regional',
+   594→      'Diseñado para e-commerce',
+   595→      'Entrada desde $120.000',
+   596→    ]),
+   597→    badge: 'En Arriendo',
+   598→    operationalCostsPct: 3.0,
+   599→    images: [
+   600→      { id: 'img_bem_1', url: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&h=600&fit=crop', alt: 'Bodega logística', sortOrder: 0, isCover: true },
+   601→      { id: 'img_bem_2', url: 'https://images.unsplash.com/photo-1553413077-190dd305871c?w=800&h=600&fit=crop', alt: 'Interior bodega', sortOrder: 1, isCover: false },
+   602→    ],
+   603→    documents: [
+   604→      { id: 'doc_bem_1', title: 'Escritura SpA', documentType: 'escritura_spa', fileUrl: '#' },
+   605→      { id: 'doc_bem_2', title: 'Informe de Tasación', documentType: 'tasacion', fileUrl: '#' },
+   606→      { id: 'doc_bem_3', title: 'Estudio de Títulos', documentType: 'estudio_titulos', fileUrl: '#' },
+   607→    ],
+   608→    cashFlowProjections: [
+   609→      { id: 'cf_bem_1', period: 'Año 1', periodType: 'yearly', grossIncome: 93600000, operationalCost: 2808000, netIncome: 90792000, appreciation: 60000000, totalReturn: 150792000, cumulativeReturn: 150792000 },
+   610→      { id: 'cf_bem_2', period: 'Año 2', periodType: 'yearly', grossIncome: 96408000, operationalCost: 2892240, netIncome: 93515760, appreciation: 63000000, totalReturn: 156515760, cumulativeReturn: 307307760 },
+   611→      { id: 'cf_bem_3', period: 'Año 3', periodType: 'yearly', grossIncome: 99300240, operationalCost: 2979007, netIncome: 96321233, appreciation: 66150000, totalReturn: 162471233, cumulativeReturn: 469778993 },
+   612→      { id: 'cf_bem_4', period: 'Año 4', periodType: 'yearly', grossIncome: 102279247, operationalCost: 3068377, netIncome: 99210870, appreciation: 69457500, totalReturn: 168668370, cumulativeReturn: 638447363 },
+   613→      { id: 'cf_bem_5', period: 'Año 5', periodType: 'yearly', grossIncome: 105347625, operationalCost: 3160429, netIncome: 102187196, appreciation: 72930375, totalReturn: 175117571, cumulativeReturn: 813564934 },
+   614→    ],
+   615→    _count: { investments: 35 },
+   616→    createdAt: '2024-01-15T00:00:00.000Z',
+   617→    updatedAt: '2024-12-01T00:00:00.000Z',
+   618→  },
+   619→]
+   620→
+   621→// ─── Embedded Dashboard Data ──────────────────────────────────────────────────
+   622→
+   623→function generateDividendPayments(): DashboardDividend[] {
+   624→  const dividends: DashboardDividend[] = []
+   625→  const investmentConfigs = [
+   626→    { assetId: 'centro-logistico-stgo-norte', investmentId: 'inv_001', assetName: 'Centro Logístico Santiago Norte', quantity: 10, pricePerFraction: 250000, monthlyRent: 19800000, totalFractions: 11200 },
+   627→    { assetId: 'micro-datacenter-valparaiso', investmentId: 'inv_002', assetName: 'Micro Data Center Valparaíso', quantity: 8, pricePerFraction: 185000, monthlyRent: 15680000, totalFractions: 10000 },
+   628→    { assetId: 'parque-solar-atacama-iii', investmentId: 'inv_003', assetName: 'Parque Solar Atacama III', quantity: 5, pricePerFraction: 520000, monthlyRent: 28500000, totalFractions: 10000 },
+   629→  ]
+   630→
+   631→  let divCounter = 0
+   632→  for (const cfg of investmentConfigs) {
+   633→    const perFraction = Math.round((cfg.monthlyRent / cfg.totalFractions) * 0.9)
+   634→    const monthlyDiv = Math.round(perFraction * cfg.quantity)
+   635→    const completedAt = new Date(`2024-01-15T00:00:00.000Z`)
+   636→
+   637→    for (let m = 0; m < 6; m++) {
+   638→      divCounter++
+   639→      const periodStart = new Date(2024, m, 1)
+   640→      const periodEnd = new Date(2024, m + 1, 0)
+   641→      const paymentDate = new Date(2024, m + 1, 5)
+   642→      dividends.push({
+   643→        id: `div_${String(divCounter).padStart(3, '0')}`,
+   644→        amount: monthlyDiv,
+   645→        perFraction,
+   646→        fractions: cfg.quantity,
+   647→        periodStart: periodStart.toISOString(),
+   648→        periodEnd: periodEnd.toISOString(),
+   649→        paymentDate: paymentDate.toISOString(),
+   650→        status: 'paid',
+   651→        createdAt: paymentDate.toISOString(),
+   652→        investment: {
+   653→          id: cfg.investmentId,
+   654→          asset: {
+   655→            id: cfg.assetId,
+   656→            name: cfg.assetName,
+   657→          },
+   658→        },
+   659→      })
+   660→    }
+   661→  }
+   662→
+   663→  return dividends
+   664→}
+   665→
+   666→function generateTransactions(): DashboardTransaction[] {
+   667→  return [
+   668→    {
+   669→      id: 'tx_001',
+   670→      type: 'buy',
+   671→      amount: 2500000,
+   672→      currency: 'CLP',
+   673→      status: 'completed',
+   674→      description: 'Inversión en Centro Logístico Santiago Norte - 10 fracciones',
+   675→      createdAt: '2024-01-15T00:00:00.000Z',
+   676→    },
+   677→    {
+   678→      id: 'tx_002',
+   679→      type: 'buy',
+   680→      amount: 1480000,
+   681→      currency: 'CLP',
+   682→      status: 'completed',
+   683→      description: 'Inversión en Micro Data Center Valparaíso - 8 fracciones',
+   684→      createdAt: '2024-02-15T00:00:00.000Z',
+   685→    },
+   686→    {
+   687→      id: 'tx_003',
+   688→      type: 'buy',
+   689→      amount: 2600000,
+   690→      currency: 'CLP',
+   691→      status: 'completed',
+   692→      description: 'Inversión en Parque Solar Atacama III - 5 fracciones',
+   693→      createdAt: '2024-03-15T00:00:00.000Z',
+   694→    },
+   695→  ]
+   696→}
+   697→
+   698→const DASHBOARD_DATA: DashboardData = {
+   699→  user: {
+   700→    id: 'usr_demo_001',
+   701→    name: 'María González',
+   702→    email: 'maria@example.com',
+   703→    role: 'investor',
+   704→    kycStatus: 'verified',
+   705→    balance: 5200000,
+   706→    totalInvested: 18250000,
+   707→    totalEarnings: 1685000,
+   708→  },
+   709→  investments: [
+   710→    {
+   711→      id: 'inv_001',
+   712→      userId: 'usr_demo_001',
+   713→      assetId: 'centro-logistico-stgo-norte',
+   714→      quantity: 10,
+   715→      pricePerUnit: 250000,
+   716→      totalAmount: 2500000,
+   717→      status: 'completed',
+   718→      completedAt: '2024-01-15T00:00:00.000Z',
+   719→      createdAt: '2024-01-15T00:00:00.000Z',
+   720→      updatedAt: '2024-01-15T00:00:00.000Z',
+   721→      asset: {
+   722→        id: 'centro-logistico-stgo-norte',
+   723→        name: 'Centro Logístico Santiago Norte',
+   724→        type: 'last_mile_logistics',
+   725→        status: 'active',
+   726→        pricePerFraction: 250000,
+   727→        annualYield: 11.2,
+   728→        images: [
+   729→          { id: 'img_cls_1', url: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&h=600&fit=crop', alt: 'Centro logístico - Vista aérea', sortOrder: 0, isCover: true },
+   730→        ],
+   731→      },
+   732→    },
+   733→    {
+   734→      id: 'inv_002',
+   735→      userId: 'usr_demo_001',
+   736→      assetId: 'micro-datacenter-valparaiso',
+   737→      quantity: 8,
+   738→      pricePerUnit: 185000,
+   739→      totalAmount: 1480000,
+   740→      status: 'completed',
+   741→      completedAt: '2024-02-15T00:00:00.000Z',
+   742→      createdAt: '2024-02-15T00:00:00.000Z',
+   743→      updatedAt: '2024-02-15T00:00:00.000Z',
+   744→      asset: {
+   745→        id: 'micro-datacenter-valparaiso',
+   746→        name: 'Micro Data Center Valparaíso',
+   747→        type: 'micro_datacenter',
+   748→        status: 'active',
+   749→        pricePerFraction: 185000,
+   750→        annualYield: 13.8,
+   751→        images: [
+   752→          { id: 'img_mdc_1', url: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&h=600&fit=crop', alt: 'Data center - Vista exterior', sortOrder: 0, isCover: true },
+   753→        ],
+   754→      },
+   755→    },
+   756→    {
+   757→      id: 'inv_003',
+   758→      userId: 'usr_demo_001',
+   759→      assetId: 'parque-solar-atacama-iii',
+   760→      quantity: 5,
+   761→      pricePerUnit: 520000,
+   762→      totalAmount: 2600000,
+   763→      status: 'completed',
+   764→      completedAt: '2024-03-15T00:00:00.000Z',
+   765→      createdAt: '2024-03-15T00:00:00.000Z',
+   766→      updatedAt: '2024-03-15T00:00:00.000Z',
+   767→      asset: {
+   768→        id: 'parque-solar-atacama-iii',
+   769→        name: 'Parque Solar Atacama III',
+   770→        type: 'solar_energy',
+   771→        status: 'active',
+   772→        pricePerFraction: 520000,
+   773→        annualYield: 9.5,
+   774→        images: [
+   775→          { id: 'img_psa_1', url: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=800&h=600&fit=crop', alt: 'Paneles solares', sortOrder: 0, isCover: true },
+   776→        ],
+   777→      },
+   778→    },
+   779→  ],
+   780→  transactions: generateTransactions(),
+   781→  dividendPayments: generateDividendPayments(),
+   782→  liquidityPool: {
+   783→    id: 'pool_main_001',
+   784→    totalReserve: 850000000,
+   785→    totalAssets: 5,
+   786→    activeRequests: 2,
+   787→    utilizationRate: 12.5,
+   788→    monthlyContribution: 25000000,
+   789→    autoReplenish: true,
+   790→  },
+   791→  notifications: [
+   792→    {
+   793→      id: 'not_001',
+   794→      type: 'dividend',
+   795→      title: 'Nuevo dividendo recibido',
+   796→      message: 'Has recibido $45.200 de dividendos de Centro Logístico Santiago Norte.',
+   797→      read: false,
+   798→      createdAt: '2024-07-05T10:00:00.000Z',
+   799→    },
+   800→    {
+   801→      id: 'not_002',
+   802→      type: 'system',
+   803→      title: 'Nuevo activo disponible',
+   804→      message: 'Parque Solar Atacama III ya está disponible para inversión.',
+   805→      read: false,
+   806→      createdAt: '2024-06-20T14:00:00.000Z',
+   807→    },
+   808→    {
+   809→      id: 'not_003',
+   810→      type: 'transaction',
+   811→      title: 'Inversión completada',
+   812→      message: 'Tu inversión en Micro Data Center Valparaíso ha sido procesada exitosamente.',
+   813→      read: true,
+   814→      createdAt: '2024-02-15T09:00:00.000Z',
+   815→    },
+   816→  ],
+   817→  totalDividends: 0, // computed below
+   818→  unreadNotifications: 2,
+   819→}
+   820→
+   821→// Compute totalDividends from generated dividend payments
+   822→DASHBOARD_DATA.totalDividends = DASHBOARD_DATA.dividendPayments.reduce((sum, d) => sum + d.amount, 0)
+   823→
+   824→// ─── Store Interface ──────────────────────────────────────────────────────────
+   825→
+   826→export interface AppState {
+   827→  currentPage: Page
+   828→  selectedAssetId: string | null
+   829→  cmsPageSlug: string | null
+   830→  user: {
+   831→    id: string
+   832→    name: string
+   833→    email: string
+   834→    role: 'investor' | 'admin'
+   835→    kycStatus: 'pending' | 'submitted' | 'verified' | 'rejected'
+   836→    phone?: string | null
+   837→    avatarUrl?: string
+   838→  } | null
+   839→  isSidebarOpen: boolean
+   840→  adminTab: string
+   841→
+   842→  // Embedded data
+   843→  assets: Asset[]
+   844→  dashboardData: DashboardData
+   845→
+   846→  // Navigation
+   847→  navigate: (page: Page) => void
+   848→  navigateCmsPage: (slug: string) => void
+   849→  selectAsset: (id: string) => void
+   850→  setUser: (user: AppState['user']) => void
+   851→  toggleSidebar: () => void
+   852→  setAdminTab: (tab: string) => void
+   853→
+   854→  // Data helpers
+   855→  getAssetById: (id: string) => Asset | undefined
+   856→}
+   857→
+   858→// ─── Zustand Store ────────────────────────────────────────────────────────────
+   859→
+   860→export const useAppStore = create<AppState>((set, get) => ({
+   861→  currentPage: 'home',
+   862→  selectedAssetId: null,
+   863→  cmsPageSlug: null,
+   864→  user: {
+   865→    id: 'usr_demo_001',
+   866→    name: 'María González',
+   867→    email: 'maria@example.com',
+   868→    role: 'investor',
+   869→    kycStatus: 'verified',
+   870→  },
+   871→  isSidebarOpen: false,
+   872→  adminTab: 'overview',
+   873→
+   874→  // Embedded data
+   875→  assets: ASSETS,
+   876→  dashboardData: DASHBOARD_DATA,
+   877→
+   878→  // Navigation
+   879→  navigate: (page) => set({ currentPage: page }),
+   880→  navigateCmsPage: (slug) => set({ cmsPageSlug: slug, currentPage: 'cms-page' }),
+   881→  selectAsset: (id) => set({ selectedAssetId: id, currentPage: 'asset-detail' }),
+   882→  setUser: (user) => set({ user }),
+   883→  toggleSidebar: () => set((s) => ({ isSidebarOpen: !s.isSidebarOpen })),
+   884→  setAdminTab: (tab) => set({ adminTab: tab, currentPage: 'admin' }),
+   885→
+   886→  // Data helpers
+   887→  getAssetById: (id) => {
+   888→    return get().assets.find((a) => a.id === id || a.slug === id)
+   889→  },
+   890→}))
+   891→

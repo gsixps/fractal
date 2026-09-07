@@ -1,0 +1,2002 @@
+     1→'use client'
+     2→
+     3→import React, { useState, useEffect, useCallback, useRef } from 'react'
+     4→import {
+     5→  LayoutDashboard,
+     6→  Building2,
+     7→  Users,
+     8→  Wallet,
+     9→  Droplets,
+    10→  Search,
+    11→  Plus,
+    12→  Pencil,
+    13→  Trash2,
+    14→  TrendingUp,
+    15→  ArrowUpRight,
+    16→  Activity,
+    17→  RefreshCw,
+    18→  Menu,
+    19→  CheckCircle2,
+    20→  Clock,
+    21→  XCircle,
+    22→  BarChart3,
+    23→  Loader2,
+    24→  ChevronLeft,
+    25→  ChevronRight,
+    26→  AlertTriangle,
+    27→  Settings,
+    28→  FileText,
+    29→  HelpCircle,
+    30→  Quote,
+    31→  Scale,
+    32→  Tag,
+    33→  UsersRound,
+    34→  Mail,
+    35→  Layers,
+    36→  Languages,
+    37→  Coins,
+    38→  Brain,
+    39→  Shield,
+    40→  Download,
+    41→  Bell,
+    42→  CircleDot,
+    43→  UserCircle,
+    44→  Eye,
+    45→  LogOut,
+    46→  CalendarDays,
+    47→  Globe,
+    48→} from 'lucide-react'
+    49→import { SettingsView } from './sections/SettingsView'
+    50→import { BlogView } from './sections/BlogView'
+    51→import { FAQView } from './sections/FAQView'
+    52→import { TestimonialsView } from './sections/TestimonialsView'
+    53→import { LegalView } from './sections/LegalView'
+    54→import { PromotionsView } from './sections/PromotionsView'
+    55→import { TeamView } from './sections/TeamView'
+    56→import { EmailTemplatesView } from './sections/EmailTemplatesView'
+    57→import { AssetTypesView } from './sections/AssetTypesView'
+    58→import { TranslationsView } from './sections/TranslationsView'
+    59→import { CurrenciesView } from './sections/CurrenciesView'
+    60→import { AnalyticsView } from './sections/AnalyticsView'
+    61→import { InvestmentAnalysisView } from './sections/InvestmentAnalysisView'
+    62→import { ComplianceView } from './sections/ComplianceView'
+    63→import { CmsPagesView } from './sections/CmsPagesView'
+    64→import { AssetValuationAI } from './sections/AssetValuationAI'
+    65→import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+    66→import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+    67→import { Badge } from '@/components/ui/badge'
+    68→import { Button } from '@/components/ui/button'
+    69→import { Progress } from '@/components/ui/progress'
+    70→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+    71→import { Input } from '@/components/ui/input'
+    72→import { Label } from '@/components/ui/label'
+    73→import { Textarea } from '@/components/ui/textarea'
+    74→import { Separator } from '@/components/ui/separator'
+    75→import { Skeleton } from '@/components/ui/skeleton'
+    76→import { Switch } from '@/components/ui/switch'
+    77→import {
+    78→  Sheet,
+    79→  SheetContent,
+    80→  SheetHeader,
+    81→  SheetTitle,
+    82→  SheetTrigger,
+    83→} from '@/components/ui/sheet'
+    84→import {
+    85→  Dialog,
+    86→  DialogContent,
+    87→  DialogDescription,
+    88→  DialogFooter,
+    89→  DialogHeader,
+    90→  DialogTitle,
+    91→} from '@/components/ui/dialog'
+    92→import {
+    93→  AlertDialog,
+    94→  AlertDialogAction,
+    95→  AlertDialogCancel,
+    96→  AlertDialogContent,
+    97→  AlertDialogDescription,
+    98→  AlertDialogFooter,
+    99→  AlertDialogHeader,
+   100→  AlertDialogTitle,
+   101→} from '@/components/ui/alert-dialog'
+   102→import { useToast } from '@/hooks/use-toast'
+   103→import { useAppStore } from '@/lib/store'
+   104→
+   105→// ─── USD Formatter ───────────────────────────────────────────────────────────
+   106→function formatUSD(amount: number): string {
+   107→  return new Intl.NumberFormat('en-US', {
+   108→    style: 'currency',
+   109→    currency: 'USD',
+   110→    minimumFractionDigits: 0,
+   111→    maximumFractionDigits: 0,
+   112→  }).format(amount)
+   113→}
+   114→
+   115→function formatShortUSD(amount: number): string {
+   116→  if (amount >= 1_000_000_000) return `$${(amount / 1_000_000_000).toFixed(1)}B`
+   117→  if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`
+   118→  if (amount >= 1_000) return `$${(amount / 1_000).toFixed(0)}K`
+   119→  return `$${amount.toFixed(0)}`
+   120→}
+   121→
+   122→// ─── CSV Export Utility ─────────────────────────────────────────────────────
+   123→function exportToCSV(data: Record<string, unknown>[], filename: string) {
+   124→  if (data.length === 0) return
+   125→  const headers = Object.keys(data[0])
+   126→  const csv = [
+   127→    headers.join(','),
+   128→    ...data.map(row => headers.map(h => {
+   129→      const val = String(row[h] ?? '')
+   130→      return val.includes(',') || val.includes('"') || val.includes('\n') ? `"${val.replace(/"/g, '""')}"` : val
+   131→    }).join(','))
+   132→  ].join('\n')
+   133→  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+   134→  const url = URL.createObjectURL(blob)
+   135→  const a = document.createElement('a')
+   136→  a.href = url
+   137→  a.download = filename
+   138→  a.click()
+   139→  URL.revokeObjectURL(url)
+   140→}
+   141→
+   142→// ─── Admin Notification System ──────────────────────────────────────────────
+   143→interface AdminNotification {
+   144→  id: string
+   145→  message: string
+   146→  type: 'success' | 'error' | 'info'
+   147→  timestamp: Date
+   148→}
+   149→
+   150→const MAX_NOTIFICATIONS = 20
+   151→
+   152→// Module-level notification store (shared across components)
+   153→let _notifications: AdminNotification[] = []
+   154→let _listeners: Set<() => void> = new Set()
+   155→
+   156→function addAdminNotification(message: string, type: AdminNotification['type'] = 'info') {
+   157→  const notification: AdminNotification = {
+   158→    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+   159→    message,
+   160→    type,
+   161→    timestamp: new Date(),
+   162→  }
+   163→  _notifications = [notification, ..._notifications].slice(0, MAX_NOTIFICATIONS)
+   164→  _listeners.forEach(l => l())
+   165→}
+   166→
+   167→function getAdminNotifications(): AdminNotification[] {
+   168→  return _notifications
+   169→}
+   170→
+   171→function subscribeToNotifications(listener: () => void) {
+   172→  _listeners.add(listener)
+   173→  return () => _listeners.delete(listener)
+   174→}
+   175→
+   176→// ─── Types ───────────────────────────────────────────────────────────────────
+   177→interface Stats {
+   178→  overview: {
+   179→    totalUsers: number
+   180→    totalInvestors: number
+   181→    verifiedUsers: number
+   182→    kycPending: number
+   183→    kycRejected: number
+   184→    recentSignups: number
+   185→  }
+   186→  assets: {
+   187→    total: number
+   188→    active: number
+   189→    draft: number
+   190→    avgYield: number
+   191→    avgFundedPercentage: number
+   192→    distribution: { type: string; count: number; totalValue: number; avgFundedPercentage: number }[]
+   193→  }
+   194→  investments: {
+   195→    total: number
+   196→    active: number
+   197→    totalInvested: number
+   198→    activeInvested: number
+   199→    avgInvestment: number
+   200→    recentInvestments: number
+   201→    recentInvestmentVolume: number
+   202→  }
+   203→  dividends: { total: number; totalPaid: number }
+   204→  transactions: { total: number; totalVolume: number }
+   205→  liquidity: { totalReserve: number; totalAssets: number; activeRequests: number; utilizationRate: number; autoReplenish: boolean } | null
+   206→}
+   207→
+   208→interface AssetRow {
+   209→  id: string
+   210→  name: string
+   211→  type: string
+   212→  status: string
+   213→  city: string
+   214→  region: string
+   215→  address: string
+   216→  totalValue: number
+   217→  pricePerFraction: number
+   218→  totalFractions: number
+   219→  availableFractions: number
+   220→  minimumInvestment: number
+   221→  annualYield: number
+   222→  projectedAppreciation: number
+   223→  totalProjectedReturn: number
+   224→  shortDescription: string
+   225→  fullDescription: string
+   226→  fundedPercentage: number
+   227→  investmentCount: number
+   228→}
+   229→
+   230→interface UserRow {
+   231→  id: string
+   232→  email: string
+   233→  name: string | null
+   234→  phone: string | null
+   235→  rut: string | null
+   236→  role: string
+   237→  kycStatus: string
+   238→  balance: number
+   239→  totalInvested: number
+   240→  totalEarnings: number
+   241→  createdAt: string
+   242→  _count: { investments: number; transactions: number; dividendPayments: number; kycDocuments: number }
+   243→}
+   244→
+   245→interface InvestmentRow {
+   246→  id: string
+   247→  userId: string
+   248→  assetId: string
+   249→  quantity: number
+   250→  pricePerUnit: number
+   251→  totalAmount: number
+   252→  status: string
+   253→  createdAt: string
+   254→  user: { id: string; name: string | null; email: string }
+   255→  asset: { id: string; name: string; type: string; pricePerFraction: number }
+   256→}
+   257→
+   258→interface LiquidityData {
+   259→  pool: {
+   260→    id: string
+   261→    totalReserve: number
+   262→    totalAssets: number
+   263→    activeRequests: number
+   264→    utilizationRate: number
+   265→    monthlyContribution: number | null
+   266→    autoReplenish: boolean
+   267→  }
+   268→  stats: {
+   269→    totalRequestedAmount: number
+   270→    totalCompletedAmount: number
+   271→    totalFeesCollected: number
+   272→    pendingCount: number
+   273→    processingCount: number
+   274→    completedCount: number
+   275→    rejectedCount: number
+   276→  }
+   277→  activeRequests: Array<{
+   278→    id: string
+   279→    userId: string
+   280→    investmentId: string
+   281→    fractionCount: number
+   282→    totalAmount: number
+   283→    status: string
+   284→    createdAt: string
+   285→    user: { id: string; name: string | null; email: string }
+   286→  }>
+   287→  recentRequests: Array<{
+   288→    id: string
+   289→    userId: string
+   290→    investmentId: string
+   291→    fractionCount: number
+   292→    totalAmount: number
+   293→    status: string
+   294→    createdAt: string
+   295→    user: { id: string; name: string | null; email: string }
+   296→  }>
+   297→}
+   298→
+   299→// ─── Asset Form State ───────────────────────────────────────────────────────
+   300→interface AssetFormState {
+   301→  name: string
+   302→  type: string
+   303→  address: string
+   304→  city: string
+   305→  region: string
+   306→  totalValue: string
+   307→  pricePerFraction: string
+   308→  totalFractions: string
+   309→  availableFractions: string
+   310→  minimumInvestment: string
+   311→  annualYield: string
+   312→  projectedAppreciation: string
+   313→  totalProjectedReturn: string
+   314→  shortDescription: string
+   315→  fullDescription: string
+   316→  status: string
+   317→}
+   318→
+   319→const emptyAssetForm: AssetFormState = {
+   320→  name: '', type: 'real_estate', address: '', city: '', region: '',
+   321→  totalValue: '', pricePerFraction: '', totalFractions: '', availableFractions: '',
+   322→  minimumInvestment: '', annualYield: '', projectedAppreciation: '',
+   323→  totalProjectedReturn: '', shortDescription: '', fullDescription: '', status: 'draft',
+   324→}
+   325→
+   326→// ─── User Form State ────────────────────────────────────────────────────────
+   327→interface UserFormState {
+   328→  name: string
+   329→  email: string
+   330→  phone: string
+   331→  rut: string
+   332→  role: string
+   333→  kycStatus: string
+   334→  balance: string
+   335→}
+   336→
+   337→const emptyUserForm: UserFormState = {
+   338→  name: '', email: '', phone: '', rut: '', role: 'investor',
+   339→  kycStatus: 'pending', balance: '0',
+   340→}
+   341→
+   342→// ─── Status Badge Components ─────────────────────────────────────────────────
+   343→function StatusBadge({ status }: { status: string }) {
+   344→  const dotColor: Record<string, string> = {
+   345→    active: 'bg-emerald-500',
+   346→    draft: 'bg-yellow-500',
+   347→    paused: 'bg-orange-500',
+   348→    pending: 'bg-yellow-500',
+   349→    completed: 'bg-emerald-500',
+   350→    cancelled: 'bg-red-500',
+   351→    processing: 'bg-blue-500',
+   352→    verified: 'bg-emerald-500',
+   353→    submitted: 'bg-blue-500',
+   354→    rejected: 'bg-red-500',
+   355→  }
+   356→  const config: Record<string, string> = {
+   357→    active: 'bg-emerald-50 text-emerald-700 border-emerald-200/60 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800/40',
+   358→    draft: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200/60 dark:border-yellow-800/40',
+   359→    paused: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200/60 dark:border-orange-800/40',
+   360→    pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200/60 dark:border-yellow-800/40',
+   361→    completed: 'bg-emerald-50 text-emerald-700 border-emerald-200/60 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800/40',
+   362→    cancelled: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200/60 dark:border-red-800/40',
+   363→    processing: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200/60 dark:border-blue-800/40',
+   364→    verified: 'bg-emerald-50 text-emerald-700 border-emerald-200/60 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800/40',
+   365→    submitted: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200/60 dark:border-blue-800/40',
+   366→    rejected: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200/60 dark:border-red-800/40',
+   367→  }
+   368→  const label: Record<string, string> = {
+   369→    active: 'Activo', draft: 'Borrador', paused: 'Pausado',
+   370→    pending: 'Pendiente', completed: 'Completado', cancelled: 'Cancelado',
+   371→    processing: 'Procesando', verified: 'Verificado', submitted: 'Enviado',
+   372→    rejected: 'Rechazado',
+   373→  }
+   374→  return (
+   375→    <Badge variant="outline" className={`${config[status] || 'bg-secondary text-muted-foreground border-border/50'} gap-1.5`}>
+   376→      <span className={`inline-block size-1.5 rounded-full ${dotColor[status] || 'bg-muted-foreground'}`} />
+   377→      {label[status] || status}
+   378→    </Badge>
+   379→  )
+   380→}
+   381→
+   382→// ─── KPI Card Component ─────────────────────────────────────────────────────
+   383→function KpiCard({
+   384→  title, value, subtitle, icon: Icon, trend, gradient = 'emerald',
+   385→}: {
+   386→  title: string; value: string; subtitle: string
+   387→  icon: React.ElementType; trend?: { value: string; positive: boolean }
+   388→  gradient?: 'emerald' | 'amber' | 'blue' | 'rose'
+   389→}) {
+   390→  const gradientBg: Record<string, string> = {
+   391→    emerald: 'bg-gradient-to-br from-emerald-50/80 to-teal-50/40 dark:from-emerald-950/30 dark:to-teal-950/20',
+   392→    amber: 'bg-gradient-to-br from-amber-50/80 to-orange-50/40 dark:from-amber-950/30 dark:to-orange-950/20',
+   393→    blue: 'bg-gradient-to-br from-sky-50/80 to-indigo-50/40 dark:from-sky-950/30 dark:to-indigo-950/20',
+   394→    rose: 'bg-gradient-to-br from-rose-50/80 to-pink-50/40 dark:from-rose-950/30 dark:to-pink-950/20',
+   395→  }
+   396→  const gradientIcon: Record<string, string> = {
+   397→    emerald: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400',
+   398→    amber: 'bg-amber-100 text-amber-600 dark:bg-amber-900/40 dark:text-amber-400',
+   399→    blue: 'bg-sky-100 text-sky-600 dark:bg-sky-900/40 dark:text-sky-400',
+   400→    rose: 'bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-400',
+   401→  }
+   402→  return (
+   403→    <Card className={`relative overflow-hidden border-border/40 gsp-card-hover ${gradientBg[gradient]}`}>
+   404→      <CardContent className="p-4 sm:p-6">
+   405→        <div className="flex items-start justify-between">
+   406→          <div className="space-y-1">
+   407→            <p className="text-sm font-medium text-muted-foreground">{title}</p>
+   408→            <p className="text-2xl font-bold tracking-tight">{value}</p>
+   409→            <div className="flex items-center gap-1.5">
+   410→              {trend && (
+   411→                <span className={`flex items-center gap-0.5 text-xs font-medium ${trend.positive ? 'text-primary' : 'text-red-600 dark:text-red-400'}`}>
+   412→                  {trend.positive ? <ArrowUpRight className="size-3" /> : <XCircle className="size-3" />}
+   413→                  {trend.value}
+   414→                </span>
+   415→              )}
+   416→              <span className="text-xs text-muted-foreground">{subtitle}</span>
+   417→            </div>
+   418→          </div>
+   419→          <div className={`rounded-full p-2.5 ${gradientIcon[gradient]}`}>
+   420→            <Icon className="size-5" />
+   421→          </div>
+   422→        </div>
+   423→      </CardContent>
+   424→    </Card>
+   425→  )
+   426→}
+   427→
+   428→// ─── Loading Skeleton ────────────────────────────────────────────────────────
+   429→function TableSkeleton({ rows = 5, cols = 5 }: { rows?: number; cols?: number }) {
+   430→  return (
+   431→    <div className="space-y-3 p-4">
+   432→      {Array.from({ length: rows }).map((_, i) => (
+   433→        <div key={i} className="flex items-center gap-4">
+   434→          {Array.from({ length: cols }).map((_, j) => (
+   435→            <Skeleton key={j} className="h-8 flex-1" />
+   436→          ))}
+   437→        </div>
+   438→      ))}
+   439→    </div>
+   440→  )
+   441→}
+   442→
+   443→function CardSkeleton() {
+   444→  return <Skeleton className="h-32 w-full rounded-xl" />
+   445→}
+   446→
+   447→// ─── Sidebar Navigation ─────────────────────────────────────────────────────
+   448→const navItems: Array<{ id: string; label: string; icon: React.ElementType | null; isSeparator?: boolean; section?: string }> = [
+   449→  { id: 'overview', label: 'Panel General', icon: LayoutDashboard, section: 'Principal' },
+   450→  { id: 'assets', label: 'Activos', icon: Building2 },
+   451→  { id: 'asset-types', label: 'Tipos de Activo', icon: Layers },
+   452→  { id: 'users', label: 'Usuarios', icon: Users },
+   453→  { id: 'investments', label: 'Inversiones', icon: Wallet },
+   454→  { id: 'liquidity', label: 'Liquidez', icon: Droplets },
+   455→  { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+   456→  { id: 'investment-analysis', label: 'Análisis IA', icon: Brain },
+   457→  { id: 'compliance', label: 'Cumplimiento', icon: Shield },
+   458→  { id: '_sep_cms', label: '', icon: null, isSeparator: true, section: 'Contenido' },
+   459→  { id: 'pages', label: 'Páginas', icon: Globe },
+   460→  { id: 'settings', label: 'Configuración', icon: Settings },
+   461→  { id: 'blog', label: 'Blog', icon: FileText },
+   462→  { id: 'faq', label: 'FAQ', icon: HelpCircle },
+   463→  { id: 'testimonials', label: 'Testimonios', icon: Quote },
+   464→  { id: '_sep_cms2', label: '', icon: null, isSeparator: true, section: 'Gestión' },
+   465→  { id: 'legal', label: 'Legal', icon: Scale },
+   466→  { id: 'promotions', label: 'Promociones', icon: Tag },
+   467→  { id: 'team', label: 'Equipo', icon: UsersRound },
+   468→  { id: 'email-templates', label: 'Emails', icon: Mail },
+   469→  { id: '_sep_i18n', label: '', icon: null, isSeparator: true, section: 'Global' },
+   470→  { id: 'translations', label: 'Traducciones', icon: Languages },
+   471→  { id: 'currencies', label: 'Monedas', icon: Coins },
+   472→]
+   473→
+   474→function SidebarNav({
+   475→  activeTab,
+   476→  setActiveTab,
+   477→}: {
+   478→  activeTab: string
+   479→  setActiveTab: (tab: string) => void
+   480→}) {
+   481→  return (
+   482→    <nav className="flex flex-col gap-0.5 p-3">
+   483→      {navItems.map((item) => {
+   484→        if (item.isSeparator && item.section) {
+   485→          return (
+   486→            <div key={item.id} className="pt-4 pb-1.5 px-3">
+   487→              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">{item.section}</p>
+   488→            </div>
+   489→          )
+   490→        }
+   491→        if (item.isSeparator) return <Separator key={item.id} className="my-2" />
+   492→        const Icon = item.icon!
+   493→        const isActive = activeTab === item.id
+   494→        return (
+   495→          <button
+   496→            key={item.id}
+   497→            onClick={() => setActiveTab(item.id)}
+   498→            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+   499→              isActive
+   500→                ? 'bg-primary/10 text-primary shadow-sm'
+   501→                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+   502→            }`}
+   503→          >
+   504→            <Icon className={`size-4 ${isActive ? 'text-primary' : ''}`} />
+   505→            {item.label}
+   506→          </button>
+   507→        )
+   508→      })}
+   509→    </nav>
+   510→  )
+   511→}
+   512→
+   513→// ─── Panel General View ─────────────────────────────────────────────────────
+   514→function PanelGeneralView() {
+   515→  const [stats, setStats] = useState<Stats | null>(null)
+   516→  const [loading, setLoading] = useState(true)
+   517→  const [error, setError] = useState<string | null>(null)
+   518→  const { toast } = useToast()
+   519→
+   520→  const fetchStats = useCallback(async () => {
+   521→    try {
+   522→      setLoading(true)
+   523→      setError(null)
+   524→      const res = await fetch('/api/admin/stats')
+   525→      if (!res.ok) throw new Error('Error al cargar estadísticas')
+   526→      const data = await res.json()
+   527→      setStats(data)
+   528→    } catch (err) {
+   529→      setError(err instanceof Error ? err.message : 'Error desconocido')
+   530→      toast({ title: 'Error', description: 'No se pudieron cargar las estadísticas', variant: 'destructive' })
+   531→    } finally {
+   532→      setLoading(false)
+   533→    }
+   534→  }, [toast])
+   535→
+   536→  useEffect(() => { fetchStats() }, [fetchStats])
+   537→
+   538→  if (loading) {
+   539→    return (
+   540→      <div className="space-y-6">
+   541→        <div>
+   542→          <Skeleton className="h-8 w-48" />
+   543→          <Skeleton className="mt-2 h-4 w-72" />
+   544→        </div>
+   545→        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+   546→          {Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)}
+   547→        </div>
+   548→        <div className="grid gap-6 lg:grid-cols-2">
+   549→          <Skeleton className="h-80 rounded-xl" />
+   550→          <Skeleton className="h-80 rounded-xl" />
+   551→        </div>
+   552→      </div>
+   553→    )
+   554→  }
+   555→
+   556→  if (error || !stats) {
+   557→    return (
+   558→      <div className="flex flex-col items-center justify-center py-20">
+   559→        <AlertTriangle className="mb-4 size-12 text-muted-foreground" />
+   560→        <p className="mb-4 text-lg font-medium">Error al cargar estadísticas</p>
+   561→        <Button variant="outline" onClick={fetchStats}>
+   562→          <RefreshCw className="mr-2 size-4" /> Reintentar
+   563→        </Button>
+   564→      </div>
+   565→    )
+   566→  }
+   567→
+   568→  const maxDistCount = Math.max(...stats.assets.distribution.map((d) => d.count), 1)
+   569→
+   570→  return (
+   571→    <div className="space-y-6">
+   572→      <div className="flex items-center justify-between">
+   573→        <div>
+   574→          <h2 className="gsp-serif text-2xl font-normal tracking-tight">Panel General</h2>
+   575→          <p className="text-muted-foreground">Resumen general de 3GSP by GALAXY LLC</p>
+   576→        </div>
+   577→        <Button variant="outline" size="sm" onClick={fetchStats}>
+   578→          <RefreshCw className="mr-2 size-3" /> Actualizar
+   579→        </Button>
+   580→      </div>
+   581→
+   582→      {/* KPI Cards */}
+   583→      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+   584→        <KpiCard
+   585→          title="Total Activos"
+   586→          value={stats.assets.total.toString()}
+   587→          subtitle={`${stats.assets.active} activos`}
+   588→          icon={Building2}
+   589→          trend={{ value: `${stats.assets.active} activos`, positive: true }}
+   590→          gradient="emerald"
+   591→        />
+   592→        <KpiCard
+   593→          title="Total Inversores"
+   594→          value={stats.overview.totalInvestors.toLocaleString('en-US')}
+   595→          subtitle={`${stats.overview.verifiedUsers} verificados`}
+   596→          icon={Users}
+   597→          trend={{ value: `+${stats.overview.recentSignups} este mes`, positive: true }}
+   598→          gradient="blue"
+   599→        />
+   600→        <KpiCard
+   601→          title="Capital Invertido"
+   602→          value={formatShortUSD(stats.investments.totalInvested)}
+   603→          subtitle={`${stats.investments.total} inversiones`}
+   604→          icon={Wallet}
+   605→          trend={{ value: formatShortUSD(stats.investments.recentInvestmentVolume) + ' reciente', positive: true }}
+   606→          gradient="amber"
+   607→        />
+   608→        <KpiCard
+   609→          title="Dividendos Pagados"
+   610→          value={formatShortUSD(stats.dividends.totalPaid)}
+   611→          subtitle={`${stats.dividends.total} pagos realizados`}
+   612→          icon={TrendingUp}
+   613→          trend={{ value: `${stats.dividends.total} pagos`, positive: true }}
+   614→          gradient="rose"
+   615→        />
+   616→      </div>
+   617→
+   618→      <div className="grid gap-6 lg:grid-cols-2">
+   619→        {/* Asset Distribution Bar Chart (CSS-based) */}
+   620→        <Card>
+   621→          <CardHeader className="pb-2">
+   622→            <CardTitle className="flex items-center gap-2 text-base">
+   623→              <BarChart3 className="size-4 text-primary" />
+   624→              Distribución de Activos
+   625→            </CardTitle>
+   626→            <CardDescription>Por tipo de propiedad</CardDescription>
+   627→          </CardHeader>
+   628→          <CardContent>
+   629→            {stats.assets.distribution.length === 0 ? (
+   630→              <p className="py-8 text-center text-sm text-muted-foreground">Sin activos registrados</p>
+   631→            ) : (
+   632→              <div className="space-y-4">
+   633→                {stats.assets.distribution.map((d) => (
+   634→                  <div key={d.type} className="space-y-1.5">
+   635→                    <div className="flex items-center justify-between text-sm">
+   636→                      <span className="font-medium capitalize">{d.type}</span>
+   637→                      <span className="text-muted-foreground">{d.count} activos</span>
+   638→                    </div>
+   639→                    <div className="relative h-6 w-full overflow-hidden rounded-md bg-muted">
+   640→                      <div
+   641→                        className="flex h-full items-center rounded-md gsp-gradient px-2 transition-all"
+   642→                        style={{ width: `${Math.max((d.count / maxDistCount) * 100, 8)}%` }}
+   643→                      >
+   644→                        <span className="text-xs font-semibold text-white">{d.count}</span>
+   645→                      </div>
+   646→                    </div>
+   647→                  </div>
+   648→                ))}
+   649→              </div>
+   650→            )}
+   651→          </CardContent>
+   652→        </Card>
+   653→
+   654→        {/* KYC Overview */}
+   655→        <Card>
+   656→          <CardHeader className="pb-2">
+   657→            <CardTitle className="flex items-center gap-2 text-base">
+   658→              <Activity className="size-4 text-primary" />
+   659→              Estado KYC de Usuarios
+   660→            </CardTitle>
+   661→            <CardDescription>Verificación de identidad</CardDescription>
+   662→          </CardHeader>
+   663→          <CardContent>
+   664→            <div className="space-y-4">
+   665→              <div className="flex items-center justify-between">
+   666→                <div className="flex items-center gap-2">
+   667→                  <div className="rounded-full bg-primary/8 p-1.5">
+   668→                    <CheckCircle2 className="size-3.5 text-primary" />
+   669→                  </div>
+   670→                  <span className="text-sm font-medium">Verificados</span>
+   671→                </div>
+   672→                <span className="text-lg font-bold text-primary">{stats.overview.verifiedUsers}</span>
+   673→              </div>
+   674→              <div className="flex items-center justify-between">
+   675→                <div className="flex items-center gap-2">
+   676→                  <div className="rounded-full bg-amber-50 p-1.5">
+   677→                    <Clock className="size-3.5 text-yellow-600 dark:text-yellow-400" />
+   678→                  </div>
+   679→                  <span className="text-sm font-medium">Pendientes</span>
+   680→                </div>
+   681→                <span className="text-lg font-bold text-yellow-600 dark:text-yellow-400">{stats.overview.kycPending}</span>
+   682→              </div>
+   683→              <div className="flex items-center justify-between">
+   684→                <div className="flex items-center gap-2">
+   685→                  <div className="rounded-full bg-red-50 p-1.5">
+   686→                    <XCircle className="size-3.5 text-red-600 dark:text-red-400" />
+   687→                  </div>
+   688→                  <span className="text-sm font-medium">Rechazados</span>
+   689→                </div>
+   690→                <span className="text-lg font-bold text-red-600 dark:text-red-400">{stats.overview.kycRejected}</span>
+   691→              </div>
+   692→              <Separator />
+   693→              <div className="grid grid-cols-2 gap-4">
+   694→                <div className="rounded-lg bg-muted p-3 text-center">
+   695→                  <p className="text-2xl font-bold">{stats.investments.total}</p>
+   696→                  <p className="text-xs text-muted-foreground">Total Inversiones</p>
+   697→                </div>
+   698→                <div className="rounded-lg bg-muted p-3 text-center">
+   699→                  <p className="text-2xl font-bold">{stats.transactions.total}</p>
+   700→                  <p className="text-xs text-muted-foreground">Total Transacciones</p>
+   701→                </div>
+   702→              </div>
+   703→            </div>
+   704→          </CardContent>
+   705→        </Card>
+   706→      </div>
+   707→
+   708→      {/* Recent Activity */}
+   709→      <Card>
+   710→        <CardHeader className="pb-2">
+   711→          <CardTitle className="flex items-center gap-2 text-base">
+   712→            <Activity className="size-4 text-primary" />
+   713→            Actividad Reciente
+   714→          </CardTitle>
+   715→          <CardDescription>Últimas 5 inversiones registradas</CardDescription>
+   716→        </CardHeader>
+   717→        <CardContent className="p-0">
+   718→          <div className="divide-y">
+   719→            {stats.investments.recentInvestments > 0 ? (
+   720→              <div className="px-6 py-4 text-center">
+   721→                <p className="text-sm text-muted-foreground">{stats.investments.recentInvestments} inversiones recientes · {formatShortUSD(stats.investments.recentInvestmentVolume)} volumen</p>
+   722→              </div>
+   723→            ) : (
+   724→              <div className="px-6 py-4 text-center">
+   725→                <p className="text-sm text-muted-foreground">Sin inversiones recientes</p>
+   726→              </div>
+   727→            )}
+   728→          </div>
+   729→        </CardContent>
+   730→      </Card>
+   731→
+   732→      {/* Investment Summary */}
+   733→      <Card>
+   734→        <CardHeader className="pb-2">
+   735→          <CardTitle className="flex items-center gap-2 text-base">
+   736→            <TrendingUp className="size-4 text-primary" />
+   737→            Resumen de Inversiones
+   738→          </CardTitle>
+   739→          <CardDescription>Rendimiento promedio de activos</CardDescription>
+   740→        </CardHeader>
+   741→        <CardContent>
+   742→          <div className="grid gap-6 sm:grid-cols-3">
+   743→            <div className="space-y-2">
+   744→              <p className="text-sm text-muted-foreground">Rendimiento Promedio</p>
+   745→              <p className="text-3xl font-bold text-primary">{stats.assets.avgYield}%</p>
+   746→              <p className="text-xs text-muted-foreground">yield anual promedio</p>
+   747→            </div>
+   748→            <div className="space-y-2">
+   749→              <p className="text-sm text-muted-foreground">Financiamiento Promedio</p>
+   750→              <p className="text-3xl font-bold">{stats.assets.avgFundedPercentage}%</p>
+   751→              <p className="text-xs text-muted-foreground">capitalización promedio</p>
+   752→            </div>
+   753→            <div className="space-y-2">
+   754→              <p className="text-sm text-muted-foreground">Inversión Promedio</p>
+   755→              <p className="text-3xl font-bold">{formatShortUSD(stats.investments.avgInvestment)}</p>
+   756→              <p className="text-xs text-muted-foreground">por inversión</p>
+   757→            </div>
+   758→          </div>
+   759→        </CardContent>
+   760→      </Card>
+   761→    </div>
+   762→  )
+   763→}
+   764→
+   765→// ─── Activos View (Full CRUD) ───────────────────────────────────────────────
+   766→function ActivosView() {
+   767→  const [assets, setAssets] = useState<AssetRow[]>([])
+   768→  const [loading, setLoading] = useState(true)
+   769→  const [search, setSearch] = useState('')
+   770→  const [filterType, setFilterType] = useState('all')
+   771→  const [filterStatus, setFilterStatus] = useState('all')
+   772→  const [page, setPage] = useState(1)
+   773→  const [totalPages, setTotalPages] = useState(1)
+   774→
+   775→  // Dialog states
+   776→  const [formOpen, setFormOpen] = useState(false)
+   777→  const [editingAsset, setEditingAsset] = useState<AssetRow | null>(null)
+   778→  const [form, setForm] = useState<AssetFormState>(emptyAssetForm)
+   779→  const [submitting, setSubmitting] = useState(false)
+   780→
+   781→  // Delete dialog
+   782→  const [deleteTarget, setDeleteTarget] = useState<AssetRow | null>(null)
+   783→  const [deleting, setDeleting] = useState(false)
+   784→
+   785→  const { toast } = useToast()
+   786→
+   787→  const fetchAssets = useCallback(async () => {
+   788→    try {
+   789→      setLoading(true)
+   790→      const params = new URLSearchParams()
+   791→      if (search) params.set('search', search)
+   792→      if (filterType !== 'all') params.set('type', filterType)
+   793→      if (filterStatus !== 'all') params.set('status', filterStatus)
+   794→      params.set('page', page.toString())
+   795→      params.set('limit', '20')
+   796→
+   797→      const res = await fetch(`/api/admin/assets?${params}`)
+   798→      if (!res.ok) throw new Error('Error al cargar activos')
+   799→      const data = await res.json()
+   800→      setAssets(data.assets)
+   801→      setTotalPages(data.pagination.totalPages)
+   802→    } catch {
+   803→      toast({ title: 'Error', description: 'No se pudieron cargar los activos', variant: 'destructive' })
+   804→    } finally {
+   805→      setLoading(false)
+   806→    }
+   807→  }, [search, filterType, filterStatus, page, toast])
+   808→
+   809→  useEffect(() => { fetchAssets() }, [fetchAssets])
+   810→
+   811→  const openCreate = () => {
+   812→    setEditingAsset(null)
+   813→    setForm(emptyAssetForm)
+   814→    setFormOpen(true)
+   815→  }
+   816→
+   817→  const openEdit = (asset: AssetRow) => {
+   818→    setEditingAsset(asset)
+   819→    setForm({
+   820→      name: asset.name,
+   821→      type: asset.type,
+   822→      address: asset.address,
+   823→      city: asset.city,
+   824→      region: asset.region,
+   825→      totalValue: asset.totalValue.toString(),
+   826→      pricePerFraction: asset.pricePerFraction.toString(),
+   827→      totalFractions: asset.totalFractions.toString(),
+   828→      availableFractions: asset.availableFractions.toString(),
+   829→      minimumInvestment: asset.minimumInvestment.toString(),
+   830→      annualYield: asset.annualYield.toString(),
+   831→      projectedAppreciation: asset.projectedAppreciation.toString(),
+   832→      totalProjectedReturn: asset.totalProjectedReturn.toString(),
+   833→      shortDescription: asset.shortDescription,
+   834→      fullDescription: asset.fullDescription,
+   835→      status: asset.status,
+   836→    })
+   837→    setFormOpen(true)
+   838→  }
+   839→
+   840→  const handleSubmit = async () => {
+   841→    if (!form.name.trim()) {
+   842→      toast({ title: 'Error', description: 'El nombre es obligatorio', variant: 'destructive' })
+   843→      return
+   844→    }
+   845→    try {
+   846→      setSubmitting(true)
+   847→      const body = {
+   848→        name: form.name,
+   849→        type: form.type,
+   850→        address: form.address,
+   851→        city: form.city,
+   852→        region: form.region,
+   853→        totalValue: parseFloat(form.totalValue) || 0,
+   854→        pricePerFraction: parseFloat(form.pricePerFraction) || 0,
+   855→        totalFractions: parseInt(form.totalFractions) || 0,
+   856→        availableFractions: parseInt(form.availableFractions) || 0,
+   857→        minimumInvestment: parseFloat(form.minimumInvestment) || 0,
+   858→        annualYield: parseFloat(form.annualYield) || 0,
+   859→        projectedAppreciation: parseFloat(form.projectedAppreciation) || 0,
+   860→        totalProjectedReturn: parseFloat(form.totalProjectedReturn) || 0,
+   861→        shortDescription: form.shortDescription,
+   862→        fullDescription: form.fullDescription,
+   863→        status: form.status,
+   864→      }
+   865→
+   866→      let res: Response
+   867→      if (editingAsset) {
+   868→        res = await fetch(`/api/admin/assets/${editingAsset.id}`, {
+   869→          method: 'PUT',
+   870→          headers: { 'Content-Type': 'application/json' },
+   871→          body: JSON.stringify(body),
+   872→        })
+   873→      } else {
+   874→        res = await fetch('/api/admin/assets', {
+   875→          method: 'POST',
+   876→          headers: { 'Content-Type': 'application/json' },
+   877→          body: JSON.stringify(body),
+   878→        })
+   879→      }
+   880→
+   881→      if (!res.ok) {
+   882→        const err = await res.json()
+   883→        throw new Error(err.error || 'Error al guardar')
+   884→      }
+   885→
+   886→      toast({ title: editingAsset ? 'Activo actualizado' : 'Activo creado', description: editingAsset ? 'Los cambios se guardaron correctamente' : 'El nuevo activo fue creado' })
+   887→      setFormOpen(false)
+   888→      fetchAssets()
+   889→    } catch (err) {
+   890→      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Error desconocido', variant: 'destructive' })
+   891→    } finally {
+   892→      setSubmitting(false)
+   893→    }
+   894→  }
+   895→
+   896→  const handleDelete = async () => {
+   897→    if (!deleteTarget) return
+   898→    try {
+   899→      setDeleting(true)
+   900→      const res = await fetch(`/api/admin/assets/${deleteTarget.id}`, { method: 'DELETE' })
+   901→      if (!res.ok) {
+   902→        const err = await res.json()
+   903→        throw new Error(err.error || 'Error al eliminar')
+   904→      }
+   905→      toast({ title: 'Activo eliminado', description: 'El activo fue eliminado correctamente' })
+   906→      setDeleteTarget(null)
+   907→      fetchAssets()
+   908→    } catch (err) {
+   909→      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Error desconocido', variant: 'destructive' })
+   910→    } finally {
+   911→      setDeleting(false)
+   912→    }
+   913→  }
+   914→
+   915→  return (
+   916→    <div className="space-y-6">
+   917→      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+   918→        <div>
+   919→          <h2 className="gsp-serif text-2xl font-normal tracking-tight">Activos</h2>
+   920→          <p className="text-muted-foreground">Gestiona los activos inmobiliarios de la plataforma</p>
+   921→        </div>
+   922→        <div className="flex items-center gap-2">
+   923→          <Button variant="outline" size="sm" className="cursor-pointer" onClick={() => exportToCSV(
+   924→            assets.map(a => ({
+   925→              Nombre: a.name,
+   926→              Tipo: a.type,
+   927→              Ciudad: a.city,
+   928→              Region: a.region,
+   929→              Estado: a.status,
+   930→              'Valor Total (USD)': a.totalValue,
+   931→              'Precio/Fraccion (USD)': a.pricePerFraction,
+   932→              'Fracciones Disponibles': a.availableFractions,
+   933→              'Fracciones Totales': a.totalFractions,
+   934→              'Yield Anual (%)': a.annualYield,
+   935→              'Financiado (%)': a.fundedPercentage,
+   936→              'Inversores': a.investmentCount,
+   937→            })),
+   938→            `activos_${new Date().toISOString().slice(0, 10)}.csv`
+   939→          )}>
+   940→            <Download className="mr-2 size-4" /> Exportar CSV
+   941→          </Button>
+   942→          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer" onClick={openCreate}>
+   943→            <Plus className="mr-2 size-4" /> Nuevo Activo
+   944→          </Button>
+   945→        </div>
+   946→      </div>
+   947→
+   948→      {/* Filters */}
+   949→      <div className="flex flex-col gap-3 sm:flex-row">
+   950→        <div className="relative flex-1">
+   951→          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+   952→          <Input placeholder="Buscar activos..." className="pl-9" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} />
+   953→        </div>
+   954→        <Select value={filterType} onValueChange={(v) => { setFilterType(v); setPage(1) }}>
+   955→          <SelectTrigger className="w-full sm:w-[160px]"><SelectValue placeholder="Tipo" /></SelectTrigger>
+   956→          <SelectContent>
+   957→            <SelectItem value="all">Todos los tipos</SelectItem>
+   958→            <SelectItem value="real_estate">Inmuebles</SelectItem>
+   959→            <SelectItem value="micro_datacenter">Data Centers</SelectItem>
+   960→            <SelectItem value="last_mile_logistics">Logística</SelectItem>
+   961→            <SelectItem value="solar_energy">Energía Solar</SelectItem>
+   962→            <SelectItem value="mining">Minería</SelectItem>
+   963→          </SelectContent>
+   964→        </Select>
+   965→        <Select value={filterStatus} onValueChange={(v) => { setFilterStatus(v); setPage(1) }}>
+   966→          <SelectTrigger className="w-full sm:w-[160px]"><SelectValue placeholder="Estado" /></SelectTrigger>
+   967→          <SelectContent>
+   968→            <SelectItem value="all">Todos</SelectItem>
+   969→            <SelectItem value="draft">Borrador</SelectItem>
+   970→            <SelectItem value="active">Activo</SelectItem>
+   971→            <SelectItem value="paused">Pausado</SelectItem>
+   972→          </SelectContent>
+   973→        </Select>
+   974→      </div>
+   975→
+   976→      {/* Table */}
+   977→      <Card>
+   978→        <CardContent className="p-0">
+   979→          {loading ? (
+   980→            <TableSkeleton rows={5} cols={6} />
+   981→          ) : (
+   982→            <>
+   983→              <div className="max-h-[480px] overflow-y-auto custom-scrollbar">
+   984→                <Table>
+   985→                  <TableHeader>
+   986→                    <TableRow>
+   987→                      <TableHead>Nombre</TableHead>
+   988→                      <TableHead className="hidden sm:table-cell">Tipo</TableHead>
+   989→                      <TableHead className="hidden md:table-cell">Ciudad</TableHead>
+   990→                      <TableHead className="text-right">Precio/Frac.</TableHead>
+   991→                      <TableHead className="text-right hidden lg:table-cell">Total Invertido</TableHead>
+   992→                      <TableHead className="text-right">Financiado</TableHead>
+   993→                      <TableHead>Estado</TableHead>
+   994→                      <TableHead className="text-right">Acciones</TableHead>
+   995→                    </TableRow>
+   996→                  </TableHeader>
+   997→                  <TableBody>
+   998→                    {assets.map((asset) => (
+   999→                      <TableRow key={asset.id}>
+  1000→                        <TableCell>
+  1001→                          <div className="flex items-center gap-3">
+  1002→                            <div className="hidden sm:flex size-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-100 to-teal-50 dark:from-emerald-900/30 dark:to-teal-950/20">
+  1003→                              <Building2 className="size-4 text-emerald-600 dark:text-emerald-400" />
+  1004→                            </div>
+  1005→                            <span className="font-medium">{asset.name}</span>
+  1006→                          </div>
+  1007→                        </TableCell>
+  1008→                        <TableCell className="hidden sm:table-cell"><Badge variant="secondary" className="capitalize">{asset.type}</Badge></TableCell>
+  1009→                        <TableCell className="hidden md:table-cell text-muted-foreground">{asset.city}</TableCell>
+  1010→                        <TableCell className="text-right text-sm">{formatUSD(asset.pricePerFraction)}</TableCell>
+  1011→                        <TableCell className="text-right hidden lg:table-cell font-medium">{formatUSD(asset.pricePerFraction * (asset.totalFractions - asset.availableFractions))}</TableCell>
+  1012→                        <TableCell className="text-right">
+  1013→                          <div className="flex items-center justify-end gap-2">
+  1014→                            <div className="hidden sm:block w-16"><Progress value={asset.fundedPercentage} className="h-1.5" /></div>
+  1015→                            <span className="text-sm font-medium">{asset.fundedPercentage.toFixed(0)}%</span>
+  1016→                          </div>
+  1017→                        </TableCell>
+  1018→                        <TableCell><StatusBadge status={asset.status} /></TableCell>
+  1019→                        <TableCell className="text-right">
+  1020→                          <div className="flex items-center justify-end gap-1">
+  1021→                            <Button variant="ghost" size="icon" className="size-8 cursor-pointer" onClick={() => openEdit(asset)}><Pencil className="size-4" /></Button>
+  1022→                            <Button variant="ghost" size="icon" className="size-8 text-red-500 hover:text-red-600 cursor-pointer" onClick={() => setDeleteTarget(asset)}><Trash2 className="size-4" /></Button>
+  1023→                          </div>
+  1024→                        </TableCell>
+  1025→                      </TableRow>
+  1026→                    ))}
+  1027→                  </TableBody>
+  1028→                </Table>
+  1029→              </div>
+  1030→              {assets.length === 0 && (
+  1031→                <div className="flex flex-col items-center justify-center py-12 text-center">
+  1032→                  <Building2 className="mb-3 size-10 text-muted-foreground/40" />
+  1033→                  <p className="text-sm font-medium text-muted-foreground">No se encontraron activos</p>
+  1034→                </div>
+  1035→              )}
+  1036→            </>
+  1037→          )}
+  1038→        </CardContent>
+  1039→      </Card>
+  1040→
+  1041→      {/* Pagination */}
+  1042→      {totalPages > 1 && (
+  1043→        <div className="flex items-center justify-center gap-2">
+  1044→          <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+  1045→            <ChevronLeft className="size-4" />
+  1046→          </Button>
+  1047→          <span className="text-sm text-muted-foreground">Página {page} de {totalPages}</span>
+  1048→          <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+  1049→            <ChevronRight className="size-4" />
+  1050→          </Button>
+  1051→        </div>
+  1052→      )}
+  1053→
+  1054→      {/* Create/Edit Dialog */}
+  1055→      <Dialog open={formOpen} onOpenChange={setFormOpen}>
+  1056→        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+  1057→          <DialogHeader>
+  1058→            <DialogTitle>{editingAsset ? 'Editar Activo' : 'Nuevo Activo'}</DialogTitle>
+  1059→            <DialogDescription>
+  1060→              {editingAsset ? 'Modifica los datos del activo' : 'Completa los datos para crear un nuevo activo'}
+  1061→            </DialogDescription>
+  1062→          </DialogHeader>
+  1063→          <div className="grid gap-4 py-4">
+  1064→            <div className="grid gap-4 sm:grid-cols-2">
+  1065→              <div className="space-y-2">
+  1066→                <Label htmlFor="a-name">Nombre *</Label>
+  1067→                <Input id="a-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+  1068→              </div>
+  1069→              <div className="space-y-2">
+  1070→                <Label htmlFor="a-type">Tipo</Label>
+  1071→                <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
+  1072→                  <SelectTrigger><SelectValue /></SelectTrigger>
+  1073→                  <SelectContent>
+  1074→                    <SelectItem value="real_estate">Inmueble</SelectItem>
+  1075→                    <SelectItem value="micro_datacenter">Data Center</SelectItem>
+  1076→                    <SelectItem value="last_mile_logistics">Logística</SelectItem>
+  1077→                    <SelectItem value="solar_energy">Energía Solar</SelectItem>
+  1078→                    <SelectItem value="mining">Minería</SelectItem>
+  1079→                  </SelectContent>
+  1080→                </Select>
+  1081→              </div>
+  1082→            </div>
+  1083→            <div className="grid gap-4 sm:grid-cols-3">
+  1084→              <div className="space-y-2">
+  1085→                <Label htmlFor="a-city">Ciudad</Label>
+  1086→                <Input id="a-city" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+  1087→              </div>
+  1088→              <div className="space-y-2">
+  1089→                <Label htmlFor="a-region">Región</Label>
+  1090→                <Input id="a-region" value={form.region} onChange={(e) => setForm({ ...form, region: e.target.value })} />
+  1091→              </div>
+  1092→              <div className="space-y-2">
+  1093→                <Label htmlFor="a-status">Estado</Label>
+  1094→                <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
+  1095→                  <SelectTrigger><SelectValue /></SelectTrigger>
+  1096→                  <SelectContent>
+  1097→                    <SelectItem value="draft">Borrador</SelectItem>
+  1098→                    <SelectItem value="active">Activo</SelectItem>
+  1099→                    <SelectItem value="paused">Pausado</SelectItem>
+  1100→                  </SelectContent>
+  1101→                </Select>
+  1102→              </div>
+  1103→            </div>
+  1104→            <div className="space-y-2">
+  1105→              <Label htmlFor="a-address">Dirección</Label>
+  1106→              <Input id="a-address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+  1107→            </div>
+  1108→            <Separator />
+  1109→            <p className="text-sm font-semibold text-muted-foreground">Datos Financieros</p>
+  1110→            <div className="grid gap-4 sm:grid-cols-3">
+  1111→              <div className="space-y-2">
+  1112→                <Label htmlFor="a-total">Valor Total (USD)</Label>
+  1113→                <Input id="a-total" type="number" value={form.totalValue} onChange={(e) => setForm({ ...form, totalValue: e.target.value })} />
+  1114→              </div>
+  1115→              <div className="space-y-2">
+  1116→                <Label htmlFor="a-ppf">Precio por Fracción (USD)</Label>
+  1117→                <Input id="a-ppf" type="number" value={form.pricePerFraction} onChange={(e) => setForm({ ...form, pricePerFraction: e.target.value })} />
+  1118→              </div>
+  1119→              <div className="space-y-2">
+  1120→                <Label htmlFor="a-min">Inversión Mínima (USD)</Label>
+  1121→                <Input id="a-min" type="number" value={form.minimumInvestment} onChange={(e) => setForm({ ...form, minimumInvestment: e.target.value })} />
+  1122→              </div>
+  1123→            </div>
+  1124→            <div className="grid gap-4 sm:grid-cols-2">
+  1125→              <div className="space-y-2">
+  1126→                <Label htmlFor="a-tf">Total Fracciones</Label>
+  1127→                <Input id="a-tf" type="number" value={form.totalFractions} onChange={(e) => setForm({ ...form, totalFractions: e.target.value })} />
+  1128→              </div>
+  1129→              <div className="space-y-2">
+  1130→                <Label htmlFor="a-af">Fracciones Disponibles</Label>
+  1131→                <Input id="a-af" type="number" value={form.availableFractions} onChange={(e) => setForm({ ...form, availableFractions: e.target.value })} />
+  1132→              </div>
+  1133→            </div>
+  1134→            <Separator />
+  1135→            <p className="text-sm font-semibold text-muted-foreground">Rendimiento</p>
+  1136→            <div className="grid gap-4 sm:grid-cols-3">
+  1137→              <div className="space-y-2">
+  1138→                <Label htmlFor="a-yield">Yield Anual (%)</Label>
+  1139→                <Input id="a-yield" type="number" step="0.01" value={form.annualYield} onChange={(e) => setForm({ ...form, annualYield: e.target.value })} />
+  1140→              </div>
+  1141→              <div className="space-y-2">
+  1142→                <Label htmlFor="a-appreciation">Apreciación Proyectada (%)</Label>
+  1143→                <Input id="a-appreciation" type="number" step="0.01" value={form.projectedAppreciation} onChange={(e) => setForm({ ...form, projectedAppreciation: e.target.value })} />
+  1144→              </div>
+  1145→              <div className="space-y-2">
+  1146→                <Label htmlFor="a-return">Retorno Total Proyectado (%)</Label>
+  1147→                <Input id="a-return" type="number" step="0.01" value={form.totalProjectedReturn} onChange={(e) => setForm({ ...form, totalProjectedReturn: e.target.value })} />
+  1148→              </div>
+  1149→            </div>
+  1150→            <div className="space-y-2">
+  1151→              <Label htmlFor="a-desc">Descripción Corta</Label>
+  1152→              <Textarea id="a-desc" value={form.shortDescription} onChange={(e) => setForm({ ...form, shortDescription: e.target.value })} rows={3} />
+  1153→            </div>
+  1154→            <div className="space-y-2">
+  1155→              <Label htmlFor="a-fulldesc">Descripción Completa</Label>
+  1156→              <Textarea id="a-fulldesc" value={form.fullDescription} onChange={(e) => setForm({ ...form, fullDescription: e.target.value })} rows={5} />
+  1157→            </div>
+  1158→            {editingAsset && (
+  1159→              <>
+  1160→                <Separator />
+  1161→                <p className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
+  1162→                    <Brain className="size-4 text-primary" />
+  1163→                    Valoración Inteligente
+  1164→                  </p>
+  1165→                <AssetValuationAI assetId={editingAsset.id} assetName={editingAsset.name} />
+  1166→              </>
+  1167→            )}
+  1168→          </div>
+  1169→          <DialogFooter>
+  1170→            <Button variant="outline" onClick={() => setFormOpen(false)}>Cancelar</Button>
+  1171→            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer" onClick={handleSubmit} disabled={submitting}>
+  1172→              {submitting && <Loader2 className="mr-2 size-4 animate-spin" />}
+  1173→              {editingAsset ? 'Guardar Cambios' : 'Crear Activo'}
+  1174→            </Button>
+  1175→          </DialogFooter>
+  1176→        </DialogContent>
+  1177→      </Dialog>
+  1178→
+  1179→      {/* Delete Confirmation */}
+  1180→      <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+  1181→        <AlertDialogContent>
+  1182→          <AlertDialogHeader>
+  1183→            <AlertDialogTitle>¿Eliminar activo?</AlertDialogTitle>
+  1184→            <AlertDialogDescription>
+  1185→              Esta acción eliminará permanentemente el activo &quot;{deleteTarget?.name}&quot;. Esta acción no se puede deshacer.
+  1186→            </AlertDialogDescription>
+  1187→          </AlertDialogHeader>
+  1188→          <AlertDialogFooter>
+  1189→            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+  1190→            <AlertDialogAction className="bg-destructive text-white hover:bg-destructive/90" onClick={handleDelete} disabled={deleting}>
+  1191→              {deleting && <Loader2 className="mr-2 size-4 animate-spin" />}
+  1192→              Eliminar
+  1193→            </AlertDialogAction>
+  1194→          </AlertDialogFooter>
+  1195→        </AlertDialogContent>
+  1196→      </AlertDialog>
+  1197→    </div>
+  1198→  )
+  1199→}
+  1200→
+  1201→// ─── Usuarios View (Full CRUD) ──────────────────────────────────────────────
+  1202→function UsuariosView() {
+  1203→  const [users, setUsers] = useState<UserRow[]>([])
+  1204→  const [loading, setLoading] = useState(true)
+  1205→  const [search, setSearch] = useState('')
+  1206→  const [filterRole, setFilterRole] = useState('all')
+  1207→  const [filterKyc, setFilterKyc] = useState('all')
+  1208→  const [page, setPage] = useState(1)
+  1209→  const [totalPages, setTotalPages] = useState(1)
+  1210→
+  1211→  // Dialog states
+  1212→  const [formOpen, setFormOpen] = useState(false)
+  1213→  const [editingUser, setEditingUser] = useState<UserRow | null>(null)
+  1214→  const [form, setForm] = useState<UserFormState>(emptyUserForm)
+  1215→  const [submitting, setSubmitting] = useState(false)
+  1216→
+  1217→  // Delete dialog
+  1218→  const [deleteTarget, setDeleteTarget] = useState<UserRow | null>(null)
+  1219→  const [deleting, setDeleting] = useState(false)
+  1220→
+  1221→  const { toast } = useToast()
+  1222→
+  1223→  const fetchUsers = useCallback(async () => {
+  1224→    try {
+  1225→      setLoading(true)
+  1226→      const params = new URLSearchParams()
+  1227→      if (search) params.set('search', search)
+  1228→      if (filterRole !== 'all') params.set('role', filterRole)
+  1229→      if (filterKyc !== 'all') params.set('kycStatus', filterKyc)
+  1230→      params.set('page', page.toString())
+  1231→      params.set('limit', '20')
+  1232→
+  1233→      const res = await fetch(`/api/admin/users?${params}`)
+  1234→      if (!res.ok) throw new Error('Error al cargar usuarios')
+  1235→      const data = await res.json()
+  1236→      setUsers(data.users)
+  1237→      setTotalPages(data.pagination.totalPages)
+  1238→    } catch {
+  1239→      toast({ title: 'Error', description: 'No se pudieron cargar los usuarios', variant: 'destructive' })
+  1240→    } finally {
+  1241→      setLoading(false)
+  1242→    }
+  1243→  }, [search, filterRole, filterKyc, page, toast])
+  1244→
+  1245→  useEffect(() => { fetchUsers() }, [fetchUsers])
+  1246→
+  1247→  const openCreate = () => {
+  1248→    setEditingUser(null)
+  1249→    setForm(emptyUserForm)
+  1250→    setFormOpen(true)
+  1251→  }
+  1252→
+  1253→  const openEdit = (user: UserRow) => {
+  1254→    setEditingUser(user)
+  1255→    setForm({
+  1256→      name: user.name || '',
+  1257→      email: user.email,
+  1258→      phone: user.phone || '',
+  1259→      rut: user.rut || '',
+  1260→      role: user.role,
+  1261→      kycStatus: user.kycStatus,
+  1262→      balance: user.balance.toString(),
+  1263→    })
+  1264→    setFormOpen(true)
+  1265→  }
+  1266→
+  1267→  const handleSubmit = async () => {
+  1268→    if (!form.email.trim()) {
+  1269→      toast({ title: 'Error', description: 'El email es obligatorio', variant: 'destructive' })
+  1270→      return
+  1271→    }
+  1272→    try {
+  1273→      setSubmitting(true)
+  1274→      const body = {
+  1275→        name: form.name || null,
+  1276→        email: form.email,
+  1277→        phone: form.phone || null,
+  1278→        rut: form.rut || null,
+  1279→        role: form.role,
+  1280→        kycStatus: form.kycStatus,
+  1281→        balance: parseFloat(form.balance) || 0,
+  1282→      }
+  1283→
+  1284→      let res: Response
+  1285→      if (editingUser) {
+  1286→        res = await fetch(`/api/admin/users/${editingUser.id}`, {
+  1287→          method: 'PUT',
+  1288→          headers: { 'Content-Type': 'application/json' },
+  1289→          body: JSON.stringify(body),
+  1290→        })
+  1291→      } else {
+  1292→        res = await fetch('/api/admin/users', {
+  1293→          method: 'POST',
+  1294→          headers: { 'Content-Type': 'application/json' },
+  1295→          body: JSON.stringify(body),
+  1296→        })
+  1297→      }
+  1298→
+  1299→      if (!res.ok) {
+  1300→        const err = await res.json()
+  1301→        throw new Error(err.error || 'Error al guardar')
+  1302→      }
+  1303→
+  1304→      toast({ title: editingUser ? 'Usuario actualizado' : 'Usuario creado', description: editingUser ? 'Los cambios se guardaron correctamente' : 'El nuevo usuario fue creado' })
+  1305→      setFormOpen(false)
+  1306→      fetchUsers()
+  1307→    } catch (err) {
+  1308→      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Error desconocido', variant: 'destructive' })
+  1309→    } finally {
+  1310→      setSubmitting(false)
+  1311→    }
+  1312→  }
+  1313→
+  1314→  const handleDelete = async () => {
+  1315→    if (!deleteTarget) return
+  1316→    try {
+  1317→      setDeleting(true)
+  1318→      const res = await fetch(`/api/admin/users/${deleteTarget.id}`, { method: 'DELETE' })
+  1319→      if (!res.ok) {
+  1320→        const err = await res.json()
+  1321→        throw new Error(err.error || 'Error al eliminar')
+  1322→      }
+  1323→      toast({ title: 'Usuario eliminado', description: 'El usuario fue eliminado correctamente' })
+  1324→      setDeleteTarget(null)
+  1325→      fetchUsers()
+  1326→    } catch (err) {
+  1327→      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Error desconocido', variant: 'destructive' })
+  1328→    } finally {
+  1329→      setDeleting(false)
+  1330→    }
+  1331→  }
+  1332→
+  1333→  return (
+  1334→    <div className="space-y-6">
+  1335→      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+  1336→        <div>
+  1337→          <h2 className="gsp-serif text-2xl font-normal tracking-tight">Usuarios</h2>
+  1338→          <p className="text-muted-foreground">Gestiona los inversores de la plataforma</p>
+  1339→        </div>
+  1340→        <div className="flex items-center gap-2">
+  1341→          <Button variant="outline" size="sm" className="cursor-pointer" onClick={() => exportToCSV(
+  1342→            users.map(u => ({
+  1343→              Nombre: u.name || '',
+  1344→              Email: u.email,
+  1345→              Telefono: u.phone || '',
+  1346→              Rol: u.role,
+  1347→              'Estado KYC': u.kycStatus,
+  1348→              'Balance (USD)': u.balance,
+  1349→              'Total Invertido (USD)': u.totalInvested,
+  1350→              'Total Ganancias (USD)': u.totalEarnings,
+  1351→              Inversiones: u._count.investments,
+  1352→              Transacciones: u._count.transactions,
+  1353→              'Fecha Registro': u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-US') : '',
+  1354→            })),
+  1355→            `usuarios_${new Date().toISOString().slice(0, 10)}.csv`
+  1356→          )}>
+  1357→            <Download className="mr-2 size-4" /> Exportar CSV
+  1358→          </Button>
+  1359→          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer" onClick={openCreate}>
+  1360→            <Plus className="mr-2 size-4" /> Nuevo Usuario
+  1361→          </Button>
+  1362→        </div>
+  1363→      </div>
+  1364→
+  1365→      {/* Filters */}
+  1366→      <div className="flex flex-col gap-3 sm:flex-row">
+  1367→        <div className="relative flex-1">
+  1368→          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+  1369→          <Input placeholder="Buscar por nombre, email o RUT..." className="pl-9" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} />
+  1370→        </div>
+  1371→        <Select value={filterRole} onValueChange={(v) => { setFilterRole(v); setPage(1) }}>
+  1372→          <SelectTrigger className="w-full sm:w-[160px]"><SelectValue placeholder="Rol" /></SelectTrigger>
+  1373→          <SelectContent>
+  1374→            <SelectItem value="all">Todos los roles</SelectItem>
+  1375→            <SelectItem value="investor">Inversor</SelectItem>
+  1376→            <SelectItem value="admin">Admin</SelectItem>
+  1377→          </SelectContent>
+  1378→        </Select>
+  1379→        <Select value={filterKyc} onValueChange={(v) => { setFilterKyc(v); setPage(1) }}>
+  1380→          <SelectTrigger className="w-full sm:w-[160px]"><SelectValue placeholder="KYC" /></SelectTrigger>
+  1381→          <SelectContent>
+  1382→            <SelectItem value="all">Todos</SelectItem>
+  1383→            <SelectItem value="pending">Pendiente</SelectItem>
+  1384→            <SelectItem value="submitted">Enviado</SelectItem>
+  1385→            <SelectItem value="verified">Verificado</SelectItem>
+  1386→            <SelectItem value="rejected">Rechazado</SelectItem>
+  1387→          </SelectContent>
+  1388→        </Select>
+  1389→      </div>
+  1390→
+  1391→      {/* Table */}
+  1392→      <Card>
+  1393→        <CardContent className="p-0">
+  1394→          {loading ? (
+  1395→            <TableSkeleton rows={5} cols={6} />
+  1396→          ) : (
+  1397→            <>
+  1398→              <div className="max-h-[480px] overflow-y-auto custom-scrollbar">
+  1399→                <Table>
+  1400→                  <TableHeader>
+  1401→                    <TableRow>
+  1402→                      <TableHead>Nombre</TableHead>
+  1403→                      <TableHead className="hidden md:table-cell">Email</TableHead>
+  1404→                      <TableHead className="hidden sm:table-cell">Rol</TableHead>
+  1405→                      <TableHead>KYC</TableHead>
+  1406→                      <TableHead className="text-right">Invertido</TableHead>
+  1407→                      <TableHead className="hidden sm:table-cell text-right">Balance</TableHead>
+  1408→                      <TableHead className="text-right">Acciones</TableHead>
+  1409→                    </TableRow>
+  1410→                  </TableHeader>
+  1411→                  <TableBody>
+  1412→                    {users.map((user) => (
+  1413→                      <TableRow key={user.id}>
+  1414→                        <TableCell>
+  1415→                          <div className="flex items-center gap-3">
+  1416→                            <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-100 to-teal-50 text-xs font-bold text-emerald-700 dark:from-emerald-900/40 dark:to-teal-950/30 dark:text-emerald-400">
+  1417→                              {(user.name || user.email).split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
+  1418→                            </div>
+  1419→                            <div>
+  1420→                              <p className="font-medium">{user.name || 'Sin nombre'}</p>
+  1421→                              <p className="text-xs text-muted-foreground md:hidden">{user.email}</p>
+  1422→                            </div>
+  1423→                          </div>
+  1424→                        </TableCell>
+  1425→                        <TableCell className="hidden md:table-cell text-muted-foreground">{user.email}</TableCell>
+  1426→                        <TableCell className="hidden sm:table-cell"><Badge variant="secondary" className="capitalize">{user.role}</Badge></TableCell>
+  1427→                        <TableCell>
+  1428→                          <div className="flex items-center gap-2">
+  1429→                            <StatusBadge status={user.kycStatus} />
+  1430→                            {user.kycStatus !== 'verified' && (
+  1431→                              <Progress value={user.kycStatus === 'submitted' ? 66 : user.kycStatus === 'pending' ? 33 : 0} className="hidden sm:block w-10 h-1" />
+  1432→                            )}
+  1433→                          </div>
+  1434→                        </TableCell>
+  1435→                        <TableCell className="text-right font-medium">
+  1436→                          {user.totalInvested > 0 ? formatShortUSD(user.totalInvested) : '—'}
+  1437→                        </TableCell>
+  1438→                        <TableCell className="hidden sm:table-cell text-right text-muted-foreground">
+  1439→                          {formatUSD(user.balance)}
+  1440→                        </TableCell>
+  1441→                        <TableCell className="text-right">
+  1442→                          <div className="flex items-center justify-end gap-1">
+  1443→                            <Button variant="ghost" size="sm" className="size-8" onClick={() => openEdit(user)} title="Ver Perfil"><Eye className="size-4" /></Button>
+  1444→                            <Button variant="ghost" size="sm" className="size-8" onClick={() => openEdit(user)} title="Editar"><Pencil className="size-4" /></Button>
+  1445→                            <Button variant="ghost" size="sm" className="size-8 text-red-500 hover:text-red-600" onClick={() => setDeleteTarget(user)} title="Eliminar"><Trash2 className="size-4" /></Button>
+  1446→                          </div>
+  1447→                        </TableCell>
+  1448→                      </TableRow>
+  1449→                    ))}
+  1450→                  </TableBody>
+  1451→                </Table>
+  1452→              </div>
+  1453→              {users.length === 0 && (
+  1454→                <div className="flex flex-col items-center justify-center py-12 text-center">
+  1455→                  <Users className="mb-3 size-10 text-muted-foreground/40" />
+  1456→                  <p className="text-sm font-medium text-muted-foreground">No se encontraron usuarios</p>
+  1457→                </div>
+  1458→              )}
+  1459→            </>
+  1460→          )}
+  1461→        </CardContent>
+  1462→      </Card>
+  1463→
+  1464→      {/* Pagination */}
+  1465→      {totalPages > 1 && (
+  1466→        <div className="flex items-center justify-center gap-2">
+  1467→          <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+  1468→            <ChevronLeft className="size-4" />
+  1469→          </Button>
+  1470→          <span className="text-sm text-muted-foreground">Página {page} de {totalPages}</span>
+  1471→          <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+  1472→            <ChevronRight className="size-4" />
+  1473→          </Button>
+  1474→        </div>
+  1475→      )}
+  1476→
+  1477→      {/* Create/Edit Dialog */}
+  1478→      <Dialog open={formOpen} onOpenChange={setFormOpen}>
+  1479→        <DialogContent className="sm:max-w-lg">
+  1480→          <DialogHeader>
+  1481→            <DialogTitle>{editingUser ? 'Editar Usuario' : 'Nuevo Usuario'}</DialogTitle>
+  1482→            <DialogDescription>
+  1483→              {editingUser ? 'Modifica los datos del usuario' : 'Completa los datos para crear un nuevo usuario'}
+  1484→            </DialogDescription>
+  1485→          </DialogHeader>
+  1486→          <div className="grid gap-4 py-4">
+  1487→            <div className="grid gap-4 sm:grid-cols-2">
+  1488→              <div className="space-y-2">
+  1489→                <Label htmlFor="u-name">Nombre</Label>
+  1490→                <Input id="u-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+  1491→              </div>
+  1492→              <div className="space-y-2">
+  1493→                <Label htmlFor="u-email">Email *</Label>
+  1494→                <Input id="u-email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+  1495→              </div>
+  1496→            </div>
+  1497→            <div className="grid gap-4 sm:grid-cols-2">
+  1498→              <div className="space-y-2">
+  1499→                <Label htmlFor="u-phone">Teléfono</Label>
+  1500→                <Input id="u-phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+  1501→              </div>
+  1502→              <div className="space-y-2">
+  1503→                <Label htmlFor="u-rut">RUT</Label>
+  1504→                <Input id="u-rut" value={form.rut} onChange={(e) => setForm({ ...form, rut: e.target.value })} />
+  1505→              </div>
+  1506→            </div>
+  1507→            <div className="grid gap-4 sm:grid-cols-2">
+  1508→              <div className="space-y-2">
+  1509→                <Label htmlFor="u-role">Rol</Label>
+  1510→                <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v })}>
+  1511→                  <SelectTrigger><SelectValue /></SelectTrigger>
+  1512→                  <SelectContent>
+  1513→                    <SelectItem value="investor">Inversor</SelectItem>
+  1514→                    <SelectItem value="admin">Admin</SelectItem>
+  1515→                  </SelectContent>
+  1516→                </Select>
+  1517→              </div>
+  1518→              <div className="space-y-2">
+  1519→                <Label htmlFor="u-kyc">Estado KYC</Label>
+  1520→                <Select value={form.kycStatus} onValueChange={(v) => setForm({ ...form, kycStatus: v })}>
+  1521→                  <SelectTrigger><SelectValue /></SelectTrigger>
+  1522→                  <SelectContent>
+  1523→                    <SelectItem value="pending">Pendiente</SelectItem>
+  1524→                    <SelectItem value="submitted">Enviado</SelectItem>
+  1525→                    <SelectItem value="verified">Verificado</SelectItem>
+  1526→                    <SelectItem value="rejected">Rechazado</SelectItem>
+  1527→                  </SelectContent>
+  1528→                </Select>
+  1529→              </div>
+  1530→            </div>
+  1531→            <div className="space-y-2">
+  1532→              <Label htmlFor="u-balance">Balance (USD)</Label>
+  1533→              <Input id="u-balance" type="number" value={form.balance} onChange={(e) => setForm({ ...form, balance: e.target.value })} />
+  1534→            </div>
+  1535→          </div>
+  1536→          <DialogFooter>
+  1537→            <Button variant="outline" onClick={() => setFormOpen(false)}>Cancelar</Button>
+  1538→            <Button className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={handleSubmit} disabled={submitting}>
+  1539→              {submitting && <Loader2 className="mr-2 size-4 animate-spin" />}
+  1540→              {editingUser ? 'Guardar Cambios' : 'Crear Usuario'}
+  1541→            </Button>
+  1542→          </DialogFooter>
+  1543→        </DialogContent>
+  1544→      </Dialog>
+  1545→
+  1546→      {/* Delete Confirmation */}
+  1547→      <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+  1548→        <AlertDialogContent>
+  1549→          <AlertDialogHeader>
+  1550→            <AlertDialogTitle>¿Eliminar usuario?</AlertDialogTitle>
+  1551→            <AlertDialogDescription>
+  1552→              Esta acción eliminará permanentemente al usuario &quot;{deleteTarget?.name || deleteTarget?.email}&quot;. Esta acción no se puede deshacer.
+  1553→            </AlertDialogDescription>
+  1554→          </AlertDialogHeader>
+  1555→          <AlertDialogFooter>
+  1556→            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+  1557→            <AlertDialogAction className="bg-destructive text-white hover:bg-destructive/90" onClick={handleDelete} disabled={deleting}>
+  1558→              {deleting && <Loader2 className="mr-2 size-4 animate-spin" />}
+  1559→              Eliminar
+  1560→            </AlertDialogAction>
+  1561→          </AlertDialogFooter>
+  1562→        </AlertDialogContent>
+  1563→      </AlertDialog>
+  1564→    </div>
+  1565→  )
+  1566→}
+  1567→
+  1568→// ─── Inversiones View ────────────────────────────────────────────────────────
+  1569→function InversionesView() {
+  1570→  const [investments, setInvestments] = useState<InvestmentRow[]>([])
+  1571→  const [loading, setLoading] = useState(true)
+  1572→  const [filterStatus, setFilterStatus] = useState('all')
+  1573→  const [page, setPage] = useState(1)
+  1574→  const [totalPages, setTotalPages] = useState(1)
+  1575→
+  1576→  // Status change dialog
+  1577→  const [statusTarget, setStatusTarget] = useState<InvestmentRow | null>(null)
+  1578→  const [newStatus, setNewStatus] = useState('')
+  1579→  const [submitting, setSubmitting] = useState(false)
+  1580→
+  1581→  const { toast } = useToast()
+  1582→
+  1583→  const fetchInvestments = useCallback(async () => {
+  1584→    try {
+  1585→      setLoading(true)
+  1586→      const params = new URLSearchParams()
+  1587→      if (filterStatus !== 'all') params.set('status', filterStatus)
+  1588→      params.set('page', page.toString())
+  1589→      params.set('limit', '20')
+  1590→
+  1591→      const res = await fetch(`/api/admin/investments?${params}`)
+  1592→      if (!res.ok) throw new Error('Error al cargar inversiones')
+  1593→      const data = await res.json()
+  1594→      setInvestments(data.investments)
+  1595→      setTotalPages(data.pagination.totalPages)
+  1596→    } catch {
+  1597→      toast({ title: 'Error', description: 'No se pudieron cargar las inversiones', variant: 'destructive' })
+  1598→    } finally {
+  1599→      setLoading(false)
+  1600→    }
+  1601→  }, [filterStatus, page, toast])
+  1602→
+  1603→  useEffect(() => { fetchInvestments() }, [fetchInvestments])
+  1604→
+  1605→  const openStatusChange = (inv: InvestmentRow) => {
+  1606→    setStatusTarget(inv)
+  1607→    setNewStatus(inv.status)
+  1608→  }
+  1609→
+  1610→  const handleStatusChange = async () => {
+  1611→    if (!statusTarget || !newStatus) return
+  1612→    try {
+  1613→      setSubmitting(true)
+  1614→      const res = await fetch(`/api/admin/investments/${statusTarget.id}`, {
+  1615→        method: 'PUT',
+  1616→        headers: { 'Content-Type': 'application/json' },
+  1617→        body: JSON.stringify({ status: newStatus }),
+  1618→      })
+  1619→      if (!res.ok) {
+  1620→        const err = await res.json()
+  1621→        throw new Error(err.error || 'Error al actualizar estado')
+  1622→      }
+  1623→      toast({ title: 'Estado actualizado', description: `La inversión pasó a "${newStatus}"` })
+  1624→      setStatusTarget(null)
+  1625→      fetchInvestments()
+  1626→    } catch (err) {
+  1627→      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Error desconocido', variant: 'destructive' })
+  1628→    } finally {
+  1629→      setSubmitting(false)
+  1630→    }
+  1631→  }
+  1632→
+  1633→  return (
+  1634→    <div className="space-y-6">
+  1635→      <div>
+  1636→        <h2 className="gsp-serif text-2xl font-normal tracking-tight">Inversiones</h2>
+  1637→        <p className="text-muted-foreground">Gestiona las inversiones de la plataforma</p>
+  1638→      </div>
+  1639→
+  1640→      {/* Filter */}
+  1641→      <div className="flex flex-col gap-3 sm:flex-row">
+  1642→        <Select value={filterStatus} onValueChange={(v) => { setFilterStatus(v); setPage(1) }}>
+  1643→          <SelectTrigger className="w-full sm:w-[200px]"><SelectValue placeholder="Estado" /></SelectTrigger>
+  1644→          <SelectContent>
+  1645→            <SelectItem value="all">Todos los estados</SelectItem>
+  1646→            <SelectItem value="pending">Pendiente</SelectItem>
+  1647→            <SelectItem value="completed">Completado</SelectItem>
+  1648→            <SelectItem value="cancelled">Cancelado</SelectItem>
+  1649→          </SelectContent>
+  1650→        </Select>
+  1651→      </div>
+  1652→
+  1653→      {/* Table */}
+  1654→      <Card>
+  1655→        <CardContent className="p-0">
+  1656→          {loading ? (
+  1657→            <TableSkeleton rows={5} cols={6} />
+  1658→          ) : (
+  1659→            <>
+  1660→              <div className="max-h-[480px] overflow-y-auto custom-scrollbar">
+  1661→                <Table>
+  1662→                  <TableHeader>
+  1663→                    <TableRow>
+  1664→                      <TableHead>Inversor</TableHead>
+  1665→                      <TableHead className="hidden sm:table-cell">Activo</TableHead>
+  1666→                      <TableHead className="text-right">Cantidad</TableHead>
+  1667→                      <TableHead className="text-right">Monto</TableHead>
+  1668→                      <TableHead>Estado</TableHead>
+  1669→                      <TableHead className="hidden md:table-cell">Fecha</TableHead>
+  1670→                      <TableHead className="text-right">Acciones</TableHead>
+  1671→                    </TableRow>
+  1672→                  </TableHeader>
+  1673→                  <TableBody>
+  1674→                    {investments.map((inv) => (
+  1675→                      <TableRow key={inv.id}>
+  1676→                        <TableCell className="font-medium">{inv.user.name || inv.user.email}</TableCell>
+  1677→                        <TableCell className="hidden sm:table-cell">
+  1678→                          <span className="text-sm text-muted-foreground">{inv.asset.name}</span>
+  1679→                        </TableCell>
+  1680→                        <TableCell className="text-right font-mono text-sm">{inv.quantity} fracc.</TableCell>
+  1681→                        <TableCell className="text-right font-medium">{formatUSD(inv.totalAmount)}</TableCell>
+  1682→                        <TableCell><StatusBadge status={inv.status} /></TableCell>
+  1683→                        <TableCell className="hidden md:table-cell text-muted-foreground text-sm">
+  1684→                          {new Date(inv.createdAt).toLocaleDateString('en-US')}
+  1685→                        </TableCell>
+  1686→                        <TableCell className="text-right">
+  1687→                          <Button variant="ghost" size="sm" onClick={() => openStatusChange(inv)}>
+  1688→                            <Pencil className="mr-1 size-3" /> Estado
+  1689→                          </Button>
+  1690→                        </TableCell>
+  1691→                      </TableRow>
+  1692→                    ))}
+  1693→                  </TableBody>
+  1694→                </Table>
+  1695→              </div>
+  1696→              {investments.length === 0 && (
+  1697→                <div className="flex flex-col items-center justify-center py-12 text-center">
+  1698→                  <Wallet className="mb-3 size-10 text-muted-foreground/40" />
+  1699→                  <p className="text-sm font-medium text-muted-foreground">No se encontraron inversiones</p>
+  1700→                </div>
+  1701→              )}
+  1702→            </>
+  1703→          )}
+  1704→        </CardContent>
+  1705→      </Card>
+  1706→
+  1707→      {/* Pagination */}
+  1708→      {totalPages > 1 && (
+  1709→        <div className="flex items-center justify-center gap-2">
+  1710→          <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+  1711→            <ChevronLeft className="size-4" />
+  1712→          </Button>
+  1713→          <span className="text-sm text-muted-foreground">Página {page} de {totalPages}</span>
+  1714→          <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+  1715→            <ChevronRight className="size-4" />
+  1716→          </Button>
+  1717→        </div>
+  1718→      )}
+  1719→
+  1720→      {/* Status Change Dialog */}
+  1721→      <Dialog open={!!statusTarget} onOpenChange={() => setStatusTarget(null)}>
+  1722→        <DialogContent className="sm:max-w-md">
+  1723→          <DialogHeader>
+  1724→            <DialogTitle>Cambiar Estado de Inversión</DialogTitle>
+  1725→            <DialogDescription>
+  1726→              {statusTarget?.user.name} — {statusTarget?.asset.name}
+  1727→            </DialogDescription>
+  1728→          </DialogHeader>
+  1729→          <div className="py-4">
+  1730→            <div className="space-y-2">
+  1731→              <Label>Estado actual</Label>
+  1732→              <div className="flex items-center gap-2">
+  1733→                <StatusBadge status={statusTarget?.status || 'pending'} />
+  1734→                <span className="text-sm text-muted-foreground">→</span>
+  1735→              </div>
+  1736→            </div>
+  1737→            <div className="mt-4 space-y-2">
+  1738→              <Label htmlFor="inv-status">Nuevo estado</Label>
+  1739→              <Select value={newStatus} onValueChange={setNewStatus}>
+  1740→                <SelectTrigger id="inv-status"><SelectValue /></SelectTrigger>
+  1741→                <SelectContent>
+  1742→                  <SelectItem value="pending">Pendiente</SelectItem>
+  1743→                  <SelectItem value="completed">Completado</SelectItem>
+  1744→                  <SelectItem value="cancelled">Cancelado</SelectItem>
+  1745→                </SelectContent>
+  1746→              </Select>
+  1747→            </div>
+  1748→            {statusTarget && newStatus !== statusTarget.status && (
+  1749→              <div className="mt-4 rounded-lg bg-muted p-3">
+  1750→                <p className="text-xs text-muted-foreground">
+  1751→                  {newStatus === 'completed' && statusTarget.status === 'pending' && 'Completar la inversión: se descontarán fracciones del activo y se actualizará el balance del usuario.'}
+  1752→                  {newStatus === 'cancelled' && statusTarget.status === 'completed' && 'Cancelar la inversión: se devolverán las fracciones al activo y se reembolsará al usuario.'}
+  1753→                  {newStatus === 'pending' && statusTarget.status === 'completed' && 'Volver a pendiente: esta transición no tiene efectos secundarios.'}
+  1754→                </p>
+  1755→              </div>
+  1756→            )}
+  1757→          </div>
+  1758→          <DialogFooter>
+  1759→            <Button variant="outline" onClick={() => setStatusTarget(null)}>Cancelar</Button>
+  1760→            <Button
+  1761→              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+  1762→              onClick={handleStatusChange}
+  1763→              disabled={submitting || !newStatus || newStatus === statusTarget?.status}
+  1764→            >
+  1765→              {submitting && <Loader2 className="mr-2 size-4 animate-spin" />}
+  1766→              Actualizar Estado
+  1767→            </Button>
+  1768→          </DialogFooter>
+  1769→        </DialogContent>
+  1770→      </Dialog>
+  1771→    </div>
+  1772→  )
+  1773→}
+  1774→
+  1775→// ─── Liquidez View ──────────────────────────────────────────────────────────
+  1776→function LiquidezView() {
+  1777→  const [data, setData] = useState<LiquidityData | null>(null)
+  1778→  const [loading, setLoading] = useState(true)
+  1779→  const [submitting, setSubmitting] = useState(false)
+  1780→
+  1781→  // Form state
+  1782→  const [totalReserve, setTotalReserve] = useState('')
+  1783→  const [monthlyContribution, setMonthlyContribution] = useState('')
+  1784→  const [autoReplenish, setAutoReplenish] = useState(true)
+  1785→
+  1786→  const { toast } = useToast()
+  1787→
+  1788→  const fetchData = useCallback(async () => {
+  1789→    try {
+  1790→      setLoading(true)
+  1791→      const res = await fetch('/api/admin/liquidity')
+  1792→      if (!res.ok) throw new Error('Error al cargar datos de liquidez')
+  1793→      const json = await res.json()
+  1794→      setData(json)
+  1795→      setTotalReserve(json.pool.totalReserve.toString())
+  1796→      setMonthlyContribution(json.pool.monthlyContribution?.toString() || '')
+  1797→      setAutoReplenish(json.pool.autoReplenish)
+  1798→    } catch {
+  1799→      toast({ title: 'Error', description: 'No se pudieron cargar los datos de liquidez', variant: 'destructive' })
+  1800→    } finally {
+  1801→      setLoading(false)
+  1802→    }
+  1803→  }, [toast])
+  1804→
+  1805→  useEffect(() => { fetchData() }, [fetchData])
+  1806→
+  1807→  const handleSave = async () => {
+  1808→    if (!data) return
+  1809→    try {
+  1810→      setSubmitting(true)
+  1811→      const res = await fetch('/api/admin/liquidity', {
+  1812→        method: 'PUT',
+  1813→        headers: { 'Content-Type': 'application/json' },
+  1814→        body: JSON.stringify({
+  1815→          totalReserve: parseFloat(totalReserve) || 0,
+  1816→          monthlyContribution: parseFloat(monthlyContribution) || null,
+  1817→          autoReplenish,
+  1818→        }),
+  1819→      })
+  1820→      if (!res.ok) {
+  1821→        const err = await res.json()
+  1822→        throw new Error(err.error || 'Error al actualizar')
+  1823→      }
+  1824→      toast({ title: 'Pool actualizado', description: 'La configuración del pool de liquidez se actualizó correctamente' })
+  1825→      fetchData()
+  1826→    } catch (err) {
+  1827→      toast({ title: 'Error', description: err instanceof Error ? err.message : 'Error desconocido', variant: 'destructive' })
+  1828→    } finally {
+  1829→      setSubmitting(false)
+  1830→    }
+  1831→  }
+  1832→
+  1833→  if (loading || !data) {
+  1834→    return (
+  1835→      <div className="space-y-6">
+  1836→        <Skeleton className="h-8 w-48" />
+  1837→        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)}</div>
+  1838→        <Skeleton className="h-64 rounded-xl" />
+  1839→      </div>
+  1840→    )
+  1841→  }
+  1842→
+  1843→  return (
+  1844→    <div className="space-y-6">
+  1845→      <div className="flex items-center justify-between">
+  1846→        <div>
+  1847→          <h2 className="gsp-serif text-2xl font-normal tracking-tight">Pool de Liquidez</h2>
+  1848→          <p className="text-muted-foreground">Gestiona el fondo de liquidez de la plataforma</p>
+  1849→        </div>
+  1850→        <Button variant="outline" size="sm" onClick={fetchData}>
+  1851→          <RefreshCw className="mr-2 size-3" /> Actualizar
+  1852→        </Button>
+  1853→      </div>
+  1854→
+  1855→      {/* Pool Stats */}
+  1856→      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+  1857→        <Card>
+  1858→          <CardContent className="p-4">
+  1859→            <div className="flex items-center gap-3">
+  1860→              <div className="rounded-xl bg-emerald-100 p-2.5 dark:bg-emerald-900/30">
+  1861→                <Droplets className="size-5 text-emerald-600 dark:text-emerald-400" />
+  1862→              </div>
+  1863→              <div>
+  1864→                <p className="text-sm text-muted-foreground">Reserva Total</p>
+  1865→                <p className="text-xl font-bold">{formatUSD(data.pool.totalReserve)}</p>
+  1866→              </div>
+  1867→            </div>
+  1868→          </CardContent>
+  1869→        </Card>
+  1870→        <Card>
+  1871→          <CardContent className="p-4">
+  1872→            <div className="flex items-center gap-3">
+  1873→              <div className="rounded-xl bg-blue-100 p-2.5 dark:bg-blue-900/30">
+  1874→                <Activity className="size-5 text-blue-600 dark:text-blue-400" />
+  1875→              </div>
+  1876→              <div>
+  1877→                <p className="text-sm text-muted-foreground">Tasa de Uso</p>
+  1878→                <p className="text-xl font-bold">{data.pool.utilizationRate.toFixed(1)}%</p>
+  1879→              </div>
+  1880→            </div>
+  1881→          </CardContent>
+  1882→        </Card>
+  1883→        <Card>
+  1884→          <CardContent className="p-4">
+  1885→            <div className="flex items-center gap-3">
+  1886→              <div className="rounded-xl bg-yellow-100 p-2.5 dark:bg-yellow-900/30">
+  1887→                <Clock className="size-5 text-yellow-600 dark:text-yellow-400" />
+  1888→              </div>
+  1889→              <div>
+  1890→                <p className="text-sm text-muted-foreground">Solicitudes Activas</p>
+  1891→                <p className="text-xl font-bold">{data.pool.activeRequests}</p>
+  1892→              </div>
+  1893→            </div>
+  1894→          </CardContent>
+  1895→        </Card>
+  1896→        <Card>
+  1897→          <CardContent className="p-4">
+  1898→            <div className="flex items-center gap-3">
+  1899→              <div className="rounded-xl bg-emerald-100 p-2.5 dark:bg-emerald-900/30">
+  1900→                <CheckCircle2 className="size-5 text-emerald-600 dark:text-emerald-400" />
+  1901→              </div>
+  1902→              <div>
+  1903→                <p className="text-sm text-muted-foreground">Auto-Reposición</p>
+  1904→                <p className="text-xl font-bold">{data.pool.autoReplenish ? 'Activado' : 'Desactivado'}</p>
+  1905→              </div>
+  1906→            </div>
+  1907→          </CardContent>
+  1908→        </Card>
+  1909→      </div>
+  1910→
+  1911→      {/* Pool Settings + Stats */}
+  1912→      <div className="grid gap-6 lg:grid-cols-2">
+  1913→        {/* Settings Form */}
+  1914→        <Card>
+  1915→          <CardHeader>
+  1916→            <CardTitle className="text-base">Configuración del Pool</CardTitle>
+  1917→            <CardDescription>Ajusta los parámetros del fondo de liquidez</CardDescription>
+  1918→          </CardHeader>
+  1919→          <CardContent className="space-y-4">
+  1920→            <div className="space-y-2">
+  1921→              <Label htmlFor="liq-reserve">Reserva Total (USD)</Label>
+  1922→              <Input id="liq-reserve" type="number" value={totalReserve} onChange={(e) => setTotalReserve(e.target.value)} />
+  1923→            </div>
+  1924→            <div className="space-y-2">
+  1925→              <Label htmlFor="liq-monthly">Aporte Mensual (USD)</Label>
+  1926→              <Input id="liq-monthly" type="number" value={monthlyContribution} onChange={(e) => setMonthlyContribution(e.target.value)} placeholder="0" />
+  1927→            </div>
+  1928→            <div className="flex items-center justify-between rounded-lg border p-3">
+  1929→              <div>
+  1930→                <p className="text-sm font-medium">Auto-Reposición</p>
+  1931→                <p className="text-xs text-muted-foreground">Reponer automáticamente el fondo</p>
+  1932→              </div>
+  1933→              <Switch checked={autoReplenish} onCheckedChange={setAutoReplenish} />
+  1934→            </div>
+  1935→            <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white" onClick={handleSave} disabled={submitting}>
+  1936→              {submitting && <Loader2 className="mr-2 size-4 animate-spin" />}
+  1937→              Guardar Configuración
+  1938→            </Button>
+  1939→          </CardContent>
+  1940→        </Card>
+  1941→
+  1942→        {/* Request Stats */}
+  1943→        <Card>
+  1944→          <CardHeader>
+  1945→            <CardTitle className="text-base">Estadísticas de Solicitudes</CardTitle>
+  1946→            <CardDescription>Resumen de solicitudes de liquidez</CardDescription>
+  1947→          </CardHeader>
+  1948→          <CardContent className="space-y-4">
+  1949→            <div className="grid grid-cols-2 gap-4">
+  1950→              <div className="rounded-lg bg-muted p-3 text-center">
+  1951→                <p className="text-2xl font-bold">{data.stats.pendingCount}</p>
+  1952→                <p className="text-xs text-muted-foreground">Pendientes</p>
+  1953→              </div>
+  1954→              <div className="rounded-lg bg-muted p-3 text-center">
+  1955→                <p className="text-2xl font-bold">{data.stats.processingCount}</p>
+  1956→                <p className="text-xs text-muted-foreground">Procesando</p>
+  1957→              </div>
+  1958→              <div className="rounded-lg bg-muted p-3 text-center">
+  1959→                <p className="text-2xl font-bold">{data.stats.completedCount}</p>
+  1960→                <p className="text-xs text-muted-foreground">Completadas</p>
+  1961→              </div>
+  1962→              <div className="rounded-lg bg-muted p-3 text-center">
+  1963→                <p className="text-2xl font-bold">{data.stats.rejectedCount}</p>
+  1964→                <p className="text-xs text-muted-foreground">Rechazadas</p>
+  1965→              </div>
+  1966→            </div>
+  1967→            <Separator />
+  1968→            <div className="space-y-2">
+  1969→              <div className="flex justify-between text-sm">
+  1970→                <span className="text-muted-foreground">Monto Total Solicitado</span>
+  1971→                <span className="font-medium">{formatUSD(data.stats.totalRequestedAmount)}</span>
+  1972→              </div>
+  1973→              <div className="flex justify-between text-sm">
+  1974→                <span className="text-muted-foreground">Monto Total Completado</span>
+  1975→                <span className="font-medium">{formatUSD(data.stats.totalCompletedAmount)}</span>
+  1976→              </div>
+  1977→              <div className="flex justify-between text-sm">
+  1978→                <span className="text-muted-foreground">Fees Recaudados</span>
+  1979→                <span className="font-medium text-emerald-600 dark:text-emerald-400">{formatUSD(data.stats.totalFeesCollected)}</span>
+  1980→              </div>
+  1981→            </div>
+  1982→          </CardContent>
+  1983→        </Card>
+  1984→      </div>
+  1985→
+  1986→      {/* Active Requests Table */}
+  1987→      <Card>
+  1988→        <CardHeader>
+  1989→          <CardTitle className="text-base">Solicitudes Recientes</CardTitle>
+  1990→          <CardDescription>Últimas solicitudes de liquidez</CardDescription>
+  1991→        </CardHeader>
+  1992→        <CardContent className="p-0">
+  1993→          {data.recentRequests.length === 0 ? (
+  1994→            <div className="flex flex-col items-center justify-center py-12 text-center">
+  1995→              <Droplets className="mb-3 size-10 text-muted-foreground/40" />
+  1996→              <p className="text-sm font-medium text-muted-foreground">Sin solicitudes de liquidez</p>
+  1997→            </div>
+  1998→          ) : (
+  1999→            <div className="max-h-[360px] overflow-y-auto custom-scrollbar">
+  2000→              <Table>
+
+[showing lines 1-2000 of 2292; use offset=2001 with limit to continue reading]

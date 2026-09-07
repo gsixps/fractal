@@ -170,7 +170,7 @@ function getAdminNotifications(): AdminNotification[] {
 
 function subscribeToNotifications(listener: () => void) {
   _listeners.add(listener)
-  return () => _listeners.delete(listener)
+  return () => { _listeners.delete(listener) }
 }
 
 // ─── Types ───────────────────────────────────────────────────────────────────

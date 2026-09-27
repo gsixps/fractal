@@ -29,6 +29,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { WalletConnectCard } from '@/components/gsp/shared/WalletConnectCard'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -335,6 +336,9 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Wallet / Billetera Digital */}
+        <WalletConnectCard />
 
         {/* Quick Actions */}
         <Card className="border-border/40">

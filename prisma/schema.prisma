@@ -40,6 +40,12 @@ model User {
   lastLoginAt      DateTime?
   notes            String?
 
+  // ERC-6551 / wallet integration (fase 1)
+  walletAddress       String?
+  walletNonce         String?
+  walletNonceExpiresAt DateTime?
+  walletLinkedAt      DateTime?
+
   investments       Investment[]
   secondaryMarketListings    SecondaryMarketListing[] @relation("SellerListings")
   secondaryMarketPurchases   SecondaryMarketListing[] @relation("BuyerPurchases")
@@ -49,9 +55,154 @@ model User {
   notifications     Notification[]
   liquidityRequests LiquidityRequest[]
   blogPosts         BlogPost[]
+  fundInvestments   FundInvestment[]
+  fundDividendPayments FundDividendPayment[]
 
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+}
+
+// ==================== FUNDS ENGINE ====================
+
+model Fund {
+  id                        String    @id
+  name                      String
+  slug                      String    @unique
+  description               String
+  status                    String    @default("active") // active, paused, closed
+  initialNavPerShare        Float     @default(0)
+  navPerShare               Float     @default(0)
+  totalShares               Int       @default(0)
+  availableShares           Int       @default(0)
+  pricePerShare             Float     @default(0)
+  totalAUM                  Float     @default(0)
+  expenseRatio              Float     @default(0)
+  dividendYield             Float     @default(0)
+  totalReturn1Y             Float     @default(0)
+  totalReturnSinceInception Float     @default(0)
+  fundType                  String    @default("mixed") // reit, mixed, datacenter, income
+  riskLevel                 String    @default("medium")
+  rebalanceFrequency        String    @default("quarterly")
+  minInvestment             Float     @default(0)
+  maxInvestmentPerUser      Float?
+  inceptionDate             DateTime
+  dividendFrequency         String    @default("quarterly") // monthly, quarterly
+  fundManager               String?
+  badge                     String?
+  highlights                String?
+
+  holdings                 FundHolding[]
+  navHistory               NAVHistory[]
+  fundInvestments          FundInvestment[]
+  dividends                FundDividendPayment[]
+  rebalanceLogs            RebalanceLog[]
+
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  @@index([status])
+  @@index([fundType])
+}
+
+model FundHolding {
+  id               String   @id @default(cuid())
+  fundId           String
+  fund             Fund     @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  assetId          String
+  asset            Asset    @relation(fields: [assetId], references: [id])
+
+  targetWeightPct  Float    @default(0)
+  currentWeightPct Float    @default(0)
+  fractionCount    Int      @default(0)
+  valueUsd         Float    @default(0)
+  averageBuyPrice  Float    @default(0)
+  totalCostBasis   Float    @default(0)
+  unrealizedPL     Float    @default(0)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([fundId, assetId])
+  @@index([assetId])
+}
+
+model FundInvestment {
+  id              String   @id @default(cuid())
+  fundId          String
+  fund            Fund     @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+
+  shares          Float    @default(0)
+  averageBuyPrice Float    @default(0)
+  totalInvested   Float    @default(0)
+  currentValue    Float    @default(0)
+  unrealizedPL    Float    @default(0)
+  status          String   @default("active")
+
+  dividends       FundDividendPayment[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, fundId])
+  @@index([status])
+}
+
+model FundDividendPayment {
+  id                 String   @id @default(cuid())
+  fundId             String
+  fund               Fund     @relation(fields: [fundId], references: [id], onDelete: Cascade)
+  fundInvestmentId   String
+  fundInvestment     FundInvestment @relation(fields: [fundInvestmentId], references: [id], onDelete: Cascade)
+  userId             String
+  user               User     @relation(fields: [userId], references: [id])
+
+  sharesHeld         Float    @default(0)
+  dividendPerShare   Float    @default(0)
+  totalAmount        Float    @default(0)
+  periodStart        DateTime
+  periodEnd          DateTime
+  paymentDate        DateTime?
+  status             String   @default("pending")
+
+  createdAt          DateTime @default(now())
+
+  @@index([userId])
+  @@index([fundInvestmentId])
+  @@index([fundId, periodStart])
+  @@unique([fundId, fundInvestmentId, periodStart])
+}
+
+model NAVHistory {
+  id          String   @id @default(cuid())
+  fundId      String
+  fund        Fund     @relation(fields: [fundId], references: [id], onDelete: Cascade)
+
+  navPerShare Float
+  totalAUM    Float    @default(0)
+  totalShares Int      @default(0)
+  date        DateTime
+
+  createdAt   DateTime @default(now())
+
+  @@unique([fundId, date])
+  @@index([date])
+}
+
+model RebalanceLog {
+  id              String   @id @default(cuid())
+  fundId          String
+  fund            Fund     @relation(fields: [fundId], references: [id], onDelete: Cascade)
+
+  reason          String
+  previousWeights String
+  newWeights      String
+  executedBy      String   @default("system")
+
+  createdAt       DateTime @default(now())
+
+  @@index([fundId])
 }
 
 model KYCDocument {
@@ -135,9 +286,13 @@ model Asset {
   cashFlowProjections   CashFlowProjection[]
   investments           Investment[]
   secondaryMarketListings SecondaryMarketListing[]
+  fundHoldings          FundHolding[]
 
   createdAt             DateTime            @default(now())
   updatedAt             DateTime            @updatedAt
+
+  @@index([type])
+  @@index([status])
 }
 
 model AssetImage {
@@ -150,6 +305,8 @@ model AssetImage {
   isCover   Boolean  @default(false)
 
   createdAt DateTime @default(now())
+
+  @@index([assetId])
 }
 
 model AssetDocument {
@@ -162,6 +319,8 @@ model AssetDocument {
   fileSize     Int?
 
   createdAt    DateTime @default(now())
+
+  @@index([assetId])
 }
 
 model CashFlowProjection {
@@ -178,6 +337,8 @@ model CashFlowProjection {
   cumulativeReturn  Float?
 
   createdAt         DateTime @default(now())
+
+  @@index([assetId])
 }
 
 // ==================== INVESTMENTS & TRANSACTIONS ====================
@@ -197,12 +358,48 @@ model Investment {
   stripePaymentId  String?
   completedAt      DateTime?
 
+  // ERC-6551 / on-chain position (fase 1)
+  tokenId        Int?
+  tokenContract  String?
+  tbaAddress     String?
+  chainId        Int?
+
   transactions     Transaction[]
   dividendPayments DividendPayment[]
   secondaryMarketListings SecondaryMarketListing[]
+  onChainActions   OnChainAction[]
 
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([assetId])
+  @@index([status])
+  @@index([stripePaymentId])
+}
+
+// Receipts/acciones on-chain (minteos, TBA, transferencias) — idempotencia ERC-6551
+model OnChainAction {
+  id             String     @id @default(cuid())
+  investmentId   String?
+  investment     Investment? @relation(fields: [investmentId], references: [id], onDelete: SetNull)
+  listingId      String?
+  action         String
+  status         String     @default("pending") // pending, submitted, mined, failed, dry-run
+  chainId        Int?
+  txHash         String?
+  tokenId        Int?
+  tokenContract  String?
+  tbaAddress     String?
+  payload        String?
+  error          String?
+
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([investmentId])
+  @@index([status])
+  @@index([txHash])
 }
 
 model Transaction {
@@ -231,6 +428,11 @@ model Transaction {
 
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
+
+  @@index([userId])
+  @@index([investmentId])
+  @@index([referenceId])
+  @@index([status])
 }
 
 // ==================== DIVIDENDS ====================
@@ -252,6 +454,10 @@ model DividendPayment {
 
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([investmentId])
+  @@index([assetId])
 }
 
 // ==================== LIQUIDITY ENGINE ====================
@@ -294,6 +500,10 @@ model LiquidityRequest {
 
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([poolId])
 }
 
 // ==================== NOTIFICATIONS ====================
@@ -310,6 +520,9 @@ model Notification {
   metadata  String?
 
   createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([read])
 }
 
 // ==================== CMS: SITE SETTINGS ====================
@@ -350,6 +563,9 @@ model BlogPost {
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  @@index([status])
+  @@index([authorId])
 }
 
 // ==================== CMS: FAQ ====================
@@ -604,6 +820,10 @@ model SecondaryMarketListing {
 
   createdAt           DateTime   @default(now())
   updatedAt           DateTime   @updatedAt
+
+  @@index([sellerId])
+  @@index([assetId])
+  @@index([status])
 }
 
 model Referral {
@@ -618,6 +838,10 @@ model Referral {
   bonusCurrency   String        @default("USD")
   status          String        @default("pending") // pending, completed, paid
   createdAt       DateTime      @default(now())
+
+  @@index([referrerId])
+  @@index([referredId])
+  @@index([status])
 }
 
 // ==================== CMS: NEWSLETTER SUBSCRIPTIONS ====================

@@ -240,7 +240,7 @@ export async function withdrawFromTba(opts: { userId: string; amountUsd: number 
   })
   if (investments.length === 0) return { ok: false, error: 'no_tba_found' }
 
-  const receipt = await db.onChainAction.create({
+  await db.onChainAction.create({
     data: {
       investmentId: investments[0].id,
       action: 'withdraw_from_tba',
